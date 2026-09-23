@@ -191,7 +191,7 @@ export default function HairTransferScreen() {
       }
       setSaving(true);
       // Download the remote result to a local file, then save to the library.
-      const fileUri = FileSystem.cacheDirectory + `tressana-look-${Date.now()}.png`;
+      const fileUri = FileSystem.cacheDirectory + `halea-look-${Date.now()}.png`;
       const dl = await FileSystem.downloadAsync(result, fileUri);
       await MediaLibrary.saveToLibraryAsync(dl.uri);
       Alert.alert('Saved', 'Your new look has been saved to your photos.');
@@ -212,14 +212,14 @@ export default function HairTransferScreen() {
 
       {stage === 'upload' && (
         <ScrollView contentContainerStyle={st.scroll} showsVerticalScrollIndicator={false}>
-          <Animated.View entering={FadeInUp.duration(300)}>
+          <Animated.View >
             <Text style={st.heroTitle}>See yourself with a new style</Text>
             <Text style={st.heroSub}>Upload your selfie and a reference hairstyle. Our AI generates a 4K image of you with that look.</Text>
-            <Text style={st.privacyNote}>Your photos are used only to create your look and aren't saved to your Tressana account.</Text>
+            <Text style={st.privacyNote}>Your photos are used only to create your look and aren't saved to your Halea account.</Text>
           </Animated.View>
 
           {/* Selfie upload */}
-          <Animated.View entering={FadeInUp.delay(50).duration(300)}>
+          <Animated.View >
             <Text style={st.sectionLabel}>Your selfie</Text>
             {selfie ? (
               <Pressable onPress={() => chooseImage('selfie')} style={st.imagePreview}>
@@ -236,7 +236,7 @@ export default function HairTransferScreen() {
           </Animated.View>
 
           {/* Reference upload */}
-          <Animated.View entering={FadeInUp.delay(100).duration(300)}>
+          <Animated.View >
             <Text style={st.sectionLabel}>Reference hairstyle</Text>
             {reference ? (
               <Pressable onPress={() => chooseImage('reference')} style={st.imagePreview}>
@@ -253,7 +253,7 @@ export default function HairTransferScreen() {
           </Animated.View>
 
           {/* Generate button */}
-          <Animated.View entering={FadeInUp.delay(150).duration(300)}>
+          <Animated.View >
             <Pressable
               onPress={handleGenerate}
               disabled={!selfie || !reference}
@@ -278,7 +278,7 @@ export default function HairTransferScreen() {
 
       {stage === 'result' && result && (
         <ScrollView contentContainerStyle={st.resultScroll} showsVerticalScrollIndicator={false}>
-          <Animated.View entering={FadeInUp.duration(400)}>
+          <Animated.View >
             <View style={st.resultCard}>
               <Image source={{ uri: result }} style={st.resultImg} resizeMode="contain" />
             </View>

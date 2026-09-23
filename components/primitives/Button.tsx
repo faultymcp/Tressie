@@ -118,7 +118,7 @@ const s = StyleSheet.create({
   },
   fullWidth: { width: '100%' },
 
-  sizeRegular: { paddingVertical: 17, paddingHorizontal: 24 },
+  sizeRegular: { paddingVertical: 16, paddingHorizontal: 24 },
   sizeCompact: { paddingVertical: 12, paddingHorizontal: 16 },
 
   primary: {

@@ -1,6 +1,6 @@
 // app/(tabs)/_layout.tsx
 //
-// The tab bar. Editorial chrome that wraps every tab in Tressana.
+// The tab bar. Editorial chrome that wraps every tab in Halea.
 //
 // Design rules:
 //   - Slimmer silhouette than default RN tabs (76pt on iOS vs 88pt)
@@ -24,7 +24,7 @@ import { Colors } from '@/constants/theme';
 
 // ── Color tokens local to chrome ─────────────────────────────────
 const IDLE = 'rgba(51,36,99,0.42)';      // muted ink
-const ACTIVE = '#7643AC';                 // violet
+const ACTIVE = '#241C17';                 // violet
 const GOLD = '#8AB800';                   // earthy gold for dot
 const BG_BLUR_TINT = Platform.OS === 'ios' ? 'light' : 'default';
 
@@ -73,8 +73,8 @@ function IconAI({ focused }: { focused: boolean }) {
       <View style={[styles.aiGlow, focused && styles.aiGlowActive]} />
       <LinearGradient
         colors={focused
-          ? ['#F484B9', '#7643AC']
-          : ['#7643AC', '#F484B9']
+          ? ['#8C5A3C', '#241C17']
+          : ['#241C17', '#8C5A3C']
         }
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   // ── Labels (caps style, idle vs active) ──
   labelWrap: {
     alignItems: 'center',
-    marginTop: 1,
+    marginTop: 2,
   },
   label: {
     fontFamily: 'Sora_500Medium',
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     backgroundColor: GOLD,
-    marginTop: 3,
+    marginTop: 4,
   },
 
   // ── AI raised button ──
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#7643AC',
+    shadowColor: '#241C17',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
     shadowRadius: 10,

@@ -4,7 +4,7 @@ import {
   ActivityIndicator, Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { Colors, Fonts } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
@@ -123,7 +123,7 @@ export default function BookingsScreen() {
             const status = STATUS_CONFIG[b.status] || STATUS_CONFIG.pending;
             const hasDiscount = b.discount_amount_pence > 0;
             return (
-              <Animated.View key={b.id} entering={FadeInUp.delay(30 * i).duration(250)}>
+              <Animated.View key={b.id} >
                 <View style={st.card}>
                   {/* Top row */}
                   <View style={st.cardTop}>

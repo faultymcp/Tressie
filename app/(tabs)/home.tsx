@@ -1,6 +1,6 @@
 // app/(tabs)/home.tsx
 //
-// Tressana home — the daily editorial surface.
+// Halea home — the daily editorial surface.
 //
 // Design lineage:
 //   - Flo's ritual (the user returns daily for a relationship with her hair)
@@ -66,7 +66,7 @@ function IconChev({ color = '#8A7FA0' }: { color?: string }) {
   return <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round"><Path d="M9 18l6-6-6-6" /></Svg>;
 }
 function IconStar() {
-  return <Svg width={11} height={11} viewBox="0 0 24 24" fill="#7643AC"><Path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z" /></Svg>;
+  return <Svg width={11} height={11} viewBox="0 0 24 24" fill="#241C17"><Path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z" /></Svg>;
 }
 function IconPin() {
   return <Svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="#8A7FA0" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><Path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><Circle cx="12" cy="10" r="3" /></Svg>;
@@ -141,7 +141,7 @@ function dailyNote(hairType: string, segments: string[], porosity: string, daysS
   const notes: string[] = [];
 
   // Cycle-based first (most specific)
-  if (daysSinceWash === 0) notes.push("Today's hair is freshly washed — let the natural oils start to do their work.");
+  if (daysSinceWash === 0) notes.push("Today's hair is freshly washed. Let the natural oils start to do their work.");
   else if (daysSinceWash >= 3 && daysSinceWash <= 5) notes.push("Day three to five is often when hair stops cooperating. Trust the rhythm.");
   else if (daysSinceWash >= 6) notes.push("Your scalp will start letting you know it's wash time. Listen.");
 
@@ -220,12 +220,12 @@ export default function HomeScreen() {
   useEffect(() => {
     (async () => {
       // User name
-      const userRaw = await AsyncStorage.getItem('tressana_user');
+      const userRaw = await AsyncStorage.getItem('halea_user');
       const userObj = userRaw ? JSON.parse(userRaw) : null;
       setFirstName(userObj?.firstName?.trim() || '');
 
       // Quiz data
-      const quizRaw = await AsyncStorage.getItem('tressana_quiz');
+      const quizRaw = await AsyncStorage.getItem('halea_quiz');
       const data = quizRaw ? JSON.parse(quizRaw) : null;
       const ht = data?.hairType || '3A';
       const goals = data?.goals || [];
@@ -242,7 +242,7 @@ export default function HomeScreen() {
       let dbPlan: Record<string, DayPlan> | null = null;
 
       // Read local checks first so server seed (below) is authoritative.
-      const checksRaw = await AsyncStorage.getItem('tressana_checks');
+      const checksRaw = await AsyncStorage.getItem('halea_checks');
       if (checksRaw) {
         try { setChecks(JSON.parse(checksRaw)); } catch {}
       }
@@ -272,7 +272,7 @@ export default function HomeScreen() {
       setWeekPlan(dbPlan || buildWeekFallback());
 
       // Days since wash (rough estimate from check history)
-      const lastWashRaw = await AsyncStorage.getItem('tressana_last_wash');
+      const lastWashRaw = await AsyncStorage.getItem('halea_last_wash');
       if (lastWashRaw) {
         const last = new Date(lastWashRaw);
         const diff = Math.floor((Date.now() - last.getTime()) / (1000 * 60 * 60 * 24));
@@ -281,7 +281,7 @@ export default function HomeScreen() {
 
       // Daily login XP
       const today = new Date().toISOString().split('T')[0];
-      const lastLogin = await AsyncStorage.getItem('tressana_last_login_xp');
+      const lastLogin = await AsyncStorage.getItem('halea_last_login_xp');
       if (lastLogin !== today) {
         const xp = await doAwardXp('daily_login', undefined, 'Daily app open');
         if (xp > 0) { setXpToday(prev => prev + xp); showXpToast(xp); }
@@ -289,7 +289,7 @@ export default function HomeScreen() {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) await supabase.rpc('update_streak', { p_user_id: user.id });
         } catch {}
-        await AsyncStorage.setItem('tressana_last_login_xp', today);
+        await AsyncStorage.setItem('halea_last_login_xp', today);
       }
 
       // Streak
@@ -330,11 +330,11 @@ export default function HomeScreen() {
     dayChecks[stepId] = !wasDone;
     const updated = { ...checks, [day]: dayChecks };
     setChecks(updated);
-    await AsyncStorage.setItem('tressana_checks', JSON.stringify(updated)).catch(() => {});
+    await AsyncStorage.setItem('halea_checks', JSON.stringify(updated)).catch(() => {});
 
     // If wash step completed, record wash date
     if (!wasDone && (stepName.toLowerCase().includes('cleanse') || stepName.toLowerCase().includes('wash') || stepName.toLowerCase().includes('shampoo'))) {
-      await AsyncStorage.setItem('tressana_last_wash', new Date().toISOString());
+      await AsyncStorage.setItem('halea_last_wash', new Date().toISOString());
       setDaysSinceWash(0);
     }
 
@@ -405,7 +405,7 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* ── 1. MASTHEAD ── */}
-        <Animated.View entering={FadeIn.duration(400)} style={st.masthead}>
+        <Animated.View style={st.masthead}>
           <View style={st.mastheadTop}>
             <Text style={st.dateLabel}>{dateMasthead()}</Text>
             {streak > 0 && (
@@ -421,7 +421,7 @@ export default function HomeScreen() {
         </Animated.View>
 
         {/* ── 2. TODAY (hero) ── */}
-        <Animated.View entering={FadeInUp.delay(80).duration(450)} style={st.heroCard}>
+        <Animated.View style={st.heroCard}>
           <Text style={st.editorialLabel}>TODAY</Text>
           <Text style={st.heroTitle}>{today.label || 'A quiet day.'}</Text>
           {totalCount > 0 && (
@@ -464,13 +464,13 @@ export default function HomeScreen() {
         </Animated.View>
 
         {/* ── 3. TODAY'S NOTE ── */}
-        <Animated.View entering={FadeInUp.delay(160).duration(450)} style={st.noteCard}>
+        <Animated.View style={st.noteCard}>
           <Text style={st.noteLabel}>TODAY'S NOTE</Text>
           <Text style={st.noteText}>{note}</Text>
         </Animated.View>
 
         {/* ── 4. YOUR HAIR, IN NUMBERS ── */}
-        <Animated.View entering={FadeInUp.delay(240).duration(450)} style={st.rhythmCard}>
+        <Animated.View style={st.rhythmCard}>
           <Text style={st.editorialLabel}>YOUR RHYTHM</Text>
           <View style={st.rhythmRow}>
             <View style={st.rhythmCol}>
@@ -479,19 +479,19 @@ export default function HomeScreen() {
             </View>
             <View style={st.rhythmDivider} />
             <View style={st.rhythmCol}>
-              <Text style={st.rhythmNum}>{nextWashDay || '—'}</Text>
+              <Text style={st.rhythmNum}>{nextWashDay || '–'}</Text>
               <Text style={st.rhythmLabel}>next wash</Text>
             </View>
             <View style={st.rhythmDivider} />
             <View style={st.rhythmCol}>
-              <Text style={st.rhythmNum}>{hairType || '—'}</Text>
+              <Text style={st.rhythmNum}>{hairType || '–'}</Text>
               <Text style={st.rhythmLabel}>your type</Text>
             </View>
           </View>
         </Animated.View>
 
         {/* ── Try-on entry ── */}
-        <Animated.View entering={FadeInUp.delay(360).duration(450)}>
+        <Animated.View >
           <Pressable
             onPress={() => router.push('/hairtransfer')}
             style={st.tryOnCard}
@@ -501,7 +501,7 @@ export default function HomeScreen() {
             <View style={st.tryOnTextCol}>
               <Text style={st.tryOnLabel}>VIRTUAL TRY-ON</Text>
               <Text style={st.tryOnTitle}>See a new style on you</Text>
-              <Text style={st.tryOnSub}>Upload a selfie and a reference look — we'll swap the hairstyle onto your photo.</Text>
+              <Text style={st.tryOnSub}>Upload a selfie and a reference look. We'll swap the hairstyle onto your photo.</Text>
             </View>
             <View style={st.tryOnIconWrap}>
               <Svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.8} strokeLinecap="round">
@@ -513,7 +513,7 @@ export default function HomeScreen() {
         </Animated.View>
 
         {/* ── 5. YOUR FULL ROUTINE (collapsible) ── */}
-        <Animated.View entering={FadeInUp.delay(320).duration(450)} style={st.routineCard}>
+        <Animated.View style={st.routineCard}>
           <Pressable
             onPress={() => {
               Haptics.selectionAsync().catch(() => {});
@@ -528,7 +528,7 @@ export default function HomeScreen() {
               <Text style={st.routineTitle}>Across the week</Text>
             </View>
             <View style={[st.chevWrap, routineExpanded && st.chevWrapOpen]}>
-              <IconChev color="#7643AC" />
+              <IconChev color="#241C17" />
             </View>
           </Pressable>
           {routineExpanded && (
@@ -579,7 +579,7 @@ export default function HomeScreen() {
 
         {/* ── 6. PICK OF THE DAY (product OR content) ── */}
         {products.length > 0 && (
-          <Animated.View entering={FadeInUp.delay(400).duration(450)} style={st.pickCard}>
+          <Animated.View style={st.pickCard}>
             <Text style={st.goldLabel}>PICK OF THE DAY</Text>
             <Text style={st.pickTitle}>{products[0].name}</Text>
             <Text style={st.pickBrand}>{products[0].brand || 'For your type'}</Text>
@@ -594,7 +594,7 @@ export default function HomeScreen() {
 
         {/* ── 7. SALONS NEAR YOU ── */}
         {salons.length > 0 && (
-          <Animated.View entering={FadeInUp.delay(480).duration(450)} style={st.salonsSection}>
+          <Animated.View style={st.salonsSection}>
             <View style={st.sectionHeader}>
               <Text style={st.editorialLabel}>SALONS NEAR YOU</Text>
               <Pressable onPress={() => router.push('/(tabs)/salons')}>
@@ -629,9 +629,9 @@ export default function HomeScreen() {
         )}
 
         {/* ── 8. CLOSING NOTE ── */}
-        <Animated.View entering={FadeInUp.delay(560).duration(450)} style={st.closer}>
+        <Animated.View style={st.closer}>
           <Text style={st.closerText}>
-            Tressana adjusts as you do — tap any step to make it yours.
+            Halea adjusts as you do. Tap any step to make it yours.
           </Text>
         </Animated.View>
       </ScrollView>
@@ -671,7 +671,7 @@ const st = StyleSheet.create({
   streakPill: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: 5,
+    gap: 4,
     backgroundColor: Colors.violetBg2,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -716,7 +716,7 @@ const st = StyleSheet.create({
   heroCard: {
     backgroundColor: 'rgba(124,77,200,0.10)',
     borderRadius: Radius.lg,
-    padding: 22,
+    padding: 24,
     marginBottom: 16,
     borderWidth: 1,
     borderColor: 'rgba(124,77,200,0.22)',
@@ -805,7 +805,7 @@ const st = StyleSheet.create({
   noteCard: {
     backgroundColor: 'rgba(118,67,172,0.04)',
     borderRadius: Radius.lg,
-    padding: 22,
+    padding: 24,
     marginBottom: 16,
     borderLeftWidth: 3,
     borderLeftColor: Colors.violet,
@@ -874,7 +874,7 @@ const st = StyleSheet.create({
   rhythmCard: {
     backgroundColor: Colors.white,
     borderRadius: Radius.lg,
-    padding: 22,
+    padding: 24,
     marginBottom: 16,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -913,7 +913,7 @@ const st = StyleSheet.create({
   routineCard: {
     backgroundColor: Colors.white,
     borderRadius: Radius.lg,
-    padding: 22,
+    padding: 24,
     marginBottom: 16,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -989,7 +989,7 @@ const st = StyleSheet.create({
     transform: [{ rotate: '-90deg' }],
   },
   dayStepsList: {
-    paddingLeft: 44,
+    paddingLeft: 40,
     paddingBottom: 10,
     gap: 10,
   },
@@ -1014,7 +1014,7 @@ const st = StyleSheet.create({
     fontFamily: Fonts.body,
     fontSize: 11,
     color: Colors.muted,
-    marginTop: 1,
+    marginTop: 2,
   },
   dayStepXp: {
     fontFamily: 'Sora_500Medium',
@@ -1026,7 +1026,7 @@ const st = StyleSheet.create({
   pickCard: {
     backgroundColor: '#FAFCE8',
     borderRadius: Radius.lg,
-    padding: 22,
+    padding: 24,
     marginBottom: 16,
     borderWidth: 1,
     borderColor: 'rgba(138,184,0,0.18)',
@@ -1059,7 +1059,7 @@ const st = StyleSheet.create({
   pickCtaText: {
     fontFamily: 'Sora_500Medium',
     fontSize: 12,
-    color: '#7643AC',
+    color: '#241C17',
     letterSpacing: 0.3,
   },
 
@@ -1112,7 +1112,7 @@ const st = StyleSheet.create({
   salonMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 4,
   },
   salonArea: {
     fontFamily: Fonts.body,

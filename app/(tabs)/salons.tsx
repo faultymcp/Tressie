@@ -56,7 +56,7 @@ export default function SalonsScreen() {
   const typeGroup = hairType.charAt(0) || '';
 
   useEffect(() => {
-    AsyncStorage.getItem('tressana_quiz').then(raw => {
+    AsyncStorage.getItem('halea_quiz').then(raw => {
       if (raw) setHairType(JSON.parse(raw).hairType || '');
     });
     fetchSalons();
@@ -192,7 +192,7 @@ export default function SalonsScreen() {
           <Text style={st.resultCount}>{filtered.length} salon{filtered.length !== 1 ? 's' : ''} found</Text>
 
           {filtered.map((salon, i) => (
-            <Animated.View key={salon.id} entering={FadeInUp.delay(40 * i).duration(300)}>
+            <Animated.View key={salon.id} >
               <View style={st.card}>
                 <View style={st.cardTop}>
                   <View style={{ flex: 1 }}>
@@ -224,7 +224,7 @@ export default function SalonsScreen() {
                   )}
                   {salon.snacks && (
                     <View style={st.snacksTag}>
-                      <Text style={st.snacksTagText}>🍪 Snacks</Text>
+                      <Text style={st.snacksTagText}>Snacks</Text>
                     </View>
                   )}
                 </View>
@@ -261,7 +261,7 @@ const st = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.porcelain },
   header: { paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 62 : 48, paddingBottom: 12 },
   title: { fontFamily: Fonts.heading, fontSize: 24, color: Colors.ink, letterSpacing: -0.5 },
-  subtitle: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, marginTop: 3 },
+  subtitle: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, marginTop: 4 },
 
   // --- NEW FILTER STYLES ---
   filterScrollContainer: { 
@@ -311,19 +311,19 @@ const st = StyleSheet.create({
   salonName: { fontFamily: Fonts.headingSemi, fontSize: 17, color: Colors.ink, marginBottom: 4 },
   locRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   salonArea: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted },
-  ratingBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#F9F8FC', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 10 },
+  ratingBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#F9F8FC', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 10 },
   ratingText: { fontFamily: Fonts.headingSemi, fontSize: 14, color: Colors.ink },
   reviewCount: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted },
   speciality: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, lineHeight: 20, marginBottom: 14 },
 
   tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  typeTag: { backgroundColor: '#F7F5FB', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 10 },
+  typeTag: { backgroundColor: '#F7F5FB', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 10 },
   typeTagMatch: { backgroundColor: Colors.violet },
   typeTagText: { fontFamily: Fonts.bodySemi, fontSize: 11, color: Colors.ink },
   typeTagTextMatch: { color: Colors.white },
-  highlightTag: { backgroundColor: 'rgba(138,184,0,0.12)', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 10 },
+  highlightTag: { backgroundColor: 'rgba(138,184,0,0.12)', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 10 },
   highlightText: { fontFamily: Fonts.body, fontSize: 11, color: '#5a6b00' },
-  snacksTag: { backgroundColor: '#FFF3E0', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 10 },
+  snacksTag: { backgroundColor: '#FFF3E0', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 10 },
   snacksTagText: { fontFamily: Fonts.body, fontSize: 11, color: '#E67E22' },
 
   btnRow: { flexDirection: 'row', gap: 12 },

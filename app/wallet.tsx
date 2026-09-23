@@ -101,7 +101,7 @@ export default function WalletScreen() {
       ) : (
         <ScrollView contentContainerStyle={st.scroll} showsVerticalScrollIndicator={false}>
           {/* Balance */}
-          <Animated.View entering={FadeInUp.duration(300)}>
+          <Animated.View >
             <View style={st.balanceCard}>
               <IC.WalletBig />
               <Text style={st.balanceLabel}>Available balance</Text>
@@ -111,7 +111,7 @@ export default function WalletScreen() {
           </Animated.View>
 
           {/* Top up */}
-          <Animated.View entering={FadeInUp.delay(50).duration(300)}>
+          <Animated.View >
             <Text style={st.sectionLabel}>Add funds</Text>
             <View style={st.topUpRow}>
               {TOP_UPS.map(a => (
@@ -125,7 +125,7 @@ export default function WalletScreen() {
           </Animated.View>
 
           {/* What you can buy */}
-          <Animated.View entering={FadeInUp.delay(100).duration(300)}>
+          <Animated.View >
             <Text style={st.sectionLabel}>What you can buy</Text>
             <View style={st.infoCard}>
               {[
@@ -149,7 +149,7 @@ export default function WalletScreen() {
           </Animated.View>
 
           {/* Transactions */}
-          <Animated.View entering={FadeInUp.delay(150).duration(300)}>
+          <Animated.View >
             <Text style={st.sectionLabel}>Transaction history</Text>
             {transactions.length === 0 ? (
               <View style={st.emptyCard}>
@@ -223,7 +223,7 @@ const st = StyleSheet.create({
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, paddingHorizontal: 18 },
   infoIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F7F5FB', alignItems: 'center', justifyContent: 'center' },
   infoBody: { flex: 1 },
-  infoTitle: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.ink, marginBottom: 1 },
+  infoTitle: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.ink, marginBottom: 2 },
   infoSub: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted },
   infoPrice: { fontFamily: Fonts.heading, fontSize: 15, color: Colors.violet },
   infoDivider: { height: 1, backgroundColor: Colors.border, marginHorizontal: 18 },
@@ -247,6 +247,6 @@ const st = StyleSheet.create({
   txIcon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   txBody: { flex: 1 },
   txLabel: { fontFamily: Fonts.bodyMedium, fontSize: 14, color: Colors.ink },
-  txDate: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, marginTop: 1 },
+  txDate: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, marginTop: 2 },
   txAmount: { fontFamily: Fonts.headingSemi, fontSize: 15 },
 });

@@ -43,12 +43,12 @@ const STEPS = [
   },
   {
     title: "We don't ask you\nto translate\nyour hair.",
-    body: 'Curl pattern, porosity, scalp, history — we ask in plain language. No charts to interpret, no category to fit yourself into.',
+    body: 'Curl pattern, porosity, scalp, history: we ask in plain language. No charts to interpret, no category to fit yourself into.',
     image: require('@/assets/onboard-2.jpg'),
   },
   {
     title: 'Your routine\nshould fit today,\nnot a label.',
-    body: 'Hair changes — postpartum, seasonally, after styles, with age. We rebuild your routine when you tell us things shift.',
+    body: 'Hair changes. Postpartum, seasonally, after styles, with age. We rebuild your routine when you tell us things shift.',
     image: require('@/assets/onboard-3.jpg'),
   },
 ];
@@ -124,17 +124,17 @@ export default function OnboardingScreen() {
     transform: [{ translateY: blockY.value }],
   }));
 
-  const goToQuiz = () => router.replace('/quiz');
+  const goToAccountType = () => router.replace('/account-type');
 
   const next = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    if (isLast) goToQuiz();
+    if (isLast) goToAccountType();
     else setStep(s => s + 1);
   };
 
   return (
     <View style={s.container}>
-      {/* Photo layer — cross-fades on step change */}
+      {/* Photo layer. Cross-fades on step change */}
       <View style={s.photoArea}>
         <Animated.View
           key={`p-${step}`}
@@ -164,12 +164,12 @@ export default function OnboardingScreen() {
         <View style={s.progressWrap}>
           <ProgressBar step={step} total={STEPS.length} />
         </View>
-        <Pressable onPress={goToQuiz} hitSlop={16} style={s.skipBtn}>
+        <Pressable onPress={goToAccountType} hitSlop={16} style={s.skipBtn}>
           <Text style={s.skipText}>Skip</Text>
         </Pressable>
       </View>
 
-      {/* Content — single block, single motion */}
+      {/* Content. Single block, single motion */}
       <Animated.View style={[s.content, blockStyle]} key={`c-${step}`}>
         <Text style={s.title}>{current.title}</Text>
         <Text style={s.body}>{current.body}</Text>
@@ -177,7 +177,7 @@ export default function OnboardingScreen() {
 
       {/* Footer */}
       <View style={s.footer}>
-        <CTAButton label={isLast ? 'Start the quiz' : 'Continue'} onPress={next} />
+        <CTAButton label={isLast ? 'Get started' : 'Continue'} onPress={next} />
       </View>
     </View>
   );
@@ -261,7 +261,7 @@ const s = StyleSheet.create({
   },
   btn: {
     width: '100%',
-    paddingVertical: 17,
+    paddingVertical: 16,
     borderRadius: Radius.lg,
     backgroundColor: Colors.violet,
     alignItems: 'center',

@@ -87,7 +87,7 @@ export default function QuizSegmentStep({ selected, onSelect }: Props) {
         const Icon = ICONS[seg.id];
         const active = selected.includes(seg.id);
         return (
-          <Animated.View key={seg.id} entering={FadeInUp.delay(40 * i).duration(220)}>
+          <Animated.View key={seg.id} >
             <Pressable
               onPress={() => toggle(seg.id)}
               style={({ pressed }) => [st.card, active && st.cardActive, pressed && st.cardPressed]}

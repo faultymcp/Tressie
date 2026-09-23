@@ -12,10 +12,10 @@ const EDGE_FUNCTION_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 // Replace these with your actual Stripe price IDs from the Dashboard.
 // Create them at: https://dashboard.stripe.com/products
 export const PRICES = {
-  pro_monthly: 'price_1TMRU2DC9UscLZe9Os6ts0tz',       // Tressie Pro £6.99/mo
-  pro_annual: 'price_1TMRU2DC9UscLZe9P4HATV7y',        // Tressie Pro £54.99/yr
-  pro_plus_monthly: 'price_1TMRVJDC9UscLZe9dspjkCEN',  // Tressie Pro+ £12.99/mo
-  pro_plus_annual: 'price_1TMRVoDC9UscLZe9aez9K6NY',   // Tressie Pro+ £99.99/yr
+  pro_monthly: 'price_1TMRU2DC9UscLZe9Os6ts0tz',       // Halea Pro £6.99/mo
+  pro_annual: 'price_1TMRU2DC9UscLZe9P4HATV7y',        // Halea Pro £54.99/yr
+  pro_plus_monthly: 'price_1TMRVJDC9UscLZe9dspjkCEN',  // Halea Pro+ £12.99/mo
+  pro_plus_annual: 'price_1TMRVoDC9UscLZe9aez9K6NY',   // Halea Pro+ £99.99/yr
 } as const;
 
 // ── Wallet top-up amounts (pence) ────────────────────────────────
@@ -80,7 +80,7 @@ export async function startSubscription(
       price_id: priceId,
     });
 
-    const result = await WebBrowser.openAuthSessionAsync(url, 'tressana://payment-success');
+    const result = await WebBrowser.openAuthSessionAsync(url, 'halea://payment-success');
 
     if (result.type === 'success') {
       // The webhook will update the DB. 
@@ -109,7 +109,7 @@ export async function startWalletTopUp(
       amount_pence: amountPence,
     });
 
-    const result = await WebBrowser.openAuthSessionAsync(url, 'tressana://payment-success');
+    const result = await WebBrowser.openAuthSessionAsync(url, 'halea://payment-success');
 
     if (result.type === 'success') {
       setTimeout(() => onSuccess?.(), 1500);
@@ -293,7 +293,7 @@ export async function startBookingPayment(
       },
     });
 
-    const result = await WebBrowser.openAuthSessionAsync(url, 'tressana://payment-success');
+    const result = await WebBrowser.openAuthSessionAsync(url, 'halea://payment-success');
 
     if (result.type === 'success') {
       setTimeout(() => onSuccess?.(), 1500);

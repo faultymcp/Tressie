@@ -20,10 +20,10 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 // Create these products/prices in Stripe Dashboard first.
 // Then paste the price IDs here.
 const PRICE_TO_TIER: Record<string, { tier: 'pro' | 'pro_plus'; is_annual: boolean }> = {
-  'price_1TMRU2DC9UscLZe9Os6ts0tz': { tier: 'pro', is_annual: false },       // Tressie Pro £6.99/mo
-  'price_1TMRU2DC9UscLZe9P4HATV7y': { tier: 'pro', is_annual: true },        // Tressie Pro £54.99/yr
-  'price_1TMRVJDC9UscLZe9dspjkCEN': { tier: 'pro_plus', is_annual: false },  // Tressie Pro+ £12.99/mo
-  'price_1TMRVoDC9UscLZe9aez9K6NY': { tier: 'pro_plus', is_annual: true },   // Tressie Pro+ £99.99/yr
+  'price_1TMRU2DC9UscLZe9Os6ts0tz': { tier: 'pro', is_annual: false },       // Halea Pro £6.99/mo
+  'price_1TMRU2DC9UscLZe9P4HATV7y': { tier: 'pro', is_annual: true },        // Halea Pro £54.99/yr
+  'price_1TMRVJDC9UscLZe9dspjkCEN': { tier: 'pro_plus', is_annual: false },  // Halea Pro+ £12.99/mo
+  'price_1TMRVoDC9UscLZe9aez9K6NY': { tier: 'pro_plus', is_annual: true },   // Halea Pro+ £99.99/yr
 };
 
 // ── Map wallet top-up amounts ───────────────────────────────────
@@ -102,7 +102,7 @@ serve(async (req) => {
             cancel_at_period_end: subscription.cancel_at_period_end,
             // Reset usage on new period
             tryon_used_this_period: 0,
-            tressie_chats_used_this_period: 0,
+            halea_chats_used_this_period: 0,
             ingredient_scans_used_this_period: 0,
             period_reset_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -116,7 +116,7 @@ serve(async (req) => {
           await supabase.rpc('award_xp', {
             p_user_id: userId,
             p_action: 'bonus',
-            p_description: `Subscribed to Tressie ${tierInfo.tier === 'pro_plus' ? 'Pro+' : 'Pro'}`,
+            p_description: `Subscribed to Halea ${tierInfo.tier === 'pro_plus' ? 'Pro+' : 'Pro'}`,
             p_override_amount: 100,
           });
         }

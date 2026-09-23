@@ -27,7 +27,7 @@ const STYLE_SUGGESTIONS: Record<string, { name: string; desc: string }[]> = {
     { name: 'Defined Waves', desc: 'Enhance your natural S-pattern' },
     { name: 'Beach Waves', desc: 'Effortless, textured, undone' },
     { name: 'Shag Cut', desc: 'Layered with volume and movement' },
-    { name: 'Scrunched Waves', desc: 'Scrunch and go — minimal effort' },
+    { name: 'Scrunched Waves', desc: 'Scrunch and go. Minimal effort' },
     { name: 'Diffused Curls', desc: 'Diffuser technique for max definition' },
   ],
   '3': [
@@ -63,7 +63,7 @@ export default function DiscoverScreen() {
   const styles_list = STYLE_SUGGESTIONS[typeGroup] || STYLE_SUGGESTIONS['3'];
 
   useEffect(() => {
-    AsyncStorage.getItem('tressana_quiz').then(raw => {
+    AsyncStorage.getItem('halea_quiz').then(raw => {
       if (raw) {
         const data = JSON.parse(raw);
         setHairType(data.hairType || '3A');
@@ -121,7 +121,7 @@ export default function DiscoverScreen() {
 
         {/* Active style detail */}
         {activeStyle && (
-          <Animated.View entering={FadeInUp.duration(300)} style={st.styleDetail}>
+          <Animated.View style={st.styleDetail}>
             <Text style={st.styleDetailTitle}>{activeStyle}</Text>
             <Text style={st.styleDetailSub}>
               This style works beautifully with Type {typeGroup} hair. Browse products below that help you achieve and maintain it.
@@ -156,7 +156,7 @@ export default function DiscoverScreen() {
         ) : (
           <View style={st.prodList}>
             {filteredProducts.map((p, i) => (
-              <Animated.View key={p.id} entering={FadeInUp.delay(40 * i).duration(250)}>
+              <Animated.View key={p.id} >
                 <Pressable onPress={() => Linking.openURL(p.url)} style={st.prodCard}>
                   <View style={st.prodTop}>
                     <View style={{ flex: 1 }}>
@@ -193,7 +193,7 @@ const st = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.porcelain },
   header: { paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 62 : 48, paddingBottom: 12 },
   title: { fontFamily: Fonts.heading, fontSize: 24, color: Colors.ink, letterSpacing: -0.5 },
-  subtitle: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, marginTop: 3 },
+  subtitle: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, marginTop: 4 },
 
   content: { paddingBottom: 100 },
 
@@ -242,7 +242,7 @@ const st = StyleSheet.create({
   prodPrice: { fontFamily: Fonts.heading, fontSize: 17, color: Colors.ink, marginLeft: 12 },
   prodDesc: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, lineHeight: 18, marginBottom: 12 },
   prodBottom: { flexDirection: 'row', alignItems: 'center' },
-  prodCatBadge: { backgroundColor: '#F7F5FB', paddingVertical: 3, paddingHorizontal: 10, borderRadius: 8, marginRight: 8 },
+  prodCatBadge: { backgroundColor: '#F7F5FB', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 8, marginRight: 8 },
   prodCatText: { fontFamily: Fonts.bodyMedium, fontSize: 10, color: Colors.ink, textTransform: 'capitalize' },
   prodRetailer: { fontFamily: Fonts.body, fontSize: 10, color: Colors.muted, flex: 1 },
   prodLinkRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },

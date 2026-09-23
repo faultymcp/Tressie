@@ -4,7 +4,7 @@ import {
   ActivityIndicator, Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { Colors, Fonts } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
@@ -108,7 +108,7 @@ export default function XpRewardsScreen() {
 
       <ScrollView contentContainerStyle={st.scroll} showsVerticalScrollIndicator={false}>
         {/* Balance card */}
-        <Animated.View entering={FadeInUp.duration(300)}>
+        <Animated.View >
           <View style={st.balanceCard}>
             <View style={st.balanceTop}>
               <View>
@@ -135,7 +135,7 @@ export default function XpRewardsScreen() {
         </Animated.View>
 
         {/* How to earn */}
-        <Animated.View entering={FadeInUp.delay(50).duration(300)}>
+        <Animated.View >
           <Text style={st.sectionLabel}>How to earn XP</Text>
           <View style={st.earnCard}>
             {[
@@ -158,7 +158,7 @@ export default function XpRewardsScreen() {
         </Animated.View>
 
         {/* Redeem */}
-        <Animated.View entering={FadeInUp.delay(100).duration(300)}>
+        <Animated.View >
           <Text style={st.sectionLabel}>Redeem</Text>
           <View style={st.redeemGrid}>
             {rates.map(r => {
@@ -184,7 +184,7 @@ export default function XpRewardsScreen() {
         </Animated.View>
 
         {/* History */}
-        <Animated.View entering={FadeInUp.delay(150).duration(300)}>
+        <Animated.View >
           <Text style={st.sectionLabel}>Recent activity</Text>
           {history.length === 0 ? (
             <View style={st.emptyCard}>
@@ -226,7 +226,7 @@ const st = StyleSheet.create({
   balanceTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
   balanceLabel: { fontFamily: Fonts.body, fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 4 },
   balanceValue: { fontFamily: Fonts.heading, fontSize: 36, color: '#fff' },
-  streakPill: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(118,67,172,0.3)', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16 },
+  streakPill: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(118,67,172,0.3)', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16 },
   streakText: { fontFamily: Fonts.bodySemi, fontSize: 12, color: Colors.lavender },
   balanceStats: { flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', paddingTop: 16 },
   balanceStat: { flex: 1, alignItems: 'center' },
@@ -247,7 +247,7 @@ const st = StyleSheet.create({
   },
   earnRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingVertical: 13, paddingHorizontal: 18,
+    paddingVertical: 12, paddingHorizontal: 18,
     borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
   earnDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.violet },
@@ -283,12 +283,12 @@ const st = StyleSheet.create({
   },
   historyRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingVertical: 13, paddingHorizontal: 18,
+    paddingVertical: 12, paddingHorizontal: 18,
     borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
   historyDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#8AB800' },
   historyBody: { flex: 1 },
   historyAction: { fontFamily: Fonts.bodyMedium, fontSize: 13, color: Colors.ink },
-  historyDate: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, marginTop: 1 },
+  historyDate: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, marginTop: 2 },
   historyXp: { fontFamily: Fonts.headingSemi, fontSize: 14, color: Colors.violet },
 });

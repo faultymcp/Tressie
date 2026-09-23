@@ -4,7 +4,7 @@ import {
   ActivityIndicator, Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { Colors, Fonts } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
@@ -119,9 +119,9 @@ export default function FavouritesScreen() {
       ) : (
         <ScrollView contentContainerStyle={st.list} showsVerticalScrollIndicator={false}>
           {items.map((item, i) => (
-            <Animated.View key={item.id} entering={FadeInUp.delay(30 * i).duration(250)}>
+            <Animated.View key={item.id} >
               <View style={st.card}>
-                {/* Placeholder for real content — shows favourite type and ID for now */}
+                {/* Placeholder for real content. Shows favourite type and ID for now */}
                 <View style={st.cardLeft}>
                   <View style={st.cardThumb}>
                     {activeTab === 'salon' ? <IC.Scissors /> :
@@ -130,11 +130,11 @@ export default function FavouritesScreen() {
                 </View>
                 <View style={st.cardBody}>
                   <Text style={st.cardTitle}>
-                    {activeTab === 'product' ? `Product #${item.product_id?.slice(0, 8) || '—'}` :
-                     activeTab === 'creator' ? `Creator #${item.creator_id?.slice(0, 8) || '—'}` :
-                     activeTab === 'tip' ? `Tip #${item.tip_id?.slice(0, 8) || '—'}` :
-                     activeTab === 'salon' ? `Salon #${item.salon_id || '—'}` :
-                     `Hairstyle #${item.hairstyle_id?.slice(0, 8) || '—'}`}
+                    {activeTab === 'product' ? `Product #${item.product_id?.slice(0, 8) || '–'}` :
+                     activeTab === 'creator' ? `Creator #${item.creator_id?.slice(0, 8) || '–'}` :
+                     activeTab === 'tip' ? `Tip #${item.tip_id?.slice(0, 8) || '–'}` :
+                     activeTab === 'salon' ? `Salon #${item.salon_id || '–'}` :
+                     `Hairstyle #${item.hairstyle_id?.slice(0, 8) || '–'}`}
                   </Text>
                   <Text style={st.cardSub}>Saved {new Date(item.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</Text>
                 </View>
@@ -171,7 +171,7 @@ const st = StyleSheet.create({
   tabActive: { backgroundColor: Colors.ink, borderColor: Colors.ink },
   tabText: { fontFamily: Fonts.bodySemi, fontSize: 13, color: Colors.ink },
   tabTextActive: { color: '#fff' },
-  tabBadge: { backgroundColor: '#F0EDE8', paddingVertical: 1, paddingHorizontal: 7, borderRadius: 10 },
+  tabBadge: { backgroundColor: '#F0EDE8', paddingVertical: 2, paddingHorizontal: 8, borderRadius: 10 },
   tabBadgeActive: { backgroundColor: 'rgba(255,255,255,0.2)' },
   tabBadgeText: { fontFamily: Fonts.bodySemi, fontSize: 10, color: Colors.ink },
   tabBadgeTextActive: { color: '#fff' },

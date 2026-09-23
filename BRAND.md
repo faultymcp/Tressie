@@ -1,14 +1,14 @@
-# Tressana — Brand & Design System
+# Halea — Brand & Design System
 
 *Last revised: working document. Update as decisions are made.*
 
-This document is the single source of truth for how Tressana looks, sounds, and behaves. Before designing or building any new screen, read the relevant section. Before shipping any change, check it against the rules here. The codebase's `constants/theme.ts` and `constants/voice.ts` are the runtime expressions of this document — they must always stay in sync with it.
+This document is the single source of truth for how Halea looks, sounds, and behaves. Before designing or building any new screen, read the relevant section. Before shipping any change, check it against the rules here. The codebase's `constants/theme.ts` and `constants/voice.ts` are the runtime expressions of this document — they must always stay in sync with it.
 
 ---
 
 ## 1. The promise
 
-Tressana exists for women whose hair has been overlooked by mainstream advice — across every texture from straight to coily, every life stage, every history. Where the haircare industry sells transformation, Tressana offers recognition: we read your hair back to you, and we build the routine that fits *who you are right now*, not who a category says you should be.
+Halea exists for women whose hair has been overlooked by mainstream advice — across every texture from straight to coily, every life stage, every history. Where the haircare industry sells transformation, Halea offers recognition: we read your hair back to you, and we build the routine that fits *who you are right now*, not who a category says you should be.
 
 The product feels like a thoughtful stylist who has seen everything. Not a beauty brand. Not a coach. Not a clinic. A trusted, specific, calm presence.
 
@@ -38,18 +38,18 @@ Pulled from `constants/voice.ts`. Six points to remember when writing anything:
 
 | Role | Hex | Usage |
 |---|---|---|
-| **Violet** (brand) | `#7643AC` | Buttons, brand wordmark, key brand moments only. Never on body type. |
-| **Pink** (warm) | `#F484B9` | Pair with violet in gradients. Care/warmth moments. Sparingly. |
-| **Lavender** | `#C38CD9` | Subtle tints and atmospheric washes. |
+| **Violet** (brand) | `#241C17` | Buttons, brand wordmark, key brand moments only. Never on body type. |
+| **Pink** (warm) | `#8C5A3C` | Pair with violet in gradients. Care/warmth moments. Sparingly. |
+| **Lavender** | `#B08968` | Subtle tints and atmospheric washes. |
 | **Lime** (energy) | `#D9FF00` | Editorial labels, accent dots, page numbers. Small uses only. |
 | **Porcelain** (base) | `#FFFEF7` | Primary background — warm cream, never pure white. |
-| **Ink** (text) | `#332463` | Primary text colour. Almost-black with violet undertone. |
-| **Ink Deep** | `#120B2E` | Dark mode surfaces (reveal, splash). Background only. |
+| **Ink** (text) | `#241C17` | Primary text colour. Almost-black with violet undertone. |
+| **Ink Deep** | `#14100D` | Dark mode surfaces (reveal, splash). Background only. |
 | **Muted** | `#8A7FA0` | Secondary text, captions, hairlines. |
 
 ### Three iron rules
 
-1. **Saturated violet is for buttons, the wordmark, and brand moments only.** Never put `#7643AC` on display type. Headlines go in `Ink (#332463)`. The deep violet undertone in ink already gives brand harmony — we don't need to shout it.
+1. **Saturated violet is for buttons, the wordmark, and brand moments only.** Never put `#241C17` on display type. Headlines go in `Ink (#241C17)`. The deep violet undertone in ink already gives brand harmony — we don't need to shout it.
 
 2. **Lime is an accent, never an area.** Use for editorial labels (TODAY, ISSUE · 3B), small dots, page numerals. Never for big blocks of colour. Never for body type. If you find yourself filling a card with lime — stop, it's wrong.
 
@@ -58,7 +58,7 @@ Pulled from `constants/voice.ts`. Six points to remember when writing anything:
 ### Surfaces
 
 - **Daily screens** (home, discover, salons, profile): porcelain base
-- **Ceremonial screens** (splash, reveal): deep violet base (`#120B2E` → gradient)
+- **Ceremonial screens** (splash, reveal): deep violet base (`#14100D` → gradient)
 - **Onboarding**: porcelain base with full-bleed photography
 
 ### Translucent layers
@@ -91,7 +91,7 @@ Label    → Sora 500 Medium        10–11pt  →  CAPS LABELS, letterspaced 2�
 
 ### Rules
 
-1. **Never put display type in saturated violet.** Always ink (`#332463`). The button can be violet. The headline can't.
+1. **Never put display type in saturated violet.** Always ink (`#241C17`). The button can be violet. The headline can't.
 2. **One serif per moment.** Don't stack two Fraunces sizes on top of each other unless one is italic.
 3. **Labels are uppercase Sora with 2–3pt letter-spacing.** Always lime (`#D9FF00`) or muted (`#8A7FA0`) depending on context. Never violet.
 4. **Body copy is Inter at 14pt with 22pt line-height.** Don't break this. Long blocks of Inter at 16pt feel heavy; at 13pt feel cramped.
@@ -101,7 +101,7 @@ Label    → Sora 500 Medium        10–11pt  →  CAPS LABELS, letterspaced 2�
 
 ## 5. Photography rules
 
-### What Tressana photos look like
+### What Halea photos look like
 
 - **Real hair, real textures.** Wet hair, dry hair, hands in hair, water in hair, scalp, ends, fingers detangling, braiding, refreshing.
 - **All textures.** From bone-straight 1A through tight-coil 4C. Across ethnicities.
@@ -109,7 +109,7 @@ Label    → Sora 500 Medium        10–11pt  →  CAPS LABELS, letterspaced 2�
 - **Close, intimate framing.** Crops that feel observed, not staged.
 - **Natural light or considered editorial light.** No flat e-commerce lighting.
 
-### What Tressana photos do not look like
+### What Halea photos do not look like
 
 - Stock smiles to camera
 - Hair flips, "look-at-me-go" energy
@@ -205,7 +205,7 @@ slow: 480ms      — interstitial reveals, hero animations
 
 ### Buttons
 
-- **Primary:** solid violet (`#7643AC`), white text, Radius `lg`, height 52pt minimum, Sora SemiBold 15pt label
+- **Primary:** solid violet (`#241C17`), white text, Radius `lg`, height 52pt minimum, Sora SemiBold 15pt label
 - **Gradient:** violet-to-pink (`gradientPrimary`), reserved for the most important action on a screen
 - **Press feedback:** `transform: [{ scale: 0.985 }]` while pressed
 - **Disabled state:** opacity 0.5, no colour change
@@ -228,13 +228,13 @@ TODAY  ·  WHAT YOU TOLD US  ·  YOUR ROUTINE  ·  ISSUE · 3B
 - Sora 500 Medium, 10–11pt
 - Letterspacing 2–3pt
 - Always UPPERCASE
-- Colour: lime (`#D9FF00`) on dark surfaces, muted-ink (`#8A7FA0`) on light, violet (`#7643AC`) in editorial chrome
+- Colour: lime (`#D9FF00`) on dark surfaces, muted-ink (`#8A7FA0`) on light, violet (`#241C17`) in editorial chrome
 - Sit above the content they label, with 8–18pt below them
 
 ### Progress indicators
 
 - Inside-page progress (onboarding, reveal pager): thin segmented bars or dots
-- Bar: 3pt tall, idle `rgba(118,67,172,0.12)`, fill `#7643AC`, radius 2
+- Bar: 3pt tall, idle `rgba(118,67,172,0.12)`, fill `#241C17`, radius 2
 - Dot: 4pt, idle muted, active lime
 
 ---
@@ -282,7 +282,7 @@ Before any screen ships, walk this:
 - [ ] **Spacing:** 4-point grid throughout. No 17pt or 22pt.
 - [ ] **Motion:** Entrance animations only, `Easing.out(Easing.cubic)`, no springs except button press.
 - [ ] **Haptics:** Every meaningful tap has feedback.
-- [ ] **Voice:** Reads aloud as the Tressana voice would speak. No wellness-speak, no urgency, no AI-balanced rhetoric.
+- [ ] **Voice:** Reads aloud as the Halea voice would speak. No wellness-speak, no urgency, no AI-balanced rhetoric.
 - [ ] **One job:** The screen does one thing well, not six things passably.
 
 ---

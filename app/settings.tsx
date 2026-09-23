@@ -86,7 +86,7 @@ export default function SettingsScreen() {
       if (data.user) setEmail(data.user.email || '');
     });
     // Load prefs
-    AsyncStorage.getItem('tressana_notif_prefs').then(raw => {
+    AsyncStorage.getItem('halea_notif_prefs').then(raw => {
       if (raw) {
         const p = JSON.parse(raw);
         setPushRoutine(p.routine ?? true);
@@ -99,7 +99,7 @@ export default function SettingsScreen() {
 
   const saveNotifPref = (key: string, value: boolean) => {
     const prefs = { routine: pushRoutine, tips: pushTips, promo: pushPromo, booking: pushBooking, [key]: value };
-    AsyncStorage.setItem('tressana_notif_prefs', JSON.stringify(prefs));
+    AsyncStorage.setItem('halea_notif_prefs', JSON.stringify(prefs));
   };
 
   const handleDeleteAccount = () => {
@@ -111,6 +111,10 @@ export default function SettingsScreen() {
         { text: 'Delete', style: 'destructive', onPress: async () => {
           // In production, call an Edge Function that handles cascade deletion
           await supabase.auth.signOut();
+          // Clear the cached hair profile too. Otherwise the next person
+          // to sign in on this device sees the previous person's hair.
+          const keys = await AsyncStorage.getAllKeys();
+          await AsyncStorage.multiRemove(keys.filter(k => k.startsWith('halea_')));
           router.replace('/');
         }},
       ]
@@ -174,7 +178,7 @@ export default function SettingsScreen() {
           <NavRow icon={<IC.Trash />} label="Delete account" destructive onPress={handleDeleteAccount} last />
         </View>
 
-        <Text style={st.footer}>Tressana v1.0.0</Text>
+        <Text style={st.footer}>Halea v1.0.0</Text>
       </ScrollView>
     </View>
   );
@@ -204,13 +208,13 @@ const st = StyleSheet.create({
   },
   row: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
-    paddingVertical: 15, paddingHorizontal: 18,
+    paddingVertical: 16, paddingHorizontal: 18,
     borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
   rowIcon: { width: 24, alignItems: 'center' },
   rowBody: { flex: 1 },
   rowLabel: { fontFamily: Fonts.bodyMedium, fontSize: 15, color: Colors.ink },
-  rowSub: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginTop: 1 },
+  rowSub: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginTop: 2 },
   rowRight: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, marginRight: 4, flexShrink: 1, maxWidth: 180, textAlign: 'right' },
 
   footer: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, textAlign: 'center', marginTop: 20, opacity: 0.4 },

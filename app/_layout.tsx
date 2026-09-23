@@ -82,9 +82,11 @@ export default function RootLayout() {
     // session AND they landed on the splash/onboarding/quiz entry
     // points, send them straight to tabs. The auth screen handles its
     // own post-verify routing (don't interfere).
+    // Only the splash redirects. Onboarding and quiz now run *after*
+    // sign-in, so a signed-in user sitting on them is expected — the
+    // old guard would have bounced them straight out to home.
     const root = segments[0];
-    const isEntryPoint = !root || root === 'index' || root === 'onboarding';
-    if (session && isEntryPoint) {
+    if (session && (!root || root === 'index')) {
       router.replace('/(tabs)/home');
     }
   }, [session, segments, ready]);
@@ -104,6 +106,8 @@ export default function RootLayout() {
         <Stack.Screen name="index" options={{ animation: 'fade' }} />
         <Stack.Screen name="onboarding" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="auth" options={{ animation: 'slide_from_bottom', presentation: 'modal' }} />
+        <Stack.Screen name="account-type" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="business" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="quiz" options={{ animation: 'slide_from_right', gestureEnabled: false }} />
         <Stack.Screen name="name" options={{ animation: 'slide_from_right', gestureEnabled: false }} />
         <Stack.Screen name="reveal" options={{ animation: 'fade' }} />

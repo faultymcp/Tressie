@@ -21,7 +21,7 @@ type Feature = { label: string; free: boolean | string; pro: boolean | string; p
 const FEATURES: Feature[] = [
   { label: 'Hair profile quiz', free: true, pro: true, proPlus: true },
   { label: 'Basic hair diagnosis', free: true, pro: true, proPlus: true },
-  { label: 'Tressie AI chats', free: '3/mo', pro: 'Unlimited', proPlus: 'Unlimited' },
+  { label: 'Halea AI chats', free: '3/mo', pro: 'Unlimited', proPlus: 'Unlimited' },
   { label: 'Ingredient scanner', free: '1/mo', pro: 'Unlimited', proPlus: 'Unlimited' },
   { label: 'Full AI diagnosis', free: false, pro: true, proPlus: true },
   { label: 'Full routine builder', free: false, pro: true, proPlus: true },
@@ -93,11 +93,11 @@ export default function SubscriptionScreen() {
 
       <ScrollView contentContainerStyle={st.scroll} showsVerticalScrollIndicator={false}>
         {/* Current plan */}
-        <Animated.View entering={FadeInUp.duration(300)}>
+        <Animated.View >
           <View style={st.currentCard}>
             <Text style={st.currentLabel}>Current plan</Text>
             <Text style={st.currentTier}>
-              {tier === 'pro_plus' ? 'Tressie Pro+' : tier === 'pro' ? 'Tressie Pro' : 'Free'}
+              {tier === 'pro_plus' ? 'Halea Pro+' : tier === 'pro' ? 'Halea Pro' : 'Free'}
             </Text>
             {tier !== 'free' && (
               <Text style={st.currentBilling}>{isAnnual ? 'Annual billing' : 'Monthly billing'}</Text>
@@ -106,7 +106,7 @@ export default function SubscriptionScreen() {
         </Animated.View>
 
         {/* Billing toggle */}
-        <Animated.View entering={FadeInUp.delay(50).duration(300)}>
+        <Animated.View >
           <View style={st.toggleWrap}>
             <Pressable
               onPress={() => setBillingToggle('monthly')}
@@ -125,12 +125,12 @@ export default function SubscriptionScreen() {
         </Animated.View>
 
         {/* Plan cards */}
-        <Animated.View entering={FadeInUp.delay(100).duration(300)}>
+        <Animated.View >
           {/* Pro */}
           <View style={[st.planCard, tier === 'pro' && st.planCardActive]}>
             <View style={st.planHeader}>
               <View>
-                <Text style={st.planName}>Tressie Pro</Text>
+                <Text style={st.planName}>Halea Pro</Text>
                 <Text style={st.planPrice}>{proPrice}</Text>
                 {proSavings ? <Text style={st.planSave}>{proSavings}</Text> : null}
               </View>
@@ -147,7 +147,7 @@ export default function SubscriptionScreen() {
           <View style={[st.planCard, tier === 'pro_plus' && st.planCardActive]}>
             <View style={st.planHeader}>
               <View>
-                <Text style={st.planName}>Tressie Pro+</Text>
+                <Text style={st.planName}>Halea Pro+</Text>
                 <Text style={st.planPrice}>{proPlusPrice}</Text>
                 {proPlusSavings ? <Text style={st.planSave}>{proPlusSavings}</Text> : null}
               </View>
@@ -162,7 +162,7 @@ export default function SubscriptionScreen() {
         </Animated.View>
 
         {/* Feature comparison */}
-        <Animated.View entering={FadeInUp.delay(150).duration(300)}>
+        <Animated.View >
           <Text style={st.sectionLabel}>Feature comparison</Text>
           <View style={st.featureCard}>
             {/* Header */}
@@ -227,7 +227,7 @@ const st = StyleSheet.create({
   toggleActive: { backgroundColor: Colors.ink },
   toggleText: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.muted },
   toggleTextActive: { color: '#fff' },
-  saveBadge: { backgroundColor: '#D9FF00', paddingVertical: 1, paddingHorizontal: 8, borderRadius: 8 },
+  saveBadge: { backgroundColor: '#D9FF00', paddingVertical: 2, paddingHorizontal: 8, borderRadius: 8 },
   saveText: { fontFamily: Fonts.bodySemi, fontSize: 9, color: Colors.ink },
 
   planCard: {

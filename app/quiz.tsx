@@ -11,12 +11,11 @@ import { Colors, Fonts, Radius } from '@/constants/theme';
 import QuizSegmentStep, { SEGMENTS } from '@/components/QuizSegmentStep';
 import JourneyMap, { Phase } from '@/components/JourneyMap';
 import {
-  PatternLineup,
   CuticleStrands,
 } from '@/components/InterstitialVisuals';
 
 // ════════════════════════════════════════════════════════════════
-// Voice: Tressana speaks like a Black woman in her thirties who has
+// Voice: Halea speaks like a Black woman in her thirties who has
 // worked in salons, lived through a postpartum shed and a transitioning
 // year, and would never ask a question she wouldn't want asked of her.
 // Direct without being cold, warm without performing care, specific
@@ -66,7 +65,7 @@ type QuestionStep = {
 
 type InterstitialStep = {
   kind: 'interstitial';
-  id: 'welcome' | 'why_pattern' | 'why_porosity' | 'why_history' | 'we_hear' | 'almost';
+  id: 'why_porosity' | 'we_hear' | 'almost';
   title: string;
   body: string;
   cta?: string;
@@ -85,38 +84,31 @@ type Step = QuestionStep | InterstitialStep | SegmentsStep;
 
 // ─── Quiz steps ──────────────────────────────────────────────────
 const QUIZ_STEPS: Step[] = [
-  // ── BELONGING SCREEN ─────────────────────────────────────────────
-  {
-    kind: 'interstitial',
-    id: 'welcome',
-    title: "Before we start.",
-    body: "We built Tressana for women whose hair has been overlooked, judged, or hard to figure out alone. You\u2019ll see questions about your hair, your scalp, your history, what your hair is doing right now. Answer what you want. Skip what you don\u2019t. Nothing here is graded.",
-    cta: "I\u2019m in",
-  },
-
   {
     kind: 'question',
-    id: 'strand',
-    question: "Pull a single strand from your crown.",
-    subtitle: "Crown hair is your truest texture \u2014 the part that hasn\u2019t been styled or stretched.",
+    id: 'strand_thickness',
+    question: "Pull a single strand from your crown. How does it feel?",
+    subtitle: "Crown hair is your truest texture. The part that hasn\u2019t been styled or stretched.",
     multi: false, showPattern: false,
     proTip: "Clean and dry. Product makes everything lie about itself.",
     helpTitle: 'Why a single strand?',
-    helpBody: "Your whole head can look different depending on styling, products, or how recently you washed. A clean strand from the crown tells the truth. If you\u2019ve had chemical treatments, take a piece closer to the root.",
+    helpBody: "Your whole head can look different depending on styling, products, or how recently you washed. A clean strand from the crown tells the truth. If you\u2019ve had chemical treatments, take a piece closer to the root. Roll it between your fingers: thickness is about the width of one strand, not how much hair you have.",
     options: [
-      { value: 'ready', label: "Got one", desc: 'Clean, dry, ready to look' },
-      { value: 'skip', label: "I\u2019ll go from memory", desc: "Fine \u2014 we\u2019ll still get close" },
+      { value: 'fine', label: "Barely there", desc: 'Hard to feel between your fingers' },
+      { value: 'medium', label: "You can feel it", desc: 'Like a thread of cotton' },
+      { value: 'coarse', label: "Thick and wiry", desc: 'Distinct, with body to it' },
+      { value: 'unsure', label: "Going from memory", desc: "Fine: we\u2019ll still get close" },
     ],
   },
   {
     kind: 'question',
     id: 'curl',
     question: "Hold it at one end. What does it want to do?",
-    subtitle: "Don\u2019t stretch it \u2014 let gravity have it.",
+    subtitle: "Don\u2019t stretch it. Let gravity have it.",
     multi: false, showPattern: true,
     proTip: "Watch it root to tip. Don\u2019t pull, don\u2019t straighten. Let it tell you.",
     helpTitle: 'Reading your strand',
-    helpBody: "Round follicles produce straight hair. Oval, wavy or curly. Flat or elliptical, coily. The follicle shape is what your strand is doing on its own \u2014 unstyled, unstretched.",
+    helpBody: "Round follicles produce straight hair. Oval, wavy or curly. Flat or elliptical, coily. The follicle shape is what your strand is doing on its own: unstyled, unstretched.",
     options: [
       { value: '1', label: 'Falls completely straight', desc: 'No bend, no curve, just hangs' },
       { value: '2', label: 'Makes a loose S-shape', desc: 'Gentle bends, like soft waves' },
@@ -128,11 +120,11 @@ const QUIZ_STEPS: Step[] = [
     kind: 'question',
     id: 'subtype',
     question: "How tight does it spring?",
-    subtitle: "Match it to the closest object. Don\u2019t overthink \u2014 closest wins.",
+    subtitle: "Match it to the closest object. Don\u2019t overthink. Closest wins.",
     multi: false, showPattern: true,
     proTip: "If it\u2019s between two, go with the tighter one. We\u2019d rather give your hair more moisture than less.",
     helpTitle: 'The A-B-C system',
-    helpBody: "A is loosest, C is tightest. This isn\u2019t about better or worse \u2014 it\u2019s about what your hair needs. Tighter patterns hold less moisture and need more. Looser patterns can\u2019t carry weight.",
+    helpBody: "A is loosest, C is tightest. This isn\u2019t about better or worse. It\u2019s about what your hair needs. Tighter patterns hold less moisture and need more. Looser patterns can\u2019t carry weight.",
     options: [],
   },
   {
@@ -143,22 +135,16 @@ const QUIZ_STEPS: Step[] = [
     multi: false, showPattern: false,
     proTip: "Hold a single strand next to a piece of sewing thread. Same width or thinner is fine. Thicker is coarse.",
     helpTitle: 'Why density matters',
-    helpBody: "Density (how many strands you have) and porosity (how each strand handles water) are different. Both shape what your hair needs. A 3B with fine density needs lighter products than a 3B with coarse density \u2014 same pattern, different routine.",
+    helpBody: "Density (how many strands you have) and porosity (how each strand handles water) are different. Both shape what your hair needs. A 3B with fine density needs lighter products than a 3B with coarse density. Same pattern, different routine.",
     options: [
-      { value: 'fine', label: 'Fine \u2014 like a whisper', desc: 'Strands feel thin. A handful feels light.' },
-      { value: 'medium', label: 'Medium \u2014 a clear handful', desc: 'Normal strand thickness. Holds a brush well.' },
-      { value: 'coarse', label: 'Coarse \u2014 real weight', desc: 'Thick strands. A handful feels substantial.' },
+      { value: 'fine', label: 'Fine. Like a whisper', desc: 'Strands feel thin. A handful feels light.' },
+      { value: 'medium', label: 'Medium. A clear handful', desc: 'Normal strand thickness. Holds a brush well.' },
+      { value: 'coarse', label: 'Coarse. Real weight', desc: 'Thick strands. A handful feels substantial.' },
       { value: 'unsure', label: "Not sure", desc: "We\u2019ll start medium and you can adjust later." },
     ],
   },
 
   // ── INTERSTITIAL 1 ───────────────────────────────────────────────
-  {
-    kind: 'interstitial',
-    id: 'why_pattern',
-    title: "It\u2019s structure \u2014 not a score.",
-    body: "1A and 4C aren\u2019t a ranking. They\u2019re different shapes that hold and lose water differently. Pattern is for matching products to your hair, not measuring your hair against anyone else\u2019s.",
-  },
 
   {
     kind: 'question',
@@ -166,7 +152,7 @@ const QUIZ_STEPS: Step[] = [
     question: "How does water act on your hair?",
     subtitle: "Think about wash day. Does it sit on top, or does your hair drink it in?",
     multi: false, showPattern: false,
-    proTip: "Not sure is fine \u2014 most women don\u2019t know this off the top. We\u2019ll help you test it later.",
+    proTip: "Not sure is fine. Most women don\u2019t know this off the top. We\u2019ll help you test it later.",
     helpTitle: 'The water glass test',
     helpBody: "Drop a clean strand in room-temperature water. Wait three minutes. Floats = low porosity. Middle = medium. Sinks = high. This single test tells you which products will penetrate your hair vs sit on top.",
     options: [
@@ -182,14 +168,14 @@ const QUIZ_STEPS: Step[] = [
     kind: 'interstitial',
     id: 'why_porosity',
     title: "Porosity decides what your hair holds.",
-    body: "Most product mismatches come down to this single variable. A heavy butter feels rich on one woman and like coating on another \u2014 same butter, different cuticle.",
+    body: "Most product mismatches come down to this single variable. A heavy butter feels rich on one woman and like coating on another. Same butter, different cuticle.",
   },
 
   {
     kind: 'question',
     id: 'scalp',
     question: "Your scalp.",
-    subtitle: "Where every strand is born \u2014 and where most hair problems actually start.",
+    subtitle: "Where every strand is born, and where most hair problems actually start.",
     multi: true, showPattern: false,
     proTip: "Part it. Touch it. What\u2019s true today?",
     helpTitle: 'Why scalp matters',
@@ -211,23 +197,23 @@ const QUIZ_STEPS: Step[] = [
     multi: false, showPattern: false,
     proTip: "If you skip wash days when life gets busy, count that as 'less often.'",
     helpTitle: 'Why wash frequency matters',
-    helpBody: "How often you wash isn't a fixed truth \u2014 it's a relationship between your scalp, your hair, and your week. We build routines that match the cadence you can actually keep, not an ideal you'll abandon.",
+    helpBody: "How often you wash isn't a fixed truth. It's a relationship between your scalp, your hair, and your week. We build routines that match the cadence you can actually keep, not an ideal you'll abandon.",
     options: [
       { value: 'daily', label: 'Daily', desc: 'My hair feels best with regular water' },
       { value: 'few_days', label: 'Every 2\u20133 days', desc: 'Not daily, but pretty regular' },
       { value: 'weekly', label: 'Once a week', desc: 'A weekly deep wash is my rhythm' },
-      { value: 'co_wash', label: 'Co-wash only', desc: 'No shampoo \u2014 conditioner washes or water only' },
+      { value: 'co_wash', label: 'Co-wash only', desc: 'No shampoo: conditioner washes or water only' },
     ],
   },
   {
     kind: 'question',
     id: 'length',
     question: "Where does your hair fall when it's out?",
-    subtitle: "When it's stretched, not shrunk. Coily hair shrinks \u2014 that's why we ask stretched length.",
+    subtitle: "When it's stretched, not shrunk. Coily hair shrinks. That's why we ask stretched length.",
     multi: false, showPattern: false,
     proTip: "Ends are years older than roots. Length tells us how much end-care your routine needs.",
     helpTitle: 'Why length matters',
-    helpBody: "Length is time. The longer your hair, the more it has lived through \u2014 washes, weather, styles, products. Long hair needs more end-care. Short hair needs more growth-care. Both can break, but for different reasons.",
+    helpBody: "Length is time. The longer your hair, the more it has lived through. Washes, weather, styles, products. Long hair needs more end-care. Short hair needs more growth-care. Both can break, but for different reasons.",
     options: [
       { value: 'short', label: 'Above the shoulder', desc: 'Ear-length, bob, TWA, or shorter' },
       { value: 'mid', label: 'Shoulder to mid-back', desc: 'Most common range' },
@@ -243,7 +229,7 @@ const QUIZ_STEPS: Step[] = [
     multi: true, showPattern: false,
     proTip: "We don\u2019t ask to flag damage. We ask so what we recommend fits.",
     helpTitle: 'Why history matters',
-    helpBody: "Chemical treatments change your hair\u2019s structure until it grows out. Relaxers break bonds. Colour lifts the cuticle. Heat damage doesn\u2019t reverse \u2014 it manages. Knowing this means we recommend what helps now, not what would\u2019ve helped a year ago.",
+    helpBody: "Chemical treatments change your hair\u2019s structure until it grows out. Relaxers break bonds. Colour lifts the cuticle. Heat damage doesn\u2019t reverse. It manages. Knowing this means we recommend what helps now, not what would\u2019ve helped a year ago.",
     options: [
       { value: 'colour', label: 'Colour treated', desc: 'Dyed, bleached, or highlighted' },
       { value: 'relaxer', label: 'Chemically relaxed', desc: 'Relaxer or texturiser' },
@@ -255,12 +241,6 @@ const QUIZ_STEPS: Step[] = [
   },
 
   // ── INTERSTITIAL 3 ───────────────────────────────────────────────
-  {
-    kind: 'interstitial',
-    id: 'why_history',
-    title: "Your history shapes what works.",
-    body: "We don\u2019t ask to flag damage. We ask so what we recommend fits the hair you have now \u2014 not the hair someone else thinks you should have.",
-  },
 
   // ── SEGMENTS ─────────────────────────────────────────────────────
   {
@@ -277,14 +257,14 @@ const QUIZ_STEPS: Step[] = [
     kind: 'interstitial',
     id: 'we_hear',
     title: "We hear you.",
-    body: "Wherever you are \u2014 natural, in protective styles, transitioning, recovering \u2014 we built this for that. One more step.",
+    body: "Wherever you are. Natural, in protective styles, transitioning, recovering: we built this for that. One more step.",
   },
 
   {
     kind: 'question',
     id: 'time_budget',
     question: "How much time do you actually have for your hair?",
-    subtitle: "Daily, not weekly. We build the routine around what you can keep \u2014 not aspirations.",
+    subtitle: "Daily, not weekly. We build the routine around what you can keep, not aspirations.",
     multi: false, showPattern: false,
     proTip: "The best routine is the one you'll do. Be honest about an average morning.",
     helpTitle: 'Why time budget matters',
@@ -349,17 +329,15 @@ const SUBTYPES: Record<string, { value: string; label: string; desc: string }[]>
 };
 
 // ─── Phase mapping ───────────────────────────────────────────────
-// Step layout (18 total):
-//   0 welcome
-//   1 strand · 2 curl · 3 subtype · 4 density · 5 why_pattern              → texture
-//   6 porosity · 7 why_porosity · 8 scalp · 9 wash_frequency · 10 length   → scalp
-//   11 history · 12 why_history · 13 segments · 14 we_hear                 → story
-//   15 time_budget · 16 goals · 17 almost                                  → plan
+// Step layout (15 total):
+//   0 strand_thickness · 1 curl · 2 subtype · 3 density                    → texture
+//   4 porosity · 5 why_porosity · 6 scalp · 7 wash_frequency · 8 length    → scalp
+//   9 history · 10 segments · 11 we_hear                                   → story
+//   12 time_budget · 13 goals · 14 almost                                  → plan
 function phaseForStep(idx: number): Phase | null {
-  if (idx === 0) return null;
-  if (idx <= 5) return 'texture';
-  if (idx <= 10) return 'scalp';
-  if (idx <= 14) return 'story';
+  if (idx <= 3) return 'texture';
+  if (idx <= 8) return 'scalp';
+  if (idx <= 11) return 'story';
   return 'plan';
 }
 
@@ -370,21 +348,18 @@ function completedBefore(phase: Phase | null): Phase[] {
   return PHASE_ORDER.slice(0, PHASE_ORDER.indexOf(phase));
 }
 
-// 1-based interstitial index for display (00 / 04 for welcome, 01 / 04 onward for the rest)
+// 1-based interstitial index for display.
 function interstitialDisplay(stepId: string): string | null {
   const order: Record<string, string> = {
-    welcome:     '00 / 04',
-    why_pattern: '01 / 04',
-    why_porosity:'02 / 04',
-    why_history: '03 / 04',
-    we_hear:     '\u2014',       // breath beat — no index, just an em-dash
-    almost:      '04 / 04',
+    why_porosity:'01 / 02',
+    we_hear:     '. ',       // breath beat. No index, just an em-dash
+    almost:      '02 / 02',
   };
   return order[stepId] ?? null;
 }
 
 // ─── Component ───────────────────────────────────────────────────
-const PROGRESS_KEY = 'tressana_quiz_progress';
+const PROGRESS_KEY = 'halea_quiz_progress';
 
 export default function QuizScreen() {
   const router = useRouter();
@@ -417,7 +392,7 @@ export default function QuizScreen() {
   }, []);
 
   // Persist progress on every step or answer change, after initial load.
-  // Skip persisting the welcome screen — no reason to "resume" on idx 0.
+  // Skip persisting an untouched first step — nothing to resume.
   useEffect(() => {
     if (!progressLoaded) return;
     if (idx === 0 && Object.keys(answers).length === 0) return;
@@ -510,6 +485,7 @@ export default function QuizScreen() {
     const quizResults = {
       hairType,
       curl: answers.curl,
+      strand_thickness: answers.strand_thickness || 'unsure',
       subtype: answers.subtype,
       density: answers.density || 'unsure',
       porosity: answers.porosity || 'unsure',
@@ -521,7 +497,7 @@ export default function QuizScreen() {
       segments,
       time_budget: answers.time_budget || 'short',
     };
-    await AsyncStorage.setItem('tressana_quiz', JSON.stringify(quizResults));
+    await AsyncStorage.setItem('halea_quiz', JSON.stringify(quizResults));
 
     // Clear in-progress save now that we have a completed result.
     await AsyncStorage.removeItem(PROGRESS_KEY).catch(() => {});
@@ -583,7 +559,7 @@ export default function QuizScreen() {
 
   return (
     <View style={$.container}>
-      {/* Top nav with journey map — single source of progress */}
+      {/* Top nav with journey map. Single source of progress */}
       <View style={$.nav}>
         <Pressable onPress={handleBack} style={$.backBtn}>
           <Text style={$.backArrow}>{'\u2039'}</Text>
@@ -611,9 +587,8 @@ export default function QuizScreen() {
             <Text style={$.intTitle}>{step.title}</Text>
             <Text style={$.intBody}>{step.body}</Text>
 
-            {step.id === 'why_pattern'  && <PatternLineup selectedType={(answers.subtype as string) || ''} />}
             {step.id === 'why_porosity' && <CuticleStrands />}
-            {/* welcome, why_history, we_hear, almost: deliberately no visual */}
+            {/* we_hear, almost: deliberately no visual */}
           </Animated.View>
         ) : step.kind === 'segments' ? (
           <Animated.View key={`seg-${idx}`} entering={FadeIn.duration(280)}>
@@ -644,13 +619,13 @@ export default function QuizScreen() {
               </Pressable>
             </View>
 
-            {/* Auto-promotion banner — visible on goals step when relevant */}
+            {/* Auto-promotion banner. Visible on goals step when relevant */}
             {step.id === 'goals' && autoPromotionReason && (
               <View style={$.autoBanner}>
                 <Text style={$.autoBannerLabel}>WE\u2019VE PULLED IN</Text>
                 <Text style={$.autoBannerTitle}>Length retention</Text>
                 <Text style={$.autoBannerBody}>
-                  Because you mentioned {autoPromotionReason} \u2014 hair tends to shed more in this phase, that\u2019s normal. Keep it or untap it.
+                  Because you mentioned {autoPromotionReason}. Hair tends to shed more in this phase, that\u2019s normal. Keep it or untap it.
                 </Text>
               </View>
             )}
@@ -765,7 +740,7 @@ const $ = StyleSheet.create({
   backArrow: { fontSize: 22, color: Colors.ink, marginTop: -2, marginLeft: -1 },
   mapWrap: { flex: 1 },
 
-  scroll: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 30 },
+  scroll: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 32 },
 
   // Question header
   qRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 12 },
@@ -905,7 +880,7 @@ const $ = StyleSheet.create({
   },
   nextBtn: {
     width: '100%',
-    paddingVertical: 17,
+    paddingVertical: 16,
     borderRadius: Radius.lg,
     backgroundColor: Colors.violet,
     alignItems: 'center',

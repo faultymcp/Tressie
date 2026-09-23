@@ -1,10 +1,10 @@
-# Tressana Mobile - React Native (Expo)
+# Halea Mobile - React Native (Expo)
 
 ## Setup
 
 1. **Install dependencies:**
 ```bash
-cd tressana-mobile
+cd halea-mobile
 npm install
 ```
 
@@ -27,7 +27,7 @@ npx expo start
 ## Project Structure
 
 ```
-tressana-mobile/
+halea-mobile/
 ├── app/                    # Screens (file-based routing)
 │   ├── _layout.tsx         # Root layout (navigation stack)
 │   ├── index.tsx           # Splash screen
@@ -37,7 +37,7 @@ tressana-mobile/
 │   ├── reveal.tsx          # Profile reveal
 │   └── (tabs)/             # Bottom tab navigation
 │       ├── _layout.tsx     # Tab bar config
-        ├── ai_chat.tsx     # Tressie AI chat screen
+        ├── ai_chat.tsx     # Halea AI chat screen
 │       ├── home.tsx        # Dashboard + routine tracker
 │       ├── discover.tsx    # Hairstyle gallery
 │       ├── salons.tsx      # Salon finder
@@ -61,7 +61,7 @@ tressana-mobile/
 Splash → Onboarding (3 slides) → Auth → Quiz (7 steps) → Profile Reveal → Home (tabs)
                                                                               ├── Home (dashboard)
                                                                               ├── Discover (gallery)
-                                                                              ├── Tressie AI chat screen
+                                                                              ├── Halea AI chat screen
                                                                               ├── Salons
                                                                               └── Profile
 ```
@@ -69,16 +69,16 @@ Splash → Onboarding (3 slides) → Auth → Quiz (7 steps) → Profile Reveal 
 ## Visual Identity
 
 All colours, fonts, and spacing are in `constants/theme.ts`:
-- **Violet:** #7643AC (primary)
-- **Pink:** #F484B9 (accent)
-- **Lavender:** #C38CD9 (secondary)
+- **Violet:** #241C17 (primary)
+- **Pink:** #8C5A3C (accent)
+- **Lavender:** #B08968 (secondary)
 - **Lime:** #D9FF00 (spark, ~5%)
 - **Porcelain:** #FFFEF7 (backgrounds)
-- **Ink:** #332463 (text)
+- **Ink:** #241C17 (text)
 
 ## What's Connected
 
-- **Groq Key** — Tressie AI (LLaMA 3.3 70B via Groq)
+- **Groq Key** — Halea AI (LLaMA 3.3 70B via Groq)
 - **Supabase Auth** — email/password + Google OAuth
 - **Supabase Database** — hair profiles, hairstyles
 - **Cloudflare R2** — hairstyle images (via image_url in database)

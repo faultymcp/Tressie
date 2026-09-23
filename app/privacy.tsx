@@ -34,7 +34,7 @@ export default function PrivacyScreen() {
   const handleDelete = () => {
     Alert.alert(
       'Delete Account',
-      'This will permanently delete:\n\n- Your hair profile and quiz results\n- All XP, wallet balance, and discount codes\n- Your bookings and favourites\n- Your Tressie conversation history\n\nThis action cannot be undone.',
+      'This will permanently delete:\n\n- Your hair profile and quiz results\n- All XP, wallet balance, and discount codes\n- Your bookings and favourites\n- Your Halea conversation history\n\nThis action cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Delete My Account', style: 'destructive', onPress: async () => {
@@ -58,7 +58,7 @@ export default function PrivacyScreen() {
         <View style={st.infoCard}>
           <View style={st.infoIcon}><IC.Shield /></View>
           <Text style={st.infoTitle}>Your data, your control</Text>
-          <Text style={st.infoDesc}>Tressana stores your data securely on EU-hosted servers. We never sell your personal information to third parties. You can export or delete your data at any time.</Text>
+          <Text style={st.infoDesc}>Halea stores your data securely on EU-hosted servers. We never sell your personal information to third parties. You can export or delete your data at any time.</Text>
         </View>
 
         {/* What we collect */}
@@ -156,13 +156,13 @@ const st = StyleSheet.create({
   },
   row: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
-    paddingVertical: 15, paddingHorizontal: 18,
+    paddingVertical: 16, paddingHorizontal: 18,
     borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
   rowIcon: { width: 24, alignItems: 'center' },
   rowBody: { flex: 1 },
   rowLabel: { fontFamily: Fonts.bodyMedium, fontSize: 14, color: Colors.ink },
-  rowSub: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginTop: 1 },
+  rowSub: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginTop: 2 },
 
   footer: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, textAlign: 'center', marginTop: 12, opacity: 0.4 },
 });

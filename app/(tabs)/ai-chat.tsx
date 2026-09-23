@@ -11,84 +11,82 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { Colors, Fonts, Radius } from '@/constants/theme';
-import Animated, { FadeInUp, FadeInLeft, FadeInRight } from 'react-native-reanimated';
+import { Colors, Fonts, Radius, Motion } from '@/constants/theme';
+import { supabase } from '@/lib/supabase';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 
-// ── Groq API ─────────────────
-const GROQ_KEY = process.env.EXPO_PUBLIC_GROQ_KEY || '';
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+// ── Mistral, via the mistral-proxy Edge Function ─────────────────
+// The API key lives in Supabase secrets, never in the app bundle.
+const CHAT_URL = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/mistral-proxy`;
 const OPEN_FOOD_FACTS_URL = 'https://world.openfoodfacts.org/api/v0/product';
 
-// ── Tressie System Prompt ─────────────────────────────────────────
-const SYSTEM_PROMPT = `You are Tressie, the AI hair advisor exclusively inside the Tressana app. You ONLY talk about hair. Nothing else.
+// ── Halea system prompt ────────────────────────────────────────
+// Voice rules come from constants/voice.ts. Product recommendations are
+// grounded in the products table — the model may only name products that
+// were passed to it, so it can't invent a range we don't stock.
 
-YOUR PERSONALITY — older sister energy:
-- Talk like a real person, not a customer service bot. Casual, warm, direct.
-- Say things like "okay so here's the thing...", "sis listen", "real talk", "no cap this actually works", "I've been there"
-- Validate feelings FIRST before giving advice
-- Use community terms: wash day, protective styles, shrinkage, LOC method, porosity, big chop, transitioning, co-wash, pre-poo
-- Keep answers concise unless they ask for a full routine
+const VOICE = `You are Halea, the hair advisor inside the Halea app. You only discuss hair, scalp, and hair care. Redirect anything else briefly and without apology.
 
-YOUR NAME IS TRESSIE. You are not "an AI" — you're Tressie, their hair big sis.
+WHO YOU ARE
+A stylist in her thirties with a trichology background, who has worked across every hair type and life stage. You are direct without being cold, warm without performing care, specific rather than universal. You use plain words. You are comfortable saying postpartum, alopecia, chemo, transitioning: without euphemism and without medicalising them.
 
-HAIR TYPES (Andre Walker System):
-- Type 1 (Straight): 1A fine, 1B medium, 1C coarse
-- Type 2 (Wavy): 2A loose S-waves, 2B defined S-waves, 2C deep waves
-- Type 3 (Curly): 3A loose springy curls, 3B springy ringlets, 3C tight corkscrews
-- Type 4 (Coily): 4A soft coils S-pattern, 4B Z-pattern less definition, 4C tight coils most shrinkage
+HOW YOU SPEAK
+- Address the reader as "you". Never queen, sis, girl, babe, or hun.
+- No emojis. Anywhere. Not in lists, not as verdict markers.
+- No exclamation marks except for genuine excitement, which is rare.
+- Never use the "not this, but that" construction. It is the clearest tell of machine writing.
+- No tips, secrets, or hacks framing. No unsourced statistics.
+- Specific over universal: "a weekly clarifying wash", not "personalised hair care".
+- Two or three short paragraphs unless a full routine is asked for.
 
-HAIR POROSITY:
-- LOW: Tightly packed cuticles. Water beads up. Products sit on top. Needs: LCO method, lightweight products, heat to open cuticles, glycerin, aloe vera. AVOID: heavy butters, too much protein.
-- MEDIUM: Balanced. Easy to style. Needs: balanced moisture and protein.
-- HIGH: Raised cuticles. Absorbs fast loses fast. Dry frizzy breakage-prone. Needs: LOC method, heavy butters, protein treatments. AVOID: humectants in humidity.
+EVEN-HANDEDNESS
+No hair type is the default and none is the niche being accommodated. Never imply curlier is harder, straighter is easier, natural is better, relaxed is worse, long is the goal, or short is a phase. Never frame anything as before-and-after, which implies a deficit.
 
-WASH DAY Type 3: Pre-poo → Cleanse (sulfate-free) → Detangle → Deep condition 20-30min → Leave-in → Seal → Style → Protect with satin bonnet
-WASH DAY Type 4: Pre-poo overnight → Co-wash or sulfate-free shampoo → Detangle in sections → Deep condition 30min → LOC method → Style → Protect
+WHAT YOU KNOW
+Hair types 1A–4C on the Andre Walker scale. Porosity: low cuticles lie flat so water beads and product sits on the surface. Lighter formulas, warmth to open the cuticle. High porosity absorbs and loses water quickly. Heavier sealing, protein in balance. Medium sits between the two.
 
-COMMON CONCERNS:
-- Dryness: LOC/LCO method, more frequent deep conditioning, check porosity
-- Frizz: Seal with oil/cream, don't touch while drying, check porosity
-- Breakage: Check protein-moisture balance, protective styles, gentle detangling
-- Shrinkage (Type 4): Normal — banding, blow out, braids to stretch
-- Buildup: Clarifying shampoo, apple cider vinegar rinse
+Common concerns and what actually addresses them: dryness (layering order, deep conditioning frequency, checking porosity first), frizz (sealing after moisture, hands off while drying), breakage (protein and moisture balance, gentler detangling, protective styling), shrinkage in coilier patterns (banding or stretching: it is a sign of elasticity, not damage), buildup (clarifying wash).
 
-INGREDIENT ANALYSIS — when given ingredients:
-- Sulfates (SLS, SLES): drying, avoid for curly/coily
-- Silicones (dimethicone): buildup if non-water-soluble
-- Proteins (keratin, hydrolysed silk): good in balance
-- Humectants (glycerin, aloe): great for moisture, avoid in dry climates
-- Give clear verdict: ✅ Good / ⚠️ Use with caution / 🚫 Avoid — with specific reasons
+Ingredients: sulfates cleanse hard and can strip drier textures. Non-water-soluble silicones build up without a clarifying wash. Hydrolysed proteins strengthen but stiffen if overused. Humectants like glycerin draw in moisture, which works against you in very dry or very humid air.
 
-TRESSANA PRODUCTS (recommend ONLY these):
-• Tressana Hydrating Hair Mask — dry hair, Types 3A-4C
-• Tressana Soothing Scalp Serum — sensitive scalp, all types
-• Tressana Curl Defining Cream — curl definition, Types 3A-4A
-• Tressana Deep Moisture Butter — extreme dryness, Types 4A-4C
-• Tressana Pre-Poo Detangling Oil — pre-wash protection, Types 3C-4C
-• Tressana Co-Wash Cleansing Conditioner — gentle cleansing, Types 3B-4C
+MEDICAL BOUNDARY
+You do not diagnose. Sudden shedding, bald patches, scalp pain, or anything that seems medical goes to a GP, dermatologist, or trichologist. Say so plainly and without alarm.`;
 
-RULES:
-- ONLY talk about hair. Redirect everything else: "That's outside my lane babe — I'm strictly a hair girl 💜"
-- Never shame any texture, porosity, or practice.
-- Short answers unless a full routine is requested.
+// Only products that come back from the database may be named.
+function buildSystemPrompt(hairType: string, products: any[]): string {
+  let prompt = VOICE;
 
-The Tressana app has: Wash Day Tracker, Stylist Marketplace, AI Hair Analysis.`;
+  if (hairType) {
+    prompt += `\n\nTHIS PERSON\nHair type ${hairType}. Tailor everything to it. Do not give generic advice that would suit anyone.`;
+  }
+
+  if (products.length > 0) {
+    const lines = products
+      .map(p => `- ${p.brand} ${p.name} (${p.category}, ${p.price}, ${p.retailer}): ${p.why_it_works}`)
+      .join('\n');
+    prompt += `\n\nPRODUCTS YOU MAY RECOMMEND\nThese are real products stocked in the app for this hair type:\n${lines}\n\nRecommend only from this list. Name the brand and product exactly as written. Never invent a product, a brand, or a Halea-branded range: no such range exists. If nothing here fits what they asked, say so, then describe what to look for by category and ingredient so they can choose for themselves.`;
+  } else {
+    prompt += `\n\nPRODUCTS\nYou have no product list for this person. Do not name specific products or brands from memory. Formulations change and you will get it wrong. Describe what to look for by category and ingredient instead.`;
+  }
+
+  return prompt;
+}
 
 // ── Personalised chips by hair type ──────────────────────────────
-const CHIPS_BY_TYPE: Record<string, { label: string; emoji: string }[]> = {
-  '1A': [{ label: 'My hair goes flat by noon', emoji: '😞' }, { label: 'Best volumising products', emoji: '✨' }, { label: 'How to add texture', emoji: '💁' }, { label: 'Avoid greasy roots', emoji: '🚫' }],
-  '1B': [{ label: 'How to add volume', emoji: '💨' }, { label: 'Best lightweight products', emoji: '✨' }, { label: 'Keep style all day', emoji: '💪' }, { label: 'Reduce oiliness', emoji: '🌿' }],
-  '1C': [{ label: 'Tame coarse straight hair', emoji: '✨' }, { label: 'Frizz on humid days', emoji: '🌀' }, { label: 'Best smoothing products', emoji: '💆' }, { label: 'Wash day for thick hair', emoji: '🚿' }],
-  '2A': [{ label: 'Enhance my waves', emoji: '🌊' }, { label: 'Stop waves going frizzy', emoji: '🌀' }, { label: 'Build my wave routine', emoji: '🚿' }, { label: 'Best wave products', emoji: '✨' }],
-  '2B': [{ label: 'Define my S-waves', emoji: '〰️' }, { label: 'Frizz control for 2B', emoji: '🌀' }, { label: 'Diffusing waves tips', emoji: '💨' }, { label: 'Products for 2B hair', emoji: '✨' }],
-  '2C': [{ label: 'My waves become frizz', emoji: '😤' }, { label: '2C wash day routine', emoji: '🚿' }, { label: 'Best gels for waves', emoji: '✨' }, { label: 'Scrunch technique', emoji: '✋' }],
-  '3A': [{ label: 'Build my 3A routine', emoji: '🚿' }, { label: 'Best products for 3A', emoji: '✨' }, { label: 'My curls lose definition', emoji: '😔' }, { label: 'Diffuse without frizz', emoji: '💨' }],
-  '3B': [{ label: 'Define my ringlets', emoji: '🌀' }, { label: '3B wash day tips', emoji: '🚿' }, { label: 'Protein vs moisture for 3B', emoji: '⚖️' }, { label: 'Best leave-in for 3B', emoji: '✨' }],
-  '3C': [{ label: 'My 3C curls are so dry', emoji: '💧' }, { label: 'LOC method for 3C', emoji: '🌿' }, { label: 'Pre-poo for 3C hair', emoji: '🛁' }, { label: '3C protective styles', emoji: '💆' }],
-  '4A': [{ label: 'Moisture for 4A coils', emoji: '💧' }, { label: '4A wash day routine', emoji: '🚿' }, { label: 'Define my 4A coils', emoji: '🌀' }, { label: 'Shrinkage help', emoji: '📏' }],
-  '4B': [{ label: 'My 4B hair is SO dry', emoji: '😩' }, { label: 'LOC method for 4B', emoji: '🌿' }, { label: 'Detangling 4B tips', emoji: '🤌' }, { label: 'Best oils for 4B', emoji: '✨' }],
-  '4C': [{ label: 'Moisture that actually works', emoji: '💧' }, { label: 'Full 4C wash day', emoji: '🚿' }, { label: 'Shrinkage and length', emoji: '📏' }, { label: 'Deep condition routine', emoji: '💆' }],
-  default: [{ label: 'Build my wash day routine', emoji: '🚿' }, { label: 'Products for my hair type', emoji: '✨' }, { label: 'My hair is really dry', emoji: '💧' }, { label: 'How do I find my porosity?', emoji: '🔬' }, { label: 'Pre-poo tips', emoji: '🌿' }, { label: 'Help with frizz', emoji: '🌀' }],
+const CHIPS_BY_TYPE: Record<string, { label: string }[]> = {
+  '1A': [{ label: 'My hair goes flat by noon' }, { label: 'Best volumising products' }, { label: 'How to add texture' }, { label: 'Avoid greasy roots' }],
+  '1B': [{ label: 'How to add volume' }, { label: 'Best lightweight products' }, { label: 'Keep style all day' }, { label: 'Reduce oiliness' }],
+  '1C': [{ label: 'Tame coarse straight hair' }, { label: 'Frizz on humid days' }, { label: 'Best smoothing products' }, { label: 'Wash day for thick hair' }],
+  '2A': [{ label: 'Enhance my waves' }, { label: 'Stop waves going frizzy' }, { label: 'Build my wave routine' }, { label: 'Best wave products' }],
+  '2B': [{ label: 'Define my S-waves' }, { label: 'Frizz control for 2B' }, { label: 'Diffusing waves tips' }, { label: 'Products for 2B hair' }],
+  '2C': [{ label: 'My waves become frizz' }, { label: '2C wash day routine' }, { label: 'Best gels for waves' }, { label: 'Scrunch technique' }],
+  '3A': [{ label: 'Build my 3A routine' }, { label: 'Best products for 3A' }, { label: 'My curls lose definition' }, { label: 'Diffuse without frizz' }],
+  '3B': [{ label: 'Define my ringlets' }, { label: '3B wash day tips' }, { label: 'Protein vs moisture for 3B' }, { label: 'Best leave-in for 3B' }],
+  '3C': [{ label: 'My 3C curls are so dry' }, { label: 'LOC method for 3C' }, { label: 'Pre-poo for 3C hair' }, { label: '3C protective styles' }],
+  '4A': [{ label: 'Moisture for 4A coils' }, { label: '4A wash day routine' }, { label: 'Define my 4A coils' }, { label: 'Shrinkage help' }],
+  '4B': [{ label: 'My 4B hair is SO dry' }, { label: 'LOC method for 4B' }, { label: 'Detangling 4B tips' }, { label: 'Best oils for 4B' }],
+  '4C': [{ label: 'Moisture that actually works' }, { label: 'Full 4C wash day' }, { label: 'Shrinkage and length' }, { label: 'Deep condition routine' }],
+  default: [{ label: 'Build my wash day routine' }, { label: 'Products for my hair type' }, { label: 'My hair is really dry' }, { label: 'How do I find my porosity?' }, { label: 'Pre-poo tips' }, { label: 'Help with frizz' }],
 };
 
 function getSuggestions(hairType: string) {
@@ -97,7 +95,7 @@ function getSuggestions(hairType: string) {
 
 // ── Types ─────────────────────────────────────────────────────────
 type Message = { id: string; role: 'user' | 'assistant'; text: string; attachment?: { type: 'image' | 'document'; name: string } };
-type GroqMessage = { role: 'user' | 'assistant' | 'system'; content: string };
+type ChatMessage = { role: 'user' | 'assistant' | 'system'; content: string };
 
 // ── Icons ─────────────────────────────────────────────────────────
 function IconSend() {
@@ -164,7 +162,7 @@ function BubbleContent({ text, isUser }: { text: string; isUser: boolean }) {
             </View>
           );
         }
-        return <InlineText key={i} text={line} style={[st.bubbleText, isUser && st.bubbleTextUser, i > 0 && { marginTop: 3 }]} boldStyle={isUser ? { fontFamily: Fonts.bodySemi, color: '#fff' } : undefined} />;
+        return <InlineText key={i} text={line} style={[st.bubbleText, isUser && st.bubbleTextUser, i > 0 && { marginTop: 4 }]} boldStyle={isUser ? { fontFamily: Fonts.bodySemi, color: '#fff' } : undefined} />;
       })}
     </View>
   );
@@ -172,14 +170,13 @@ function BubbleContent({ text, isUser }: { text: string; isUser: boolean }) {
 
 function TypingDots() {
   return (
-    <View style={st.typingRow}>
-      <LinearGradient colors={[Colors.violet, Colors.lavender]} style={st.aiAvatar}>
-        <Text style={{ fontSize: 13 }}>✨</Text>
-      </LinearGradient>
-      <View style={[st.bubble, st.bubbleAI]}>
-        <View style={st.dotsWrap}>
-          {[0, 1, 2].map(i => <View key={i} style={[st.dot, { opacity: 0.3 + i * 0.25 }]} />)}
-        </View>
+    <View style={st.aiBlock}>
+      <View style={st.aiHead}>
+        <View style={st.aiAvatar}><Text style={st.aiAvatarMark}>T</Text></View>
+        <Text style={st.aiName}>Halea</Text>
+      </View>
+      <View style={st.dotsWrap}>
+        {[0, 1, 2].map(i => <View key={i} style={[st.dot, { opacity: 0.25 + i * 0.25 }]} />)}
       </View>
     </View>
   );
@@ -187,26 +184,34 @@ function TypingDots() {
 
 function MessageRow({ msg, index }: { msg: Message; index: number }) {
   const isUser = msg.role === 'user';
-  const Anim = isUser ? FadeInRight : FadeInLeft;
+  const delay = index < 2 ? 0 : 40;
+
+  // The user gets a bubble. The assistant gets full-width text, the way
+  // ChatGPT and Claude render it. A 78%-wide bubble is a texting layout;
+  // it fights long-form advice.
+  if (isUser) {
+    return (
+      <Animated.View style={st.userRow}>
+        <View style={st.userBubble}>
+          {msg.attachment && (
+            <Text style={st.attachName} numberOfLines={1}>{msg.attachment.name}</Text>
+          )}
+          <BubbleContent text={msg.text} isUser />
+        </View>
+      </Animated.View>
+    );
+  }
+
   return (
-    <Animated.View entering={Anim.delay(index < 2 ? 0 : 50).duration(260)} style={[st.msgRow, isUser ? st.msgRowUser : st.msgRowAI]}>
-      {!isUser && <LinearGradient colors={[Colors.violet, Colors.lavender]} style={st.aiAvatar}><Text style={{ fontSize: 13 }}>✨</Text></LinearGradient>}
-      <View style={{ maxWidth: '78%' }}>
-        {msg.attachment && (
-          <View style={[st.attachBadge, isUser && st.attachBadgeUser]}>
-            <Text style={{ fontSize: 14 }}>{msg.attachment.type === 'image' ? '📷' : '📄'}</Text>
-            <Text style={[st.attachBadgeName, isUser && { color: 'rgba(255,255,255,0.8)' }]} numberOfLines={1}>{msg.attachment.name}</Text>
-          </View>
-        )}
-        {isUser ? (
-          <LinearGradient colors={['#120B2E', Colors.violet] as any} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[st.bubble, st.bubbleUser]}>
-            <BubbleContent text={msg.text} isUser />
-          </LinearGradient>
-        ) : (
-          <View style={[st.bubble, st.bubbleAI]}><BubbleContent text={msg.text} isUser={false} /></View>
-        )}
+    <Animated.View style={st.aiBlock}>
+      <View style={st.aiHead}>
+        <View style={st.aiAvatar}><Text style={st.aiAvatarMark}>T</Text></View>
+        <Text style={st.aiName}>Halea</Text>
       </View>
-      {isUser && <View style={st.userAvatar}><Text style={{ fontSize: 13 }}>🌿</Text></View>}
+      {msg.attachment && (
+        <Text style={st.attachNameAI} numberOfLines={1}>{msg.attachment.name}</Text>
+      )}
+      <BubbleContent text={msg.text} isUser={false} />
     </Animated.View>
   );
 }
@@ -258,7 +263,7 @@ function BarcodeScannerModal({ visible, onClose, onScanned }: { visible: boolean
 // ── Attach menu ───────────────────────────────────────────────────
 function AttachMenu({ onIngredientScan, onBarcodeScan, onDocument }: { onIngredientScan: () => void; onBarcodeScan: () => void; onDocument: () => void }) {
   return (
-    <Animated.View entering={FadeInUp.duration(200)} style={st.attachMenu}>
+    <Animated.View style={st.attachMenu}>
       {[
         { icon: <IconCamera />, label: 'Scan Ingredients', sub: 'Photo of product label', onPress: onIngredientScan },
         { icon: <IconBarcode />, label: 'Scan Barcode', sub: 'Look up product by barcode', onPress: onBarcodeScan },
@@ -283,9 +288,9 @@ function AttachMenu({ onIngredientScan, onBarcodeScan, onDocument }: { onIngredi
 export default function AIChatScreen() {
   const [messages, setMessages] = useState<Message[]>([{
     id: 'welcome', role: 'assistant',
-    text: "Heyy! 👋 I'm **Tressie**, your hair assistant inside Tressana.\n\nReal talk — I've done the research, tried the products, and made the mistakes so you don't have to. I got you.\n\nSo what's going on with your hair? 👀",
+    text: "I'm Halea. I read your hair profile before we start, so you don't have to explain it to me.\n\nAsk me about your routine, a product you're unsure of, or something your hair has started doing that it didn't before.",
   }]);
-  const [history, setHistory] = useState<GroqMessage[]>([]);
+  const [history, setHistory] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -295,9 +300,23 @@ export default function AIChatScreen() {
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const listRef = useRef<FlatList>(null);
 
+  const [products, setProducts] = useState<any[]>([]);
+
   useEffect(() => {
-    AsyncStorage.getItem('tressana_quiz').then(raw => {
-      if (raw) setHairType(JSON.parse(raw).hairType || '');
+    AsyncStorage.getItem('halea_quiz').then(async raw => {
+      if (!raw) return;
+      const ht = JSON.parse(raw).hairType || '';
+      setHairType(ht);
+      if (!ht) return;
+
+      // Ground recommendations in the products table rather than the
+      // model's memory, which invents brands and stale formulations.
+      const { data } = await supabase
+        .from('products')
+        .select('brand, name, category, price, retailer, why_it_works')
+        .contains('hair_types', [ht.charAt(0)])
+        .limit(12);
+      if (data) setProducts(data);
     });
   }, []);
 
@@ -320,27 +339,30 @@ export default function AIChatScreen() {
     scrollToBottom();
 
     const contextualMsg = hairType ? `[My hair type is ${hairType}] ${trimmed}` : trimmed;
-    const newHistory: GroqMessage[] = [...history, { role: 'user', content: contextualMsg }];
+    const newHistory: ChatMessage[] = [...history, { role: 'user', content: contextualMsg }];
 
     try {
-      const response = await fetch(GROQ_URL, {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Please sign in to chat.');
+
+      const response = await fetch(CHAT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...newHistory],
-          max_tokens: 600,
-          temperature: 0.85,
+          system: buildSystemPrompt(hairType, products),
+          messages: newHistory.slice(-10),
         }),
       });
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData?.error?.message || `Error ${response.status}`);
-      }
+      if (response.status === 429) throw new Error('Give me a few seconds, then ask again.');
+      if (!response.ok) throw new Error('I had trouble with that one. Try again?');
 
       const data = await response.json();
-      const replyText = data?.choices?.[0]?.message?.content || "Hmm something went weird, try again!";
+      const replyText = data?.reply;
+      if (!replyText) throw new Error('I had trouble with that one. Try again?');
 
       setMessages(prev => [...prev, { id: `a_${Date.now()}`, role: 'assistant', text: replyText }]);
       setHistory([...newHistory, { role: 'assistant', content: replyText }]);
@@ -350,7 +372,7 @@ export default function AIChatScreen() {
       setLoading(false);
       scrollToBottom();
     }
-  }, [input, loading, history, hairType, scrollToBottom]);
+  }, [input, loading, history, hairType, products, scrollToBottom]);
 
   // ── Ingredient scan ─────────────────────────────────────────────
   const handleIngredientScan = useCallback(async () => {
@@ -359,7 +381,7 @@ export default function AIChatScreen() {
       'How would you like to capture the ingredient label?',
       [
         {
-          text: '📷 Take a Photo',
+          text: 'Take a photo',
           onPress: async () => {
             const { status } = await ImagePicker.requestCameraPermissionsAsync();
             if (status !== 'granted') { Alert.alert('Permission needed', 'Please allow camera access.'); return; }
@@ -371,13 +393,13 @@ export default function AIChatScreen() {
             if (result.canceled) return;
             setShowAttachMenu(false);
             sendMessage(
-              "I've taken a photo of a hair product ingredient list. Please analyse these ingredients for my hair type — tell me what's good, what to watch out for, and whether this product is suitable for me.",
+              "I've taken a photo of a hair product ingredient list. Please analyse these ingredients for my hair type. Tell me what's good, what to watch out for, and whether this product is suitable for me.",
               { type: 'image', name: 'Ingredient Photo' }
             );
           },
         },
         {
-          text: '🖼️ Choose from Gallery',
+          text: 'Choose from gallery',
           onPress: async () => {
             const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (status !== 'granted') { Alert.alert('Permission needed', 'Please allow photo access.'); return; }
@@ -385,7 +407,7 @@ export default function AIChatScreen() {
             if (result.canceled) return;
             setShowAttachMenu(false);
             sendMessage(
-              "I've uploaded a photo of a hair product ingredient list. Please analyse these ingredients for my hair type — tell me what's good, what to watch out for, and whether this product is suitable for me.",
+              "I've uploaded a photo of a hair product ingredient list. Please analyse these ingredients for my hair type. Tell me what's good, what to watch out for, and whether this product is suitable for me.",
               { type: 'image', name: 'Ingredient Label' }
             );
           },
@@ -454,18 +476,14 @@ export default function AIChatScreen() {
 
   return (
     <SafeAreaView style={st.safe}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
-      <LinearGradient colors={['#120B2E', '#332463', Colors.violet]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={st.header}>
-        <View style={st.headerAvatar}><Text style={{ fontSize: 22 }}>✨</Text></View>
-        <View style={st.headerText}>
-          <Text style={st.headerName}>Tressie ✨</Text>
-          <View style={st.headerSubRow}>
-            <View style={st.onlineDot} />
-            <Text style={st.headerSub}>{hairType ? `Your hair big sis • Type ${hairType}` : 'Your hair big sis'}</Text>
-          </View>
-        </View>
-      </LinearGradient>
+      <View style={st.header}>
+        <Text style={st.headerName}>Halea</Text>
+        <Text style={st.headerSub}>
+          {hairType ? `Reading your Type ${hairType} profile` : 'Hair advice, grounded in your profile'}
+        </Text>
+      </View>
 
       <BarcodeScannerModal
         visible={showBarcodeScanner}
@@ -491,15 +509,14 @@ export default function AIChatScreen() {
             renderItem={({ item, index }) => {
               if (item.role === 'typing') return <TypingDots />;
               if (item.role === 'error') return (
-                <Animated.View entering={FadeInUp.duration(250)} style={st.errorBox}>
-                  <Text style={st.errorText}>⚠️  {item.text}</Text>
+                <Animated.View style={st.errorBox}>
+                  <Text style={st.errorText}>{item.text}</Text>
                 </Animated.View>
               );
               if (item.role === 'chips') return (
-                <Animated.View entering={FadeInUp.delay(180).duration(300)} style={st.chips}>
+                <Animated.View style={st.chips}>
                   {suggestions.map(s => (
                     <Pressable key={s.label} onPress={() => sendMessage(s.label)} style={({ pressed }) => [st.chip, pressed && { opacity: 0.65 }]}>
-                      <Text style={st.chipEmoji}>{s.emoji}</Text>
                       <Text style={st.chipText}>{s.label}</Text>
                     </Pressable>
                   ))}
@@ -521,18 +538,15 @@ export default function AIChatScreen() {
         <View style={st.inputWrap}>
           <View style={[st.inputRow, input.length > 0 && st.inputRowFocused]}>
             <Pressable onPress={() => setShowAttachMenu(prev => !prev)} style={st.plusBtn}>
-              <LinearGradient
-                colors={showAttachMenu ? [Colors.violet, Colors.pink] as any : [Colors.violetBg2, Colors.violetBg2] as any}
-                style={st.plusBtnInner}
-              >
-                <Text style={[st.plusIcon, showAttachMenu && { color: '#fff' }]}>＋</Text>
-              </LinearGradient>
+              <View style={[st.plusBtnInner, showAttachMenu && st.plusBtnInnerOn]}>
+                <Text style={[st.plusIcon, showAttachMenu && { color: Colors.white }]}>+</Text>
+              </View>
             </Pressable>
             <TextInput
               style={st.input}
               value={input}
               onChangeText={setInput}
-              placeholder="Ask Tressie anything..."
+              placeholder="Ask about your hair"
               placeholderTextColor={Colors.muted}
               multiline
               maxLength={500}
@@ -552,7 +566,7 @@ export default function AIChatScreen() {
               </LinearGradient>
             </Pressable>
           </View>
-          <Text style={st.footerNote}>Tressie • Your hair big sis 🌿</Text>
+          <Text style={st.footerNote}>Halea can be wrong. Check anything medical with a professional.</Text>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -564,41 +578,39 @@ const st = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.porcelain },
   flex: { flex: 1 },
 
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 0 : 8, paddingBottom: 16 },
-  headerAvatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.25)' },
-  headerText: { flex: 1 },
-  headerName: { fontFamily: Fonts.heading, fontSize: 19, color: Colors.white, letterSpacing: -0.3 },
-  headerSubRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 3 },
-  onlineDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.lime },
-  headerSub: { fontFamily: Fonts.body, fontSize: 12, color: 'rgba(255,255,255,0.7)' },
+  header: { paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 4 : 12, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: Colors.border, backgroundColor: Colors.porcelain },
+  headerName: { fontFamily: Fonts.heading, fontSize: 24, color: Colors.ink, letterSpacing: -0.5 },
+  headerSub: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginTop: 2 },
 
-  list: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8, gap: 10 },
-  msgRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
-  msgRowAI: { flexDirection: 'row' },
-  msgRowUser: { flexDirection: 'row-reverse' },
-  aiAvatar: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  userAvatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.violetBg2, alignItems: 'center', justifyContent: 'center', flexShrink: 0, borderWidth: 1.5, borderColor: Colors.border },
+  list: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12, gap: 24 },
+  // Assistant: full-width text under a small attributed header.
+  aiBlock: { paddingRight: 8, gap: 8 },
+  aiHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  aiAvatar: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.violetBg2 },
+  aiAvatarMark: { fontFamily: Fonts.heading, fontSize: 11, color: Colors.violet },
+  aiName: { fontFamily: Fonts.bodySemi, fontSize: 12, color: Colors.muted, letterSpacing: 0.2 },
 
-  bubble: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: 18 },
-  bubbleAI: { backgroundColor: Colors.white, borderTopLeftRadius: 4, borderWidth: 1.5, borderColor: Colors.border },
-  bubbleUser: { borderTopRightRadius: 4 },
-  bubbleText: { fontFamily: Fonts.body, fontSize: 14, color: Colors.ink, lineHeight: 21 },
+  // User: right-aligned bubble, capped so it reads as an aside.
+  userRow: { alignItems: 'flex-end' },
+  userBubble: {
+    maxWidth: '82%', backgroundColor: Colors.violet,
+    paddingVertical: 11, paddingHorizontal: 16,
+    borderRadius: 20, borderBottomRightRadius: 6,
+  },
+  attachName: { fontFamily: Fonts.bodyMedium, fontSize: 12, color: 'rgba(255,255,255,0.75)', marginBottom: 4 },
+  attachNameAI: { fontFamily: Fonts.bodyMedium, fontSize: 12, color: Colors.muted },
+  bubbleText: { fontFamily: Fonts.body, fontSize: 15, color: Colors.ink, lineHeight: 24 },
   bubbleTextUser: { color: Colors.white },
 
-  attachBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.violetBg2, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, marginBottom: 4, borderWidth: 1, borderColor: Colors.border },
-  attachBadgeUser: { backgroundColor: 'rgba(255,255,255,0.15)' },
-  attachBadgeName: { fontFamily: Fonts.bodyMedium, fontSize: 12, color: Colors.violet, flex: 1 },
 
   bulletRow: { flexDirection: 'row', gap: 6, marginBottom: 2 },
   bullet: { fontFamily: Fonts.bodySemi, color: Colors.violet, fontSize: 14, lineHeight: 21 },
-  typingRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
-  dotsWrap: { flexDirection: 'row', gap: 5, alignItems: 'center', paddingVertical: 4 },
+  dotsWrap: { flexDirection: 'row', gap: 4, alignItems: 'center', paddingVertical: 2 },
   dot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: Colors.violet },
 
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingLeft: 40, paddingTop: 2 },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1.5, borderColor: Colors.violet, borderRadius: 20, paddingVertical: 7, paddingHorizontal: 12, backgroundColor: Colors.white },
-  chipEmoji: { fontSize: 12 },
-  chipText: { fontFamily: Fonts.bodyMedium, fontSize: 12, color: Colors.violet },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingTop: 2 },
+  chip: { borderWidth: 1, borderColor: Colors.border, borderRadius: 20, paddingVertical: 9, paddingHorizontal: 14, backgroundColor: Colors.white },
+  chipText: { fontFamily: Fonts.bodyMedium, fontSize: 13, color: Colors.ink },
 
   errorBox: { backgroundColor: 'rgba(239,68,68,0.06)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.12)', borderRadius: Radius.md, padding: 12 },
   errorText: { fontFamily: Fonts.body, fontSize: 13, color: Colors.error },
@@ -607,7 +619,7 @@ const st = StyleSheet.create({
   attachItem: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16 },
   attachIconWrap: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.violetBg2, alignItems: 'center', justifyContent: 'center' },
   attachLabel: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.ink },
-  attachSub: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginTop: 1 },
+  attachSub: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginTop: 2 },
   attachDivider: { height: 1, backgroundColor: Colors.border, marginLeft: 70 },
 
   inputWrap: {
@@ -617,17 +629,18 @@ const st = StyleSheet.create({
     backgroundColor: Colors.porcelain,
     position: 'relative',
   },
-  inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, backgroundColor: Colors.white, borderWidth: 1.5, borderColor: Colors.border, borderRadius: Radius.lg, paddingLeft: 6, paddingRight: 6, paddingVertical: 6 },
+  inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.lg, paddingLeft: 6, paddingRight: 6, paddingVertical: 6 },
   inputRowFocused: { borderColor: Colors.violet },
   plusBtn: { flexShrink: 0 },
-  plusBtnInner: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  plusIcon: { fontSize: 20, color: Colors.violet, lineHeight: 22 },
+  plusBtnInner: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.violetBg2 },
+  plusBtnInnerOn: { backgroundColor: Colors.violet },
+  plusIcon: { fontFamily: Fonts.body, fontSize: 22, color: Colors.violet, lineHeight: 26 },
   input: { flex: 1, fontFamily: Fonts.body, fontSize: 14, color: Colors.ink, maxHeight: 100, paddingVertical: 6, paddingHorizontal: 8 },
   sendBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   footerNote: { fontFamily: Fonts.body, fontSize: 10, color: Colors.muted, textAlign: 'center', marginTop: 8, opacity: 0.55 },
 
   scanModal: { flex: 1, backgroundColor: '#000' },
-  scanHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 54 : 40, paddingBottom: 16, backgroundColor: '#120B2E' },
+  scanHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 54 : 40, paddingBottom: 16, backgroundColor: '#14100D' },
   scanTitle: { fontFamily: Fonts.heading, fontSize: 18, color: '#fff' },
   scanClose: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
   scanOverlay: { flex: 1, alignItems: 'center', justifyContent: 'center' },

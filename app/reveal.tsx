@@ -51,7 +51,7 @@ const TYPE_TAGLINE: Record<string, string> = {
   '1C': 'Straight with weight and shine.',
   '2A': 'Waves that come and go.',
   '2B': 'Waves that stay.',
-  '2C': 'Almost curls — fully waves.',
+  '2C': 'Almost curls. Fully waves.',
   '3A': 'Spirals with a gentle hand.',
   '3B': 'Springy. Bouncy. Defined.',
   '3C': 'Corkscrews, packed and proud.',
@@ -102,13 +102,13 @@ function buildOneInsight(data: any): { title: string; body: string } {
   if (density === 'low' && (segments.includes('postpartum') || segments.includes('transplant') || segments.includes('chemo'))) {
     return {
       title: 'Your density is in a chapter, not a verdict.',
-      body: 'Postpartum, transplant, and chemo recovery all run on their own timelines. Most regrowth shows real progress at the four-to-six-month mark. The hairs you have now are the scaffolding — we protect them.',
+      body: 'Postpartum, transplant, and chemo recovery all run on their own timelines. Most regrowth shows real progress at the four-to-six-month mark. The hairs you have now are the scaffolding: we protect them.',
     };
   }
   if (porosity === 'low') {
     return {
       title: 'Low porosity changes the order of everything.',
-      body: 'Your cuticles lie tight against the strand — water beads on top instead of soaking in. Most product advice was written for medium porosity. For you: apply to damp not soaking hair, use warmth, skip the thick butters.',
+      body: 'Your cuticles lie tight against the strand. Water beads on top instead of soaking in. Most product advice was written for medium porosity. For you: apply to damp not soaking hair, use warmth, skip the thick butters.',
     };
   }
   if (porosity === 'high') {
@@ -120,13 +120,13 @@ function buildOneInsight(data: any): { title: string; body: string } {
   if (strand === 'fine' && ['3', '4'].includes(group)) {
     return {
       title: 'Fine strands with strong pattern.',
-      body: 'Your hair has a real curl, but each strand is light. Heavy creams will weigh the pattern down. Reach for water-based leave-ins and lightweight gels — your pattern comes out stronger with less product, not more.',
+      body: 'Your hair has a real curl, but each strand is light. Heavy creams will weigh the pattern down. Reach for water-based leave-ins and lightweight gels. Your pattern comes out stronger with less product, not more.',
     };
   }
   if (strand === 'coarse' && ['3', '4'].includes(group)) {
     return {
       title: 'Coarse strands carry weight beautifully.',
-      body: 'Butters, heavier creams, oil-based sealants — your strands handle them. Your hair is built to hold the products that would suffocate finer hair. Use that.',
+      body: 'Butters, heavier creams, oil-based sealants: your strands handle them. Your hair is built to hold the products that would suffocate finer hair. Use that.',
     };
   }
   return {
@@ -138,15 +138,15 @@ function buildOneInsight(data: any): { title: string; body: string } {
 function buildStrengths(type: string, strand: string, porosity: string): string[] {
   const group = type.charAt(0);
   const base: Record<string, string[]> = {
-    '1': ['Length retention is naturally high — ends stay protected.', 'Products spread easily without resistance.'],
+    '1': ['Length retention is naturally high. Ends stay protected.', 'Products spread easily without resistance.'],
     '2': ['Holds styling with very little product.', 'Bounces back after sleep with a quick refresh.'],
-    '3': ['Pattern is defined and visible — products work with it, not against it.', 'Shrinks less than coilier patterns; length shows even when dry.'],
-    '4': ['Holds protective styles longer than any other type.', 'Versatile — stretches, defines, picks out without chemical help.'],
+    '3': ['Pattern is defined and visible. Products work with it, not against it.', 'Shrinks less than coilier patterns; length shows even when dry.'],
+    '4': ['Holds protective styles longer than any other type.', 'Versatile. Stretches, defines, picks out without chemical help.'],
   };
   const out = [...(base[group] || base['3'])];
-  if (strand === 'coarse') out.push('Coarse strands are structurally strong — they take colour and heat better than finer hair.');
+  if (strand === 'coarse') out.push('Coarse strands are structurally strong. They take colour and heat better than finer hair.');
   else if (strand === 'fine') out.push('Fine strands move and shine in a way coarser hair cannot.');
-  if (porosity === 'medium') out.push('Medium porosity is the most flexible — most products work without much fuss.');
+  if (porosity === 'medium') out.push('Medium porosity is the most flexible. Most products work without much fuss.');
   return out.slice(0, 3);
 }
 
@@ -217,11 +217,11 @@ function StarBurst() {
       <Defs>
         <RadialGradient id="g1" cx="50%" cy="50%">
           <Stop offset="0%" stopColor="#D9FF00" stopOpacity="1" />
-          <Stop offset="100%" stopColor="#F484B9" stopOpacity="0" />
+          <Stop offset="100%" stopColor="#8C5A3C" stopOpacity="0" />
         </RadialGradient>
       </Defs>
       <Circle cx="60" cy="60" r="50" fill="url(#g1)" opacity="0.6" />
-      <Path d="M60 20 L65 55 L100 60 L65 65 L60 100 L55 65 L20 60 L55 55 Z" fill="#F484B9" opacity="0.85" />
+      <Path d="M60 20 L65 55 L100 60 L65 65 L60 100 L55 65 L20 60 L55 55 Z" fill="#8C5A3C" opacity="0.85" />
     </Svg>
   );
 }
@@ -250,7 +250,7 @@ function SealRing() {
   return (
     <Svg width={100} height={100} viewBox="0 0 100 100">
       <Circle cx="50" cy="50" r="44" fill="none" stroke="#D9FF00" strokeWidth="1.5" opacity="0.7" />
-      <Circle cx="50" cy="50" r="36" fill="none" stroke="#F484B9" strokeWidth="1" opacity="0.6" />
+      <Circle cx="50" cy="50" r="36" fill="none" stroke="#8C5A3C" strokeWidth="1" opacity="0.6" />
       <Circle cx="50" cy="50" r="28" fill="none" stroke="#D9FF00" strokeWidth="1" opacity="0.4" />
     </Svg>
   );
@@ -270,9 +270,9 @@ function LeafSprig() {
 function StepRings() {
   return (
     <Svg width={130} height={70} viewBox="0 0 130 70">
-      <Circle cx="20" cy="35" r="14" fill="none" stroke="#F484B9" strokeWidth="1.8" />
-      <Circle cx="55" cy="35" r="14" fill="none" stroke="#C38CD9" strokeWidth="1.8" />
-      <Circle cx="90" cy="35" r="14" fill="none" stroke="#7643AC" strokeWidth="1.8" />
+      <Circle cx="20" cy="35" r="14" fill="none" stroke="#8C5A3C" strokeWidth="1.8" />
+      <Circle cx="55" cy="35" r="14" fill="none" stroke="#B08968" strokeWidth="1.8" />
+      <Circle cx="90" cy="35" r="14" fill="none" stroke="#241C17" strokeWidth="1.8" />
       <Path d="M34 35 L41 35" stroke="#FFFEF7" strokeWidth="1" opacity="0.5" />
       <Path d="M69 35 L76 35" stroke="#FFFEF7" strokeWidth="1" opacity="0.5" />
     </Svg>
@@ -285,8 +285,8 @@ function ClosingBloom() {
       <Defs>
         <RadialGradient id="bloom" cx="50%" cy="50%">
           <Stop offset="0%" stopColor="#D9FF00" stopOpacity="0.9" />
-          <Stop offset="50%" stopColor="#F484B9" stopOpacity="0.5" />
-          <Stop offset="100%" stopColor="#7643AC" stopOpacity="0" />
+          <Stop offset="50%" stopColor="#8C5A3C" stopOpacity="0.5" />
+          <Stop offset="100%" stopColor="#241C17" stopOpacity="0" />
         </RadialGradient>
       </Defs>
       <Circle cx="70" cy="70" r="60" fill="url(#bloom)" />
@@ -342,7 +342,8 @@ function Card1_Opening({ name, index, total }: { name: string; index: number; to
       <Text style={st.eyebrowGold}>WE MADE THIS FOR YOU</Text>
       <Text style={st.heroName}>{name}.</Text>
       <Text style={st.openingBody}>
-        Take a breath. What comes next is your hair, read back to you.
+        Here is what your answers tell us about your hair, and the routine
+        we have built from it.
       </Text>
     </CardWrapper>
   );
@@ -439,7 +440,7 @@ function Card7_Closer({ name, index, total }: { name: string; index: number; tot
       <Text style={st.closerTitleAccent}>That's the point.</Text>
       <Text style={st.closerBody}>
         Beautiful hair has never been simple. Yours has a structure, a history,
-        a rhythm — and now, a routine that respects all of it.{'\n\n'}
+        a rhythm, and now, a routine that respects all of it.{'\n\n'}
         Welcome in, {name}.
       </Text>
     </CardWrapper>
@@ -460,8 +461,8 @@ export default function RevealScreen() {
   useEffect(() => {
     (async () => {
       const [userRaw, quizRaw] = await Promise.all([
-        AsyncStorage.getItem('tressana_user'),
-        AsyncStorage.getItem('tressana_quiz'),
+        AsyncStorage.getItem('halea_user'),
+        AsyncStorage.getItem('halea_quiz'),
       ]);
       const userObj = userRaw ? JSON.parse(userRaw) : null;
       const quizObj = quizRaw ? JSON.parse(quizRaw) : null;
@@ -474,7 +475,7 @@ export default function RevealScreen() {
     return (
       <View style={st.loading}>
         <LinearGradient
-          colors={['#120B2E', '#2d1854', '#4a2070']}
+          colors={['#14100D', '#1C1712', '#241C17']}
           style={StyleSheet.absoluteFill}
         />
         <Text style={st.loadingText}>Building your routine…</Text>
@@ -512,7 +513,7 @@ export default function RevealScreen() {
     <View style={st.container}>
       {/* Full-screen gradient background */}
       <LinearGradient
-        colors={['#0c0a15', '#120B2E', '#1a1040', '#2d1854']}
+        colors={['#0D0A08', '#14100D', '#1a1040', '#1C1712']}
         style={StyleSheet.absoluteFill}
       />
 
@@ -579,7 +580,7 @@ export default function RevealScreen() {
           ]}
         >
           <LinearGradient
-            colors={['#F484B9', '#D9FF00']}
+            colors={['#8C5A3C', '#D9FF00']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={st.ctaInner}
@@ -602,7 +603,7 @@ export default function RevealScreen() {
 // ═══════════════════════════════════════════════════════════════
 
 const st = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0c0a15' },
+  container: { flex: 1, backgroundColor: '#0D0A08' },
 
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   loadingText: { fontFamily: Fonts.body, fontSize: 14, color: 'rgba(255,255,255,0.7)' },
@@ -614,7 +615,7 @@ const st = StyleSheet.create({
     width: 240,
     height: 240,
     borderRadius: 120,
-    backgroundColor: '#7643AC',
+    backgroundColor: '#241C17',
     opacity: 0.25,
   },
   glow2: {
@@ -624,7 +625,7 @@ const st = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: '#F484B9',
+    backgroundColor: '#8C5A3C',
     opacity: 0.2,
   },
 
@@ -745,7 +746,7 @@ const st = StyleSheet.create({
   coverTagline: {
     fontFamily: 'Fraunces_400Regular_Italic',
     fontSize: 17,
-    color: '#F484B9',
+    color: '#8C5A3C',
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -887,7 +888,7 @@ const st = StyleSheet.create({
     overflow: 'hidden',
   },
   ctaInner: {
-    paddingVertical: 17,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 52,
@@ -895,7 +896,7 @@ const st = StyleSheet.create({
   ctaText: {
     fontFamily: Fonts.headingSemi,
     fontSize: 15,
-    color: '#0c0a15',
+    color: '#0D0A08',
     letterSpacing: 0.3,
   },
   swipeHint: {

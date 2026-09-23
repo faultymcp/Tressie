@@ -33,7 +33,7 @@ export default function NameScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     try {
       await AsyncStorage.setItem(
-        'tressana_user',
+        'halea_user',
         JSON.stringify({
           firstName: trimmed,
           capturedAt: new Date().toISOString(),
@@ -42,11 +42,15 @@ export default function NameScreen() {
     } catch (e) {
       // Non-blocking: if storage fails, reveal will fall back to "You"
     }
-    // Route to auth (email + OTP). After successful sign-in, auth.tsx
-    // will sync the quiz + bootstrap the routine, then send the user
-    // to the reveal — which becomes the celebration of a saved, persisted
-    // profile rather than an ephemeral one.
-    router.replace('/auth');
+    // The user signed in before onboarding, so the profile is already
+    // persisted. Sync the finished quiz, then go straight to the reveal.
+    try {
+      const { syncQuizToSupabase } = require('@/lib/sync');
+      await syncQuizToSupabase();
+    } catch (e) {
+      // Non-blocking: the reveal reads from local storage either way.
+    }
+    router.replace('/reveal');
   }, [trimmed, canContinue, router]);
 
   return (
@@ -61,7 +65,7 @@ export default function NameScreen() {
             <Text style={s.title}>What should we call you?</Text>
             <Text style={s.subtitle}>
               We'll save your routine so it's here next time. Your name stays
-              on this device — nothing else.
+              on this device. Nothing else.
             </Text>
           </Animated.View>
 
@@ -98,7 +102,7 @@ export default function NameScreen() {
             ]}
           >
             <LinearGradient
-              colors={canContinue ? ['#7643AC', '#F484B9'] : ['#D8D2E4', '#D8D2E4']}
+              colors={canContinue ? ['#241C17', '#8C5A3C'] : ['#D8D2E4', '#D8D2E4']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={s.ctaInner}
@@ -171,7 +175,7 @@ const s = StyleSheet.create({
     opacity: 0.6,
   },
   ctaInner: {
-    paddingVertical: 17,
+    paddingVertical: 16,
     alignItems: 'center',
     minHeight: 52,
     justifyContent: 'center',

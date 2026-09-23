@@ -125,7 +125,7 @@ export default function RoutineScreen() {
 
   useEffect(() => {
     (async () => {
-      const quizRaw = await AsyncStorage.getItem('tressana_quiz');
+      const quizRaw = await AsyncStorage.getItem('halea_quiz');
       const data = quizRaw ? JSON.parse(quizRaw) : null;
       setQuizData(data);
 
@@ -133,7 +133,7 @@ export default function RoutineScreen() {
       const segments = data?.segments || ['natural'];
 
       // Read local checks first so the server seed below is authoritative.
-      const checksRaw = await AsyncStorage.getItem('tressana_checks');
+      const checksRaw = await AsyncStorage.getItem('halea_checks');
       if (checksRaw) {
         try { setChecks(JSON.parse(checksRaw)); } catch {}
       }
@@ -180,7 +180,7 @@ export default function RoutineScreen() {
     dayChecks[stepId] = !wasDone;
     const updated = { ...checks, [day]: dayChecks };
     setChecks(updated);
-    await AsyncStorage.setItem('tressana_checks', JSON.stringify(updated)).catch(() => {});
+    await AsyncStorage.setItem('halea_checks', JSON.stringify(updated)).catch(() => {});
 
     // Persist to Supabase. markStepComplete also awards XP on insert.
     // routine_id comes from the step itself (carried through from
@@ -232,13 +232,13 @@ export default function RoutineScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* ── Hero ── */}
-        <Animated.View entering={FadeIn.duration(400)} style={st.hero}>
+        <Animated.View style={st.hero}>
           <Text style={st.heroTitle}>Across the week.</Text>
           <Text style={st.heroBody}>{heroParagraph}</Text>
         </Animated.View>
 
         {/* ── Week strip ── */}
-        <Animated.View entering={FadeInUp.delay(80).duration(450)} style={st.weekStrip}>
+        <Animated.View style={st.weekStrip}>
           {DAYS.map((d, i) => {
             const isToday = d === today;
             const isPast = i < todayI;
@@ -369,7 +369,7 @@ export default function RoutineScreen() {
         {/* ── Footer note ── */}
         <View style={st.footer}>
           <Text style={st.footerText}>
-            Your routine adjusts as your hair changes. Step customisation — swap, skip, edit — is coming next.
+            Your routine adjusts as your hair changes. Step customisation. Swap, skip, edit: is coming next.
           </Text>
         </View>
       </ScrollView>
@@ -548,7 +548,7 @@ const st = StyleSheet.create({
     backgroundColor: 'rgba(118,67,172,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 1,
+    marginTop: 2,
   },
   stepNumDone: {
     backgroundColor: Colors.violet,

@@ -33,7 +33,7 @@ export default function ProGate({ requiredTier, currentTier, feature, children, 
 
   if (hasAccess) return <>{children}</>;
 
-  const tierLabel = requiredTier === 'pro_plus' ? 'Tressie Pro+' : 'Tressie Pro';
+  const tierLabel = requiredTier === 'pro_plus' ? 'Halea Pro+' : 'Halea Pro';
   const price = requiredTier === 'pro_plus' ? '£12.99/mo' : '£6.99/mo';
 
   if (compact) {

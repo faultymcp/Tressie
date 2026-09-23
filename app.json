@@ -1,28 +1,28 @@
 {
   "expo": {
-    "name": "Tressana",
-    "slug": "tressana",
+    "name": "Halea",
+    "slug": "halea",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "scheme": "tressana",
+    "scheme": "halea",
     "splash": {
-      "backgroundColor": "#0c0a15"
+      "backgroundColor": "#0D0A08"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "ai.tressana.app",
+      "bundleIdentifier": "com.halea.app",
       "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0c0a15"
+        "backgroundColor": "#0D0A08"
       },
-      "package": "ai.tressana.app"
+      "package": "com.halea.app"
     },
     "plugins": [
       "expo-router",

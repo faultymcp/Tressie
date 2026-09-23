@@ -10,7 +10,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Fonts, Spacing, Radius } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
@@ -20,6 +20,8 @@ type AuthStep = 'email' | 'otp';
 
 export default function AuthScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ role?: string }>();
+  const role = params.role === 'business' ? 'business' : 'customer';
   const [step, setStep] = useState<AuthStep>('email');
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -82,7 +84,7 @@ export default function AuthScreen() {
 
         // Bootstrap routine from quiz goals/segments if not already present.
         if (userId && !isReturning) {
-          const raw = await AsyncStorage.getItem('tressana_user');
+          const raw = await AsyncStorage.getItem('halea_user');
           const quiz = raw ? JSON.parse(raw) : {};
           const goals = quiz?.goals || [];
           const segs = quiz?.segments || ['natural'];
@@ -90,7 +92,17 @@ export default function AuthScreen() {
           await bootstrapUserRoutine(userId, goals, segs);
         }
 
-        router.replace(isReturning ? '/(tabs)/home' : '/reveal');
+        if (role === 'business') {
+          // Salon owners skip the hair quiz entirely.
+          const { data: salon } = await supabase
+            .from('salons')
+            .select('id')
+            .eq('owner_id', userId)
+            .maybeSingle();
+          router.replace(salon ? '/(tabs)/salons' : '/business');
+        } else {
+          router.replace(isReturning ? '/(tabs)/home' : '/quiz');
+        }
       } catch (routeErr) {
         // If post-verify setup fails, still get the user into the app.
         router.replace('/(tabs)/home');
@@ -158,28 +170,21 @@ export default function AuthScreen() {
   if (step === 'otp') {
     return (
       <View style={styles.container}>
-        <LinearGradient
-          colors={['#120B2E', '#332463', '#7643AC']}
+        <View
           style={styles.headerGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
         >
           <View style={styles.headerContent}>
             <Text style={styles.brand}>
-              Tressana<Text style={styles.brandDot}>.ai</Text>
+              Halea
             </Text>
           </View>
-        </LinearGradient>
+        </View>
 
         <ScrollView
           contentContainerStyle={styles.otpScroll}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.otpIconWrap}>
-            <Text style={styles.otpEmoji}>✉️</Text>
-          </View>
-
           <Text style={styles.otpTitle}>Check your inbox</Text>
           <Text style={styles.otpSubtitle}>
             We sent a 6-digit code to{'\n'}
@@ -254,19 +259,16 @@ export default function AuthScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <LinearGradient
-        colors={['#120B2E', '#332463', '#7643AC']}
+      <View
         style={styles.headerGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
       >
         <View style={styles.headerContent}>
           <Text style={styles.brand}>
-            Tressana<Text style={styles.brandDot}>.ai</Text>
+            Halea
           </Text>
-          <Text style={styles.tagline}>FOR EVERY CURL, COIL AND WAVE</Text>
+          <Text style={styles.tagline}>HAIR CARE THAT REMEMBERS</Text>
         </View>
-      </LinearGradient>
+      </View>
 
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -275,11 +277,13 @@ export default function AuthScreen() {
       >
         <Text style={styles.title}>Welcome</Text>
         <Text style={styles.subtitle}>
-          Sign in or create an account to start{'\n'}your personalised hair journey.
+          {role === 'business'
+            ? "Sign in to set up your salon listing."
+            : "Sign in or create an account.\nYour profile saves as you go."}
         </Text>
 
         <View style={[styles.inputWrap, email.length > 0 && styles.inputWrapActive]}>
-          <Text style={styles.inputIcon}>✉</Text>
+          
           <TextInput
             style={styles.input}
             placeholder="your@email.com"
@@ -296,7 +300,7 @@ export default function AuthScreen() {
         </View>
 
         <Text style={styles.emailHint}>
-          We'll send you a 6-digit code — no password needed.
+          We'll send you a 6-digit code. No password needed.
         </Text>
 
         {error ? (
@@ -337,15 +341,15 @@ const styles = StyleSheet.create({
 
   // Header
   headerGradient: {
+    backgroundColor: Colors.inkDeep,
     paddingTop: Platform.OS === 'ios' ? 60 : 48,
-    paddingBottom: 36,
+    paddingBottom: 32,
     paddingHorizontal: Spacing.xxl,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
   },
   headerContent: { alignItems: 'center' },
   brand: { fontFamily: Fonts.heading, fontSize: 28, color: Colors.white, letterSpacing: -0.5 },
-  brandDot: { color: Colors.pink },
   tagline: {
     fontFamily: Fonts.heading, fontSize: 9, color: Colors.lime,
     letterSpacing: 3, marginTop: 8, textTransform: 'uppercase',
@@ -371,7 +375,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04, shadowRadius: 4, elevation: 1,
   },
   inputWrapActive: { borderColor: Colors.violet },
-  inputIcon: { fontSize: 16, marginRight: 10, opacity: 0.5 },
   input: { flex: 1, paddingVertical: 16, fontFamily: Fonts.body, fontSize: 15, color: Colors.ink },
   emailHint: {
     fontFamily: Fonts.body, fontSize: 12, color: Colors.muted,
@@ -393,7 +396,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3, shadowRadius: 14, elevation: 5,
   },
   submitBtnPressed: { transform: [{ scale: 0.98 }], shadowOpacity: 0.15 },
-  submitGradient: { paddingVertical: 17, alignItems: 'center', justifyContent: 'center' },
+  submitGradient: { paddingVertical: 16, alignItems: 'center', justifyContent: 'center' },
   submitText: { fontFamily: Fonts.headingSemi, color: Colors.white, fontSize: 16, letterSpacing: 0.3 },
   btnDisabled: { opacity: 0.5 },
 
@@ -408,12 +411,6 @@ const styles = StyleSheet.create({
     flexGrow: 1, paddingHorizontal: Spacing.xxl,
     paddingTop: 40, paddingBottom: 40, alignItems: 'center',
   },
-  otpIconWrap: {
-    width: 72, height: 72, borderRadius: 36,
-    backgroundColor: Colors.violetBg,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 20,
-  },
-  otpEmoji: { fontSize: 32 },
   otpTitle: {
     fontFamily: Fonts.heading, fontSize: 24, color: Colors.ink,
     marginBottom: 12, textAlign: 'center',

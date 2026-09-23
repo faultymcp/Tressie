@@ -70,7 +70,7 @@ export default function ReferralScreen() {
 
   const handleShare = async () => {
     await Share.share({
-      message: `Hey! Join me on Tressana, the AI hair care app that actually gets your hair type. Use my code ${code} and we both get £5 off our first appointment + 200 XP. Download: https://tressana.ai/invite/${code}`,
+      message: `Hey! Join me on Halea, the AI hair care app that actually gets your hair type. Use my code ${code} and we both get £5 off our first appointment + 200 XP. Download: https://halea.app/invite/${code}`,
     });
   };
 
@@ -91,7 +91,7 @@ export default function ReferralScreen() {
 
       <ScrollView contentContainerStyle={st.scroll} showsVerticalScrollIndicator={false}>
         {/* Hero */}
-        <Animated.View entering={FadeInUp.duration(300)}>
+        <Animated.View >
           <View style={st.heroCard}>
             <Text style={st.heroTitle}>Give £5, Get £5</Text>
             <Text style={st.heroSub}>Share your code with friends. When they complete their first action, you both receive £5 off your next appointment and 200 XP.</Text>
@@ -115,7 +115,7 @@ export default function ReferralScreen() {
         </Animated.View>
 
         {/* Stats */}
-        <Animated.View entering={FadeInUp.delay(50).duration(300)} style={st.statsRow}>
+        <Animated.View style={st.statsRow}>
           <View style={st.statCard}>
             <Text style={st.statValue}>{referrals.length}</Text>
             <Text style={st.statLabel}>Invited</Text>
@@ -133,7 +133,7 @@ export default function ReferralScreen() {
         </Animated.View>
 
         {/* How it works */}
-        <Animated.View entering={FadeInUp.delay(100).duration(300)}>
+        <Animated.View >
           <Text style={st.sectionLabel}>How it works</Text>
           <View style={st.stepsCard}>
             {[
@@ -151,7 +151,7 @@ export default function ReferralScreen() {
 
         {/* Referral list */}
         {referrals.length > 0 && (
-          <Animated.View entering={FadeInUp.delay(150).duration(300)}>
+          <Animated.View >
             <Text style={st.sectionLabel}>Your referrals</Text>
             <View style={st.listCard}>
               {referrals.map((r, i) => (
@@ -238,7 +238,7 @@ const st = StyleSheet.create({
   refIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F7F5FB', alignItems: 'center', justifyContent: 'center' },
   refBody: { flex: 1 },
   refCode: { fontFamily: Fonts.bodySemi, fontSize: 13, color: Colors.ink },
-  refDate: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, marginTop: 1 },
+  refDate: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, marginTop: 2 },
   refStatus: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 10 },
   refConverted: { backgroundColor: '#F0FDF4' },
   refPending: { backgroundColor: '#FFF7ED' },

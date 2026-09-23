@@ -4,7 +4,7 @@ import {
   RefreshControl, ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors, Fonts, Radius } from '@/constants/theme';
@@ -35,7 +35,7 @@ const TYPE_NAMES: Record<string, string> = {
   '3A': 'Loose Curls', '3B': 'Springy Ringlets', '3C': 'Tight Corkscrews',
   '4A': 'Coil Springs', '4B': 'Z-Pattern Coils', '4C': 'Ultra-Tight Coils',
 };
-const TIER_LABELS: Record<string, string> = { free: 'Free', pro: 'Tressie Pro', pro_plus: 'Tressie Pro+' };
+const TIER_LABELS: Record<string, string> = { free: 'Free', pro: 'Halea Pro', pro_plus: 'Halea Pro+' };
 
 // ─── Row Component ───────────────────────────────────────────────
 function MenuRow({ icon, label, sublabel, right, rightColor, onPress, last, destructive }: {
@@ -81,10 +81,10 @@ export default function ProfileScreen() {
         setEmail(user.email || '');
       }
 
-      // Match Home: prefer firstName from tressana_user, then metadata, then email local-part
+      // Match Home: prefer firstName from halea_user, then metadata, then email local-part
       let resolvedName = '';
       try {
-        const userRaw = await AsyncStorage.getItem('tressana_user');
+        const userRaw = await AsyncStorage.getItem('halea_user');
         if (userRaw) {
           const u = JSON.parse(userRaw);
           if (u?.firstName) resolvedName = u.firstName;
@@ -95,7 +95,7 @@ export default function ProfileScreen() {
       }
       setName(resolvedName);
 
-      const quizRaw = await AsyncStorage.getItem('tressana_quiz');
+      const quizRaw = await AsyncStorage.getItem('halea_quiz');
       if (quizRaw) {
         const q = JSON.parse(quizRaw);
         setHairType(q.hairType || '');
@@ -156,7 +156,7 @@ export default function ProfileScreen() {
       <View style={st.header}><Text style={st.pageTitle}>Profile</Text></View>
 
       {/* User card */}
-      <Animated.View entering={FadeInUp.duration(350)}>
+      <Animated.View >
         <Pressable onPress={() => router.push('/settings')} style={st.userCard}>
           <View style={st.avatar}><Text style={st.avatarText}>{initial}</Text></View>
           <View style={st.userInfo}>
@@ -169,7 +169,7 @@ export default function ProfileScreen() {
       </Animated.View>
 
       {/* Stats */}
-      <Animated.View entering={FadeInUp.delay(50).duration(350)} style={st.statsRow}>
+      <Animated.View style={st.statsRow}>
         <Pressable onPress={() => router.push('/xp-rewards')} style={st.statCard}>
           <Text style={st.statValue}>{xp.toLocaleString()}</Text>
           <Text style={st.statLabel}>XP</Text>
@@ -187,7 +187,7 @@ export default function ProfileScreen() {
       </Animated.View>
 
       {/* Activity */}
-      <Animated.View entering={FadeInUp.delay(100).duration(350)}>
+      <Animated.View >
         <SectionLabel>Activity</SectionLabel>
         <View style={st.menuCard}>
           <MenuRow icon={<IC.Calendar />} label="My Bookings" sublabel={upcomingBookings > 0 ? `${upcomingBookings} upcoming` : 'No upcoming bookings'} onPress={() => router.push('/bookings')} />
@@ -198,7 +198,7 @@ export default function ProfileScreen() {
       </Animated.View>
 
       {/* Account */}
-      <Animated.View entering={FadeInUp.delay(150).duration(350)}>
+      <Animated.View >
         <SectionLabel>Account</SectionLabel>
         <View style={st.menuCard}>
           <MenuRow icon={<IC.Wallet />} label="Wallet" right={`£${(walletPence / 100).toFixed(2)}`} onPress={() => router.push('/wallet')} />
@@ -207,8 +207,8 @@ export default function ProfileScreen() {
         </View>
       </Animated.View>
 
-      {/* General — FIXED ROUTING */}
-      <Animated.View entering={FadeInUp.delay(200).duration(350)}>
+      {/* General. FIXED ROUTING */}
+      <Animated.View >
         <SectionLabel>General</SectionLabel>
         <View style={st.menuCard}>
           <MenuRow icon={<IC.Settings />} label="Settings" sublabel="Notifications, appearance, account" onPress={() => router.push('/settings')} />
@@ -218,12 +218,12 @@ export default function ProfileScreen() {
       </Animated.View>
 
       {/* Sign out */}
-      <Animated.View entering={FadeInUp.delay(250).duration(350)}>
+      <Animated.View >
         <View style={st.menuCard}>
           <MenuRow icon={<IC.LogOut />} label="Sign out" onPress={handleSignOut} destructive last />
         </View>
         <Text style={st.emailLabel}>{email}</Text>
-        <Text style={st.version}>Tressana v1.0.0</Text>
+        <Text style={st.version}>Halea v1.0.0</Text>
       </Animated.View>
     </ScrollView>
   );
@@ -241,7 +241,7 @@ const st = StyleSheet.create({
   userInfo: { flex: 1 },
   userName: { fontFamily: Fonts.heading, fontSize: 20, color: Colors.ink, marginBottom: 2 },
   userMeta: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginBottom: 8 },
-  tierBadge: { alignSelf: 'flex-start', backgroundColor: Colors.violet, paddingVertical: 3, paddingHorizontal: 12, borderRadius: 12 },
+  tierBadge: { alignSelf: 'flex-start', backgroundColor: Colors.violet, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 12 },
   tierText: { fontFamily: Fonts.bodySemi, fontSize: 11, color: Colors.white },
   statsRow: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, marginBottom: 24, backgroundColor: Colors.white, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Colors.border },
   statCard: { flex: 1, alignItems: 'center' },
@@ -255,7 +255,7 @@ const st = StyleSheet.create({
   menuIcon: { width: 24, alignItems: 'center' },
   menuBody: { flex: 1 },
   menuLabel: { fontFamily: Fonts.bodyMedium, fontSize: 15, color: Colors.ink },
-  menuSublabel: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginTop: 1 },
+  menuSublabel: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginTop: 2 },
   menuRight: { fontFamily: Fonts.bodySemi, fontSize: 13, color: Colors.ink, marginRight: 4 },
   emailLabel: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, textAlign: 'center', marginTop: 4 },
   version: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, textAlign: 'center', marginTop: 4, opacity: 0.4 },
