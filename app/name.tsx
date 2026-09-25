@@ -1,25 +1,19 @@
 // app/name.tsx
-//
-// Minimal beta name capture. One field. No email. No auth. No Supabase.
-// Sits between quiz closer and reveal so the reveal can use the user's
-// first name. Replaceable later with full auth.
+// "What should we call you?" — right after sign-up, before the quiz, so the
+// quiz can greet them by name and the reveal can speak to them personally.
+// Saves to AsyncStorage 'halea_user' as { firstName, capturedAt } — the same
+// shape Home, Profile and the reveal already read.
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  TextInput,
-  Platform,
-  KeyboardAvoidingView,
+  View, Text, StyleSheet, Pressable, TextInput, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { Colors, Fonts, Radius } from '@/constants/theme';
+import Animated, { FadeInUp } from 'react-native-reanimated';
+import { Colors, Fonts } from '@/constants/theme';
+import { HaloBackground } from '@/components/HaloBackground';
 
 export default function NameScreen() {
   const router = useRouter();
@@ -34,156 +28,70 @@ export default function NameScreen() {
     try {
       await AsyncStorage.setItem(
         'halea_user',
-        JSON.stringify({
-          firstName: trimmed,
-          capturedAt: new Date().toISOString(),
-        })
+        JSON.stringify({ firstName: trimmed, capturedAt: new Date().toISOString() })
       );
     } catch (e) {
-      // Non-blocking: if storage fails, reveal will fall back to "You"
+      // Non-blocking: screens fall back to "You" if the name isn't there.
     }
-    // The user signed in before onboarding, so the profile is already
-    // persisted. Sync the finished quiz, then go straight to the reveal.
-    try {
-      const { syncQuizToSupabase } = require('@/lib/sync');
-      await syncQuizToSupabase();
-    } catch (e) {
-      // Non-blocking: the reveal reads from local storage either way.
-    }
-    router.replace('/reveal');
+    router.replace('/quiz');
   }, [trimmed, canContinue, router]);
 
   return (
-    <View style={s.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
-      >
-        <View style={s.body}>
-          <Animated.View entering={FadeInDown.duration(500)}>
-            <Text style={s.eyebrow}>YOUR ROUTINE IS READY</Text>
-            <Text style={s.title}>What should we call you?</Text>
-            <Text style={s.subtitle}>
-              We'll save your routine so it's here next time. Your name stays
-              on this device. Nothing else.
-            </Text>
-          </Animated.View>
+    <KeyboardAvoidingView style={s.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <HaloBackground />
+      <View style={s.body}>
+        <Animated.Text entering={FadeInUp.duration(480)} style={s.title}>
+          What should we <Text style={s.titleEm}>call you?</Text>
+        </Animated.Text>
+        <Animated.Text entering={FadeInUp.duration(480).delay(80)} style={s.sub}>
+          Just your first name is perfect.
+        </Animated.Text>
 
-          <Animated.View entering={FadeInUp.delay(120).duration(500)} style={s.fieldWrap}>
-            <TextInput
-              value={firstName}
-              onChangeText={setFirstName}
-              placeholder="First name"
-              placeholderTextColor="rgba(18,11,46,0.35)"
-              autoCapitalize="words"
-              autoCorrect={false}
-              autoComplete="given-name"
-              textContentType="givenName"
-              returnKeyType="go"
-              onSubmitEditing={handleContinue}
-              style={s.input}
-              maxLength={60}
-              accessibilityLabel="First name"
-              autoFocus
-            />
-          </Animated.View>
-        </View>
+        <Animated.View entering={FadeInUp.duration(480).delay(160)} style={[s.field, trimmed.length > 0 && s.fieldActive]}>
+          <TextInput
+            style={s.input}
+            value={firstName}
+            onChangeText={setFirstName}
+            placeholder="Your first name"
+            placeholderTextColor="rgba(255,254,247,0.4)"
+            autoCapitalize="words"
+            autoComplete="given-name"
+            autoFocus
+            returnKeyType="go"
+            onSubmitEditing={handleContinue}
+            maxLength={60}
+          />
+        </Animated.View>
 
-        <View style={s.footer}>
-          <Pressable
-            onPress={handleContinue}
-            disabled={!canContinue}
-            accessibilityLabel="See my routine"
-            accessibilityRole="button"
-            style={({ pressed }) => [
-              s.cta,
-              !canContinue && s.ctaDisabled,
-              pressed && canContinue && { transform: [{ scale: 0.985 }] },
-            ]}
-          >
-            <LinearGradient
-              colors={canContinue ? ['#241C17', '#8C5A3C'] : ['#D8D2E4', '#D8D2E4']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={s.ctaInner}
-            >
-              <Text style={s.ctaText}>See my routine</Text>
-            </LinearGradient>
-          </Pressable>
-        </View>
-      </KeyboardAvoidingView>
-    </View>
+        <Pressable
+          onPress={handleContinue}
+          disabled={!canContinue}
+          style={({ pressed }) => [s.btn, !canContinue && s.btnOff, pressed && canContinue && { transform: [{ scale: 0.985 }] }]}
+        >
+          <Text style={s.btnText}>Continue</Text>
+        </Pressable>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.porcelain },
-  body: {
-    flex: 1,
-    paddingTop: Platform.OS === 'ios' ? 96 : 72,
-    paddingHorizontal: 28,
+  body: { flex: 1, justifyContent: 'center', paddingHorizontal: 24 },
+  title: { fontFamily: Fonts.heading, fontSize: 34, lineHeight: 40, color: '#FFFEF7' },
+  titleEm: { fontFamily: Fonts.headingSemi, fontStyle: 'italic', color: '#E6BEF5' },
+  sub: { fontFamily: Fonts.body, fontSize: 15, color: 'rgba(255,254,247,0.62)', marginTop: 10, marginBottom: 28 },
+  field: {
+    height: 58, borderRadius: 18, paddingHorizontal: 18, justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)',
   },
-  eyebrow: {
-    fontFamily: Fonts.bodyMedium,
-    fontSize: 11,
-    letterSpacing: 3,
-    color: Colors.muted,
-    marginBottom: 16,
+  fieldActive: { borderColor: 'rgba(230,190,245,0.6)' },
+  input: { fontFamily: Fonts.body, fontSize: 18, color: '#FFFEF7' },
+  btn: {
+    height: 58, borderRadius: 999, marginTop: 20, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#7643AC',
+    shadowColor: '#C38CD9', shadowOpacity: 0.5, shadowRadius: 18, shadowOffset: { width: 0, height: 0 },
   },
-  title: {
-    fontFamily: Fonts.heading,
-    fontSize: 32,
-    color: Colors.ink,
-    letterSpacing: -1,
-    lineHeight: 38,
-    marginBottom: 16,
-  },
-  subtitle: {
-    fontFamily: Fonts.body,
-    fontSize: 14,
-    lineHeight: 22,
-    color: Colors.ink,
-    opacity: 0.62,
-    maxWidth: 340,
-  },
-  fieldWrap: {
-    marginTop: 40,
-  },
-  input: {
-    fontFamily: Fonts.body,
-    fontSize: 18,
-    color: Colors.ink,
-    paddingHorizontal: 20,
-    paddingVertical: Platform.OS === 'ios' ? 20 : 16,
-    backgroundColor: Colors.white,
-    borderRadius: Radius.md,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    minHeight: 56,
-  },
-  footer: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    paddingBottom: Platform.OS === 'ios' ? 38 : 24,
-    backgroundColor: Colors.porcelain,
-  },
-  cta: {
-    borderRadius: Radius.lg,
-    overflow: 'hidden',
-  },
-  ctaDisabled: {
-    opacity: 0.6,
-  },
-  ctaInner: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    minHeight: 52,
-    justifyContent: 'center',
-  },
-  ctaText: {
-    fontFamily: Fonts.headingSemi,
-    fontSize: 15,
-    color: '#FFFFFF',
-    letterSpacing: 0.2,
-  },
+  btnOff: { opacity: 0.4, shadowOpacity: 0 },
+  btnText: { fontFamily: Fonts.bodySemi, fontSize: 16, color: '#FFFFFF' },
 });

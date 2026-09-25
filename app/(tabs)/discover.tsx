@@ -1,200 +1,84 @@
-import { useState, useEffect } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, Pressable, Platform,
-  Linking, ActivityIndicator,
-} from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+// app/(tabs)/discover.tsx
+// Discover = stylists' work. Each card is a swipeable set of a stylist's
+// photos; tap to open their full profile. Products moved to their own tab.
+// Profiles are SAMPLES (constants/stylists.ts) until real stylists join
+// through the application form. Every card says so.
+
+import { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Dimensions } from 'react-native';
+import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Colors, Fonts, Radius } from '@/constants/theme';
-import { FluidOrb } from '@/components/FluidOrb';
-import { supabase } from '@/lib/supabase';
+import * as Haptics from 'expo-haptics';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { MasonryFeed } from '@/components/MasonryFeed';
-import { feedData } from '@/constants/feedData';
+import { Colors, Fonts } from '@/constants/theme';
+import { FluidOrb } from '@/components/FluidOrb';
+import { PhotoCarousel } from '@/components/PhotoCarousel';
+import { STYLISTS, Stylist } from '@/constants/stylists';
 
-// ─── Icons ───────────────────────────────────────────────────────
-function IconArrowRight() {
-  return <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={Colors.violet} strokeWidth={2} strokeLinecap="round"><Path d="M5 12h14M12 5l7 7-7 7" /></Svg>;
-}
-
-// ─── Style suggestions per type ──────────────────────────────────
-const STYLE_SUGGESTIONS: Record<string, { name: string; desc: string }[]> = {
-  '1': [
-    { name: 'Sleek Straight', desc: 'Classic polished straight look' },
-    { name: 'Blowout', desc: 'Voluminous bouncy blow-dry' },
-    { name: 'Layered Cut', desc: 'Movement and dimension' },
-    { name: 'Curtain Bangs', desc: 'Face-framing 70s vibes' },
-    { name: 'Half Up', desc: 'Casual elegance for everyday' },
-  ],
-  '2': [
-    { name: 'Defined Waves', desc: 'Enhance your natural S-pattern' },
-    { name: 'Beach Waves', desc: 'Effortless, textured, undone' },
-    { name: 'Shag Cut', desc: 'Layered with volume and movement' },
-    { name: 'Scrunched Waves', desc: 'Scrunch and go. Minimal effort' },
-    { name: 'Diffused Curls', desc: 'Diffuser technique for max definition' },
-  ],
-  '3': [
-    { name: 'Wash and Go', desc: 'Product, scrunch, air-dry, done' },
-    { name: 'Twist Out', desc: 'Defined spirals from twists' },
-    { name: 'Braid Out', desc: 'Stretched, defined waves from braids' },
-    { name: 'Defined Curls', desc: 'Finger coil or Denman brush method' },
-    { name: 'Curly Bob', desc: 'Short, bouncy, full of personality' },
-    { name: 'Pineapple Updo', desc: 'High loose pony to preserve curls' },
-  ],
-  '4': [
-    { name: 'Protective Twists', desc: 'Two-strand twists for low manipulation' },
-    { name: 'Bantu Knots', desc: 'Knotted sections, stunning unravelled' },
-    { name: 'Afro Puff', desc: 'Pulled up, full, proud' },
-    { name: 'Flat Twist', desc: 'Close to scalp, versatile styling' },
-    { name: 'Finger Coils', desc: 'Individually defined tight curls' },
-    { name: 'Stretched Afro', desc: 'Blow-out or banded for length' },
-    { name: 'High Puff', desc: 'Quick, elegant, everyday go-to' },
-  ],
-};
-
-// ─── Product Categories ──────────────────────────────────────────
-const CATEGORIES = ['all', 'shampoo', 'conditioner', 'styling', 'treatment', 'oil', 'tool'];
+const { width: W } = Dimensions.get('window');
+const CARD_W = W - 40;
+const PHOTO_H = Math.round(CARD_W * 1.1);
 
 export default function DiscoverScreen() {
-  const [hairType, setHairType] = useState('');
-  const [activeStyle, setActiveStyle] = useState('');
-  const [activeCategory, setActiveCategory] = useState('all');
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const typeGroup = hairType.charAt(0) || '3';
-  const styles_list = STYLE_SUGGESTIONS[typeGroup] || STYLE_SUGGESTIONS['3'];
+  const router = useRouter();
+  const [typeGroup, setTypeGroup] = useState('');
 
   useEffect(() => {
     AsyncStorage.getItem('halea_quiz').then(raw => {
-      if (raw) {
-        const data = JSON.parse(raw);
-        setHairType(data.hairType || '3A');
-      }
-    });
+      const t = raw ? (JSON.parse(raw)?.hairType as string) : '';
+      if (t) setTypeGroup(t.charAt(0));
+    }).catch(() => {});
   }, []);
 
-  useEffect(() => {
-    if (styles_list.length > 0 && !activeStyle) {
-      setActiveStyle(styles_list[0].name);
-    }
-  }, [styles_list]);
+  // Stylists who work with this person's hair type come first.
+  const ordered = [...STYLISTS].sort((a, b) => {
+    const ma = typeGroup && a.hairTypes.includes(`Type ${typeGroup}`) ? 0 : 1;
+    const mb = typeGroup && b.hairTypes.includes(`Type ${typeGroup}`) ? 0 : 1;
+    return ma - mb;
+  });
 
-  // Fetch products from Supabase
-  useEffect(() => {
-    if (!typeGroup) return;
-    setLoading(true);
-    supabase
-      .from('products')
-      .select('*')
-      .contains('hair_types', [typeGroup])
-      .then(({ data }) => {
-        if (data) setProducts(data);
-        setLoading(false);
-      });
-  }, [typeGroup]);
-
-  const filteredProducts = activeCategory === 'all'
-    ? products
-    : products.filter(p => p.category === activeCategory);
+  const open = (s: Stylist) => {
+    Haptics.selectionAsync().catch(() => {});
+    router.push(`/pro/${s.id}`);
+  };
 
   return (
     <View style={st.container}>
       <FluidOrb color={Colors.violet} size={380} top={-60} left={180} spinDuration={16000} spinDirection={1} breatheDuration={4000} baseOpacity={0.22} />
       <FluidOrb color={Colors.pink} size={300} top={520} left={-90} spinDuration={20000} spinDirection={-1} breatheDuration={4600} baseOpacity={0.14} />
-      {/* Header */}
-      <View style={st.header}>
-        <Text style={st.title}>Discover</Text>
-        <Text style={st.subtitle}>Curated for Type {hairType || typeGroup} hair</Text>
-      </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={st.content}>
-
-        {/* ── Style Inspiration ── */}
-        <Text style={st.sectionTitle}>Style inspiration</Text>
-        <View style={st.feedWrap}>
-          <MasonryFeed data={feedData} scrollEnabled={false} />
+        <View style={st.header}>
+          <Text style={st.title}>Discover</Text>
+          <Text style={st.subtitle}>
+            {typeGroup ? `Stylists who know Type ${typeGroup} hair` : 'Stylists and their work'}
+          </Text>
         </View>
 
-        {/* ── Hairstyle Suggestions ── */}
-        <Text style={[st.sectionTitle, { marginTop: 8 }]}>Styles for your hair</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.styleScroll}>
-          {styles_list.map((s, i) => {
-            const active = s.name === activeStyle;
-            return (
-              <Pressable key={s.name} onPress={() => setActiveStyle(s.name)} style={[st.styleCard, active && st.styleCardActive]}>
-                <Text style={[st.styleName, active && st.styleNameActive]}>{s.name}</Text>
-                <Text style={[st.styleDesc, active && st.styleDescActive]}>{s.desc}</Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-
-        {/* Active style detail */}
-        {activeStyle && (
-          <Animated.View style={st.styleDetail}>
-            <Text style={st.styleDetailTitle}>{activeStyle}</Text>
-            <Text style={st.styleDetailSub}>
-              This style works beautifully with Type {typeGroup} hair. Browse products below that help you achieve and maintain it.
-            </Text>
-            <View style={st.styleDetailTags}>
-              <View style={st.tag}><Text style={st.tagText}>Type {typeGroup}</Text></View>
-              <View style={st.tag}><Text style={st.tagText}>{hairType}</Text></View>
+        {ordered.map((s, i) => (
+          <Animated.View key={s.id} entering={FadeInUp.duration(320).delay(Math.min(i, 5) * 60)} style={st.card}>
+            <View>
+              <PhotoCarousel photos={s.photos} width={CARD_W} height={PHOTO_H} radius={0} />
+              {s.sample ? (
+                <View style={st.sampleTag} pointerEvents="none">
+                  <Text style={st.sampleText}>SAMPLE PROFILE</Text>
+                </View>
+              ) : null}
             </View>
+            <Pressable onPress={() => open(s)} style={({ pressed }) => [st.info, pressed && { opacity: 0.7 }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={st.name}>{s.name}</Text>
+                <Text style={st.speciality}>{s.speciality}</Text>
+                <Text style={st.city}>{s.city}</Text>
+              </View>
+              <Text style={st.viewLink}>View work →</Text>
+            </Pressable>
           </Animated.View>
-        )}
+        ))}
 
-        {/* ── Products Section ── */}
-        <Text style={[st.sectionTitle, { marginTop: 24 }]}>Products for Type {typeGroup}</Text>
-
-        {/* Category filter */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.catScroll}>
-          {CATEGORIES.map(cat => {
-            const active = cat === activeCategory;
-            return (
-              <Pressable key={cat} onPress={() => setActiveCategory(cat)} style={[st.catChip, active && st.catChipActive]}>
-                <Text style={[st.catText, active && st.catTextActive]}>
-                  {cat === 'all' ? 'All' : cat.charAt(0).toUpperCase() + cat.slice(1)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-
-        {/* Product list */}
-        {loading ? (
-          <View style={st.loadingWrap}><ActivityIndicator size="large" color={Colors.violet} /></View>
-        ) : (
-          <View style={st.prodList}>
-            {filteredProducts.map((p, i) => (
-              <Animated.View key={p.id} entering={FadeInUp.duration(280).delay(Math.min(i, 8) * 30)}>
-                <Pressable onPress={() => Linking.openURL(p.url)} style={st.prodCard}>
-                  <View style={st.prodTop}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={st.prodBrand}>{p.brand}</Text>
-                      <Text style={st.prodName}>{p.name}</Text>
-                    </View>
-                    <Text style={st.prodPrice}>{p.price}</Text>
-                  </View>
-                  <Text style={st.prodDesc}>{p.why_it_works}</Text>
-                  <View style={st.prodBottom}>
-                    <View style={st.prodCatBadge}>
-                      <Text style={st.prodCatText}>{p.category}</Text>
-                    </View>
-                    <Text style={st.prodRetailer}>{p.retailer}</Text>
-                    <View style={st.prodLinkRow}>
-                      <Text style={st.prodLink}>Shop</Text>
-                      <IconArrowRight />
-                    </View>
-                  </View>
-                </Pressable>
-              </Animated.View>
-            ))}
-            {filteredProducts.length === 0 && !loading && (
-              <Text style={st.emptyText}>No products in this category for your hair type.</Text>
-            )}
-          </View>
-        )}
+        <Text style={st.footnote}>
+          Sample profiles shown while stylist applications open. Photos via Unsplash.
+        </Text>
       </ScrollView>
     </View>
   );
@@ -202,66 +86,23 @@ export default function DiscoverScreen() {
 
 const st = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.porcelain },
-  header: { paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 62 : 48, paddingBottom: 12 },
-  title: { fontFamily: Fonts.heading, fontSize: 24, color: Colors.ink, letterSpacing: -0.5 },
-  subtitle: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, marginTop: 4 },
-
-  content: { paddingBottom: 130 },
-
-  sectionTitle: { fontFamily: Fonts.headingSemi, fontSize: 17, color: Colors.ink, paddingHorizontal: 20, marginBottom: 12 },
-
-  // Style inspiration feed — minHeight is a safety net for MasonryFlashList's
-  // auto-sizing with scrollEnabled=false; tune this once you see it rendered.
-  feedWrap: { minHeight: 620, marginBottom: 8 },
-
-  // Style cards
-  styleScroll: { paddingHorizontal: 20, gap: 10, paddingBottom: 4, marginBottom: 16 },
-  styleCard: {
-    width: 150, padding: 16, borderRadius: 16,
-    backgroundColor: Colors.white, borderWidth: 1.5, borderColor: Colors.border,
+  content: { paddingHorizontal: 20, paddingTop: 64, paddingBottom: 130 },
+  header: { marginBottom: 20 },
+  title: { fontFamily: Fonts.heading, fontSize: 30, color: Colors.ink, letterSpacing: -0.5 },
+  subtitle: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted, marginTop: 4 },
+  card: {
+    marginBottom: 22, borderRadius: 26, overflow: 'hidden',
+    backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
   },
-  styleCardActive: { borderColor: Colors.violet, backgroundColor: Colors.violet },
-  styleName: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.ink, marginBottom: 4 },
-  styleNameActive: { color: '#FFFFFF' },
-  styleDesc: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, lineHeight: 16 },
-  styleDescActive: { color: 'rgba(255,255,255,0.75)' },
-
-  // Style detail
-  styleDetail: {
-    marginHorizontal: 20, padding: 20, borderRadius: 18,
-    backgroundColor: Colors.white, borderWidth: 1.5, borderColor: Colors.border,
+  sampleTag: {
+    position: 'absolute', top: 14, left: 14, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 999,
+    backgroundColor: 'rgba(18,11,46,0.6)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
   },
-  styleDetailTitle: { fontFamily: Fonts.heading, fontSize: 20, color: Colors.ink, marginBottom: 6 },
-  styleDetailSub: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, lineHeight: 20, marginBottom: 14 },
-  styleDetailTags: { flexDirection: 'row', gap: 8 },
-  tag: { backgroundColor: Colors.violetBg2, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 10 },
-  tagText: { fontFamily: Fonts.bodySemi, fontSize: 10, color: Colors.lavender },
-
-  // Category chips
-  catScroll: { paddingHorizontal: 20, gap: 8, paddingBottom: 4, marginBottom: 16 },
-  catChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18, borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.white },
-  catChipActive: { borderColor: Colors.violet, backgroundColor: Colors.violet },
-  catText: { fontFamily: Fonts.bodySemi, fontSize: 12, color: Colors.ink },
-  catTextActive: { color: '#FFFFFF' },
-
-  // Product list
-  loadingWrap: { paddingTop: 40, alignItems: 'center' },
-  prodList: { paddingHorizontal: 20, gap: 10 },
-  prodCard: {
-    backgroundColor: Colors.white, borderRadius: 16, padding: 18,
-    borderWidth: 1.5, borderColor: Colors.border,
-  },
-  prodTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
-  prodBrand: { fontFamily: Fonts.body, fontSize: 10, color: Colors.lavender, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 },
-  prodName: { fontFamily: Fonts.headingSemi, fontSize: 15, color: Colors.ink, lineHeight: 20 },
-  prodPrice: { fontFamily: Fonts.heading, fontSize: 17, color: Colors.ink, marginLeft: 12 },
-  prodDesc: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, lineHeight: 18, marginBottom: 12 },
-  prodBottom: { flexDirection: 'row', alignItems: 'center' },
-  prodCatBadge: { backgroundColor: 'rgba(255,255,255,0.08)', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 8, marginRight: 8 },
-  prodCatText: { fontFamily: Fonts.bodyMedium, fontSize: 10, color: Colors.ink, textTransform: 'capitalize' },
-  prodRetailer: { fontFamily: Fonts.body, fontSize: 10, color: Colors.muted, flex: 1 },
-  prodLinkRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  prodLink: { fontFamily: Fonts.bodySemi, fontSize: 12, color: Colors.lavender },
-
-  emptyText: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, textAlign: 'center', paddingTop: 24 },
+  sampleText: { fontFamily: Fonts.bodySemi, fontSize: 9, letterSpacing: 1.4, color: 'rgba(255,254,247,0.85)' },
+  info: { flexDirection: 'row', alignItems: 'flex-end', padding: 16 },
+  name: { fontFamily: Fonts.heading, fontSize: 20, color: Colors.ink },
+  speciality: { fontFamily: Fonts.body, fontSize: 13, color: 'rgba(255,254,247,0.75)', marginTop: 3 },
+  city: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginTop: 2 },
+  viewLink: { fontFamily: Fonts.bodySemi, fontSize: 13, color: Colors.lavender },
+  footnote: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, textAlign: 'center', marginTop: 4, opacity: 0.7 },
 });

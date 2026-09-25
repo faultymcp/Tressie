@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, Pressable, ScrollView, Platform, Modal,
 } from 'react-native';
@@ -8,6 +8,7 @@ import Svg, { Path } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { Colors, Fonts, Radius } from '@/constants/theme';
+import { HaloBackground } from '@/components/HaloBackground';
 import QuizSegmentStep, { SEGMENTS } from '@/components/QuizSegmentStep';
 import JourneyMap, { Phase } from '@/components/JourneyMap';
 import {
@@ -328,6 +329,22 @@ const SUBTYPES: Record<string, { value: string; label: string; desc: string }[]>
   ],
 };
 
+// ─── Shortened quiz (Sep 25) ─────────────────────────────────────
+// 15 screens down to 7 quick taps. The cut questions (strand thickness,
+// density, length, history, time budget) already fall back to sensible
+// defaults in finish(). History overlapped almost entirely with the
+// segments step, which is the one the routine builder actually uses.
+const KEEP_STEPS = new Set(['curl', 'subtype', 'porosity', 'scalp', 'wash_frequency', 'segments', 'goals']);
+const SHORT_QUESTIONS: Record<string, string> = {
+  curl: "What's your curl pattern?",
+  subtype: 'How tight?',
+  porosity: 'How does your hair take in water?',
+  scalp: "How's your scalp?",
+  wash_frequency: 'How often do you wash?',
+  segments: 'Where is your hair right now?',
+  goals: 'What do you want most?',
+};
+
 // ─── Phase mapping ───────────────────────────────────────────────
 // Step layout (15 total):
 //   0 strand_thickness · 1 curl · 2 subtype · 3 density                    → texture
@@ -359,13 +376,20 @@ function interstitialDisplay(stepId: string): string | null {
 }
 
 // ─── Component ───────────────────────────────────────────────────
-const PROGRESS_KEY = 'halea_quiz_progress';
+const PROGRESS_KEY = 'halea_quiz_progress_v2'; // v2: 7-step quiz, so old 15-step positions are ignored
 
 export default function QuizScreen() {
   const router = useRouter();
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [showHelp, setShowHelp] = useState(false);
+  const [firstName, setFirstName] = useState('');
+  const handleNextRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    AsyncStorage.getItem('halea_user')
+      .then(raw => { const n = raw ? JSON.parse(raw)?.firstName : ''; if (n) setFirstName(n); })
+      .catch(() => {});
+  }, []);
   const [progressLoaded, setProgressLoaded] = useState(false);
 
   // Resume saved progress on mount, if any. We auto-resume rather than
@@ -379,7 +403,7 @@ export default function QuizScreen() {
         try {
           const { idx: savedIdx, answers: savedAnswers } = JSON.parse(saved);
           if (typeof savedIdx === 'number' && savedAnswers && typeof savedAnswers === 'object') {
-            setIdx(savedIdx);
+            setIdx(Math.max(0, Math.min(savedIdx, KEEP_STEPS.size - 1)));
             setAnswers(savedAnswers);
           }
         } catch {
@@ -402,7 +426,11 @@ export default function QuizScreen() {
   const mainType = (answers.curl as string) || '';
 
   const steps = useMemo(() =>
-    QUIZ_STEPS.map(s => {
+    QUIZ_STEPS.filter(s => KEEP_STEPS.has(s.id)).map(s =>
+      s.kind === 'question' || s.kind === 'segments'
+        ? { ...s, question: SHORT_QUESTIONS[s.id] ?? s.question }
+        : s
+    ).map(s => {
       if (s.kind === 'question' && s.id === 'subtype') {
         // Edge case: if user reached subtype without picking curl (e.g. by
         // skipping back and changing answers), give them a graceful skip
@@ -457,6 +485,8 @@ export default function QuizScreen() {
       setAnswers(a => ({ ...a, [step.id]: cur.includes(val) ? cur.filter(v => v !== val) : [...cur, val] }));
     } else {
       setAnswers(a => ({ ...a, [step.id]: val }));
+      // One tap, move on. Short pause so the selection registers visually.
+      if (val !== 'skip') setTimeout(() => { handleNextRef.current(); }, 320);
     }
   };
 
@@ -524,7 +554,13 @@ export default function QuizScreen() {
       // intentional silent
     }
 
-    router.replace('/name');
+    try {
+      const { syncQuizToSupabase } = require('@/lib/sync');
+      await syncQuizToSupabase();
+    } catch (e) {
+      // Non-blocking: the reveal reads from local storage either way.
+    }
+    router.replace('/reveal');
   }, [answers, router]);
 
   const handleNext = useCallback(async () => {
@@ -536,6 +572,9 @@ export default function QuizScreen() {
       await finish();
     }
   }, [idx, steps.length, finish]);
+
+  // Ref so the auto-advance timer always calls the latest handleNext.
+  handleNextRef.current = handleNext;
 
   const handleBack = () => {
     setShowHelp(false);
@@ -559,13 +598,18 @@ export default function QuizScreen() {
 
   return (
     <View style={$.container}>
+      <HaloBackground />
       {/* Top nav with journey map. Single source of progress */}
       <View style={$.nav}>
         <Pressable onPress={handleBack} style={$.backBtn}>
           <Text style={$.backArrow}>{'\u2039'}</Text>
         </Pressable>
         <View style={$.mapWrap}>
-          <JourneyMap currentPhase={currentPhase} completedPhases={completed} compact />
+          <View style={$.progress}>
+            {steps.map((_, i) => (
+              <View key={i} style={[$.progressSeg, i <= idx && $.progressSegOn]} />
+            ))}
+          </View>
         </View>
       </View>
 
@@ -595,7 +639,6 @@ export default function QuizScreen() {
             <View style={$.qRow}>
               <View style={{ flex: 1 }}>
                 <Text style={$.question}>{step.question}</Text>
-                <Text style={$.qSub}>{step.subtitle}</Text>
               </View>
               <Pressable onPress={() => setShowHelp(true)} style={$.helpBtn}>
                 <Text style={$.helpBtnText}>?</Text>
@@ -609,10 +652,12 @@ export default function QuizScreen() {
           </Animated.View>
         ) : (
           <Animated.View key={`q-${step.id}-${idx}`} entering={FadeIn.duration(280)}>
+            {idx === 0 && firstName ? (
+              <Text style={$.greeting}>Nice to meet you, {firstName}.</Text>
+            ) : null}
             <View style={$.qRow}>
               <View style={{ flex: 1 }}>
                 <Text style={$.question}>{step.question}</Text>
-                <Text style={$.qSub}>{step.subtitle}</Text>
               </View>
               <Pressable onPress={() => setShowHelp(true)} style={$.helpBtn}>
                 <Text style={$.helpBtnText}>?</Text>
@@ -630,7 +675,6 @@ export default function QuizScreen() {
               </View>
             )}
 
-            <Text style={$.tipText}>{step.proTip}</Text>
 
             {step.multi && <Text style={$.multiLabel}>Select all that apply</Text>}
 
@@ -686,6 +730,7 @@ export default function QuizScreen() {
         )}
       </ScrollView>
 
+      {!(step.kind === 'question' && !step.multi) && (
       <View style={$.footer}>
         <Pressable
           onPress={canContinue ? handleNext : undefined}
@@ -699,6 +744,7 @@ export default function QuizScreen() {
           <Text style={[$.nextLabel, !canContinue && $.nextLabelOff]}>{ctaLabel}</Text>
         </Pressable>
       </View>
+      )}
 
       {step.kind !== 'interstitial' && (
         <Modal visible={showHelp} transparent animationType="slide">
@@ -724,6 +770,10 @@ export default function QuizScreen() {
 
 // ─── Styles ──────────────────────────────────────────────────────
 const $ = StyleSheet.create({
+  greeting: { fontFamily: Fonts.headingSemi, fontStyle: 'italic', fontSize: 16, color: '#E6BEF5', marginBottom: 8 },
+  progress: { flex: 1, flexDirection: 'row', gap: 5, alignItems: 'center' },
+  progressSeg: { flex: 1, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.14)' },
+  progressSegOn: { backgroundColor: Colors.lime },
   container: { flex: 1, backgroundColor: Colors.porcelain },
 
   nav: {
@@ -817,28 +867,31 @@ const $ = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 14,
     padding: 16, borderRadius: 16,
     backgroundColor: Colors.white,
-    borderWidth: 1.5, borderColor: Colors.border,
+    borderWidth: 1, borderColor: Colors.border,
   },
-  optSel: { borderColor: Colors.violet, backgroundColor: 'rgba(118,67,172,0.04)' },
+  optSel: {
+    borderColor: 'rgba(230,190,245,0.7)', backgroundColor: 'rgba(118,67,172,0.35)',
+    shadowColor: '#C38CD9', shadowOpacity: 0.45, shadowRadius: 14, shadowOffset: { width: 0, height: 0 },
+  },
   optPressed: { transform: [{ scale: 0.985 }], opacity: 0.92 },
 
   optStrand: {
     width: 50, height: 60, alignItems: 'center', justifyContent: 'center',
     borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.08)',
   },
-  optStrandSel: { backgroundColor: 'rgba(118,67,172,0.10)' },
+  optStrandSel: { backgroundColor: 'rgba(255,255,255,0.14)' },
 
   indicator: {
     width: 22, height: 22, borderRadius: 11,
     borderWidth: 2, borderColor: Colors.border,
     alignItems: 'center', justifyContent: 'center',
   },
-  indicatorOn: { backgroundColor: Colors.violet, borderColor: Colors.violet },
-  indicatorCheck: { fontSize: 12, color: '#fff', fontFamily: Fonts.bodyBold, marginTop: -1 },
+  indicatorOn: { backgroundColor: Colors.lime, borderColor: Colors.lime },
+  indicatorCheck: { fontSize: 12, color: '#120B2E', fontFamily: Fonts.bodyBold, marginTop: -1 },
 
   optBody: { flex: 1 },
   optLabel: { fontFamily: Fonts.bodySemi, fontSize: 15, color: Colors.ink, marginBottom: 2 },
-  optLabelSel: { color: Colors.violet },
+  optLabelSel: { color: '#FFFFFF' },
   optDesc: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, lineHeight: 16 },
 
   // Interstitial — editorial layout

@@ -38,6 +38,10 @@ export default function AccountType() {
     if (!selected) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     await AsyncStorage.setItem('halea_role', selected).catch(() => {});
+    if (selected === 'business') {
+      router.push('/stylist');
+      return;
+    }
     router.push({ pathname: '/auth', params: { role: selected } });
   };
 

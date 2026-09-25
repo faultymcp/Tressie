@@ -104,10 +104,12 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" options={{ animation: 'fade' }} />
-        <Stack.Screen name="onboarding" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="auth" options={{ animation: 'slide_from_bottom', presentation: 'modal' }} />
+        <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
+        <Stack.Screen name="auth" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="account-type" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="business" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="stylist" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="pro/[id]" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="quiz" options={{ animation: 'slide_from_right', gestureEnabled: false }} />
         <Stack.Screen name="name" options={{ animation: 'slide_from_right', gestureEnabled: false }} />
         <Stack.Screen name="reveal" options={{ animation: 'fade' }} />

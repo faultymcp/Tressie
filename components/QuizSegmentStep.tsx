@@ -21,7 +21,7 @@ export type Segment = {
 
 // ─── Icons ───────────────────────────────────────────────────────
 const ICON_PROPS = { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none' as const };
-const STROKE = (active: boolean) => active ? Colors.violet : Colors.muted;
+const STROKE = (active: boolean) => active ? '#FFFFFF' : Colors.muted;
 
 function IcNatural({ active }: { active: boolean }) { return <Svg {...ICON_PROPS}><Path stroke={STROKE(active)} strokeWidth={1.6} strokeLinecap="round" d="M6 4c2 4 2 8 0 12M12 2c2 5 2 10 0 14M18 4c-2 4-2 8 0 12M4 18c4 2 12 2 16 0" /></Svg>; }
 function IcBraids({ active }: { active: boolean }) { return <Svg {...ICON_PROPS}><Path stroke={STROKE(active)} strokeWidth={1.6} strokeLinecap="round" d="M8 2v20M16 2v20M8 6l8 4M8 14l8 4M8 10l8-4M8 18l8-4" /></Svg>; }
@@ -101,7 +101,7 @@ export default function QuizSegmentStep({ selected, onSelect }: Props) {
               </View>
               <View style={[st.checkbox, active && st.checkboxActive]}>
                 {active && (
-                  <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3} strokeLinecap="round">
+                  <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#120B2E" strokeWidth={3} strokeLinecap="round">
                     <Path d="M20 6L9 17l-5-5" />
                   </Svg>
                 )}
@@ -121,21 +121,24 @@ const st = StyleSheet.create({
     padding: 16, borderRadius: 16,
     backgroundColor: Colors.white, borderWidth: 1.5, borderColor: Colors.border,
   },
-  cardActive: { borderColor: Colors.violet, backgroundColor: 'rgba(118,67,172,0.04)' },
+  cardActive: {
+    borderColor: 'rgba(230,190,245,0.7)', backgroundColor: 'rgba(118,67,172,0.35)',
+    shadowColor: '#C38CD9', shadowOpacity: 0.45, shadowRadius: 14, shadowOffset: { width: 0, height: 0 },
+  },
   cardPressed: { transform: [{ scale: 0.985 }], opacity: 0.92 },
   iconWrap: {
     width: 44, height: 44, borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center',
   },
-  iconWrapActive: { backgroundColor: 'rgba(118,67,172,0.12)' },
+  iconWrapActive: { backgroundColor: 'rgba(255,255,255,0.14)' },
   cardBody: { flex: 1 },
   cardLabel: { fontFamily: Fonts.bodySemi, fontSize: 15, color: Colors.ink, marginBottom: 2 },
-  cardLabelActive: { color: Colors.violet },
+  cardLabelActive: { color: '#FFFFFF' },
   cardDesc: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, lineHeight: 16 },
   checkbox: {
     width: 24, height: 24, borderRadius: 12,
     borderWidth: 2, borderColor: Colors.border,
     alignItems: 'center', justifyContent: 'center',
   },
-  checkboxActive: { backgroundColor: Colors.violet, borderColor: Colors.violet },
+  checkboxActive: { backgroundColor: Colors.lime, borderColor: Colors.lime },
 });

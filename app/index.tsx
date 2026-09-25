@@ -48,11 +48,19 @@ export default function SplashScreen() {
     // Shimmer plays once the word is actually complete, not while it's still forming.
     shimmerX.value = withDelay(LETTERS_DONE + 150, withTiming(140, { duration: 900, easing: EASE }));
 
-    const timer = setTimeout(async () => {
-      const { data } = await supabase.auth.getSession();
-      router.replace(data.session ? '/(tabs)/home' : '/onboarding');
-    }, 2800);
-    return () => clearTimeout(timer);
+    // New visitors go straight to the intro, which has its own Halea reveal,
+    // so they don't watch the name form twice. Signed-in users get the splash.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let cancelled = false;
+    supabase.auth.getSession().then(({ data }) => {
+      if (cancelled) return;
+      if (!data.session) {
+        router.replace('/onboarding');
+        return;
+      }
+      timer = setTimeout(() => router.replace('/(tabs)/home'), 2800);
+    }).catch(() => { if (!cancelled) router.replace('/onboarding'); });
+    return () => { cancelled = true; if (timer) clearTimeout(timer); };
   }, []);
 
   return (

@@ -586,8 +586,8 @@ export default function HomeScreen() {
             <Text style={st.pickBody} numberOfLines={2}>
               {products[0].brand ? `${products[0].brand} · ` : ''}{products[0].description || 'Selected for your hair structure today.'}
             </Text>
-            <Pressable onPress={() => router.push('/(tabs)/discover')} style={st.pickCta}>
-              <Text style={st.pickCtaText}>See in Discover →</Text>
+            <Pressable onPress={() => router.push('/(tabs)/products')} style={st.pickCta}>
+              <Text style={st.pickCtaText}>See in Products →</Text>
             </Pressable>
           </Animated.View>
         )}

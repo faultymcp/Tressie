@@ -77,7 +77,7 @@ function Mote({ x, delay }: { x: number; delay: number }) {
   return <Animated.View style={[st.mote, { left: x }, style]} />;
 }
 
-export function RadiantCore({ size = 220 }: { size?: number }) {
+export function RadiantCore({ size = 220, glint = true }: { size?: number; glint?: boolean }) {
   const pulse = useSharedValue(0);
   useEffect(() => {
     pulse.value = withRepeat(
@@ -112,6 +112,7 @@ export function RadiantCore({ size = 220 }: { size?: number }) {
           <Circle cx={half} cy={half} r={half} fill="url(#core)" />
         </Svg>
         {/* cross glint */}
+        {glint ? (<>
         <LinearGradient
           colors={['transparent', 'rgba(255,255,255,0.95)', 'transparent']}
           start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }}
@@ -122,6 +123,7 @@ export function RadiantCore({ size = 220 }: { size?: number }) {
           start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
           style={{ position: 'absolute', width: 3, height: size * 0.7, borderRadius: 2 }}
         />
+        </>) : null}
       </Animated.View>
       {/* motes drifting up from the core */}
       <View pointerEvents="none" style={[StyleSheet.absoluteFill, { top: half }]}>

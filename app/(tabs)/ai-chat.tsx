@@ -508,7 +508,7 @@ export default function AIChatScreen() {
         <KeyboardAvoidingView style={st.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           {isEmpty ? (
             <ScrollView style={st.flex} contentContainerStyle={st.welcomeWrap} keyboardShouldPersistTaps="handled">
-              <RadiantCore size={200} />
+              <RadiantCore size={170} />
               <Text style={st.welcomeHeadline}>Let's talk hair.</Text>
               <Text style={st.welcomeSub}>
                 {hairType
@@ -557,7 +557,7 @@ export default function AIChatScreen() {
             />
           )}
 
-          <View style={[st.inputWrap, { paddingBottom: keyboardUp ? 10 : 118 }]}>
+          <View style={[st.inputWrap, { paddingBottom: keyboardUp ? 10 : 86 }]}>
             <View style={[st.inputRow, input.length > 0 && st.inputRowFocused]}>
               <Pressable onPress={() => setShowAttachMenu(prev => !prev)} style={st.plusBtn}>
                 <View style={[st.plusBtnInner, showAttachMenu && st.plusBtnInnerOn]}>
@@ -603,7 +603,7 @@ const st = StyleSheet.create({
   profileChipText: { fontFamily: Fonts.bodyMedium, fontSize: 11, color: 'rgba(255,254,247,0.75)' },
 
   // Empty state: radiant core, headline, glass chips
-  welcomeWrap: { alignItems: 'center', paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 },
+  welcomeWrap: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24, paddingTop: 0, paddingBottom: 16 },
   welcomeHeadline: { fontFamily: Fonts.heading, fontSize: 30, color: Colors.ink, letterSpacing: -0.5, marginTop: 8, textAlign: 'center' },
   welcomeSub: { fontFamily: Fonts.body, fontSize: 14, color: 'rgba(255,254,247,0.6)', textAlign: 'center', marginTop: 8, lineHeight: 21 },
 

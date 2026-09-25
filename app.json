@@ -4,7 +4,7 @@
     "slug": "halea",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/halea-icon.png",
     "userInterfaceStyle": "light",
     "scheme": "halea",
     "splash": {

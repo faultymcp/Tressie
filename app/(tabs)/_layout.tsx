@@ -55,6 +55,14 @@ function IconProfile({ color }: { color: string }) {
     </Svg>
   );
 }
+function IconProducts({ color }: { color: string }) {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M6 8h12l-1 12H7L6 8z" />
+      <Path d="M9 8V6a3 3 0 016 0v2" />
+    </Svg>
+  );
+}
 // A point of light with a soft cross glint — Halea's mark.
 function IconHalea({ focused }: { focused: boolean }) {
   const o = focused ? 1 : 0.6;
@@ -136,11 +144,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="salons"
+        name="products"
         listeners={{ tabPress: haptic }}
         options={{
-          tabBarIcon: ({ focused }) => <IconSalons color={focused ? ACTIVE : IDLE} />,
-          tabBarLabel: ({ focused }) => <TabLabel focused={focused} label="SALONS" />,
+          tabBarIcon: ({ focused }) => <IconProducts color={focused ? ACTIVE : IDLE} />,
+          tabBarLabel: ({ focused }) => <TabLabel focused={focused} label="PRODUCTS" />,
         }}
       />
       <Tabs.Screen
@@ -151,6 +159,8 @@ export default function TabLayout() {
           tabBarLabel: ({ focused }) => <TabLabel focused={focused} label="ME" />,
         }}
       />
+      {/* Salons: still a working screen (Home links here), just not in the bar. */}
+      <Tabs.Screen name="salons" options={{ href: null }} />
     </Tabs>
   );
 }
