@@ -110,7 +110,7 @@ const st = StyleSheet.create({
     borderRadius: 16, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden',
   },
   contactRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, paddingHorizontal: 18 },
-  contactIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F7F5FB', alignItems: 'center', justifyContent: 'center' },
+  contactIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
   contactBody: { flex: 1 },
   contactTitle: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.ink, marginBottom: 2 },
   contactSub: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted },

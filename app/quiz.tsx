@@ -803,7 +803,7 @@ const $ = StyleSheet.create({
   chartItemActive: { borderColor: Colors.violet, backgroundColor: 'rgba(118,67,172,0.04)' },
   chartPatternBox: {
     width: 56, height: 70, alignItems: 'center', justifyContent: 'center',
-    borderRadius: 10, backgroundColor: '#F7F5FB',
+    borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.08)',
   },
   chartPatternBoxActive: { backgroundColor: 'rgba(118,67,172,0.10)' },
   chartLabel: { fontFamily: Fonts.bodyBold, fontSize: 14, color: Colors.ink },
@@ -824,7 +824,7 @@ const $ = StyleSheet.create({
 
   optStrand: {
     width: 50, height: 60, alignItems: 'center', justifyContent: 'center',
-    borderRadius: 10, backgroundColor: '#F7F5FB',
+    borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.08)',
   },
   optStrandSel: { backgroundColor: 'rgba(118,67,172,0.10)' },
 
@@ -890,9 +890,9 @@ const $ = StyleSheet.create({
     shadowRadius: 12,
     elevation: 4,
   },
-  nextBtnOff: { backgroundColor: '#E0DCD5', shadowOpacity: 0, elevation: 0 },
+  nextBtnOff: { backgroundColor: 'rgba(255,255,255,0.12)', shadowOpacity: 0, elevation: 0 },
   nextBtnPress: { transform: [{ scale: 0.985 }], opacity: 0.92 },
-  nextLabel: { fontFamily: Fonts.headingSemi, fontSize: 15, color: Colors.white, letterSpacing: 0.2 },
+  nextLabel: { fontFamily: Fonts.headingSemi, fontSize: 15, color: '#FFFFFF', letterSpacing: 0.2 },
   nextLabelOff: { color: '#9D9686' },
 
   // Help sheet

@@ -34,6 +34,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { Colors, Fonts, Radius } from '@/constants/theme';
+import { HaloBackground } from '@/components/HaloBackground';
 import { supabase } from '@/lib/supabase';
 import {
   bootstrapUserRoutine,
@@ -400,6 +401,7 @@ export default function HomeScreen() {
 
   return (
     <View style={st.container}>
+      <HaloBackground />
       <ScrollView
         contentContainerStyle={st.scroll}
         showsVerticalScrollIndicator={false}
@@ -501,7 +503,6 @@ export default function HomeScreen() {
             <View style={st.tryOnTextCol}>
               <Text style={st.tryOnLabel}>VIRTUAL TRY-ON</Text>
               <Text style={st.tryOnTitle}>See a new style on you</Text>
-              <Text style={st.tryOnSub}>Upload a selfie and a reference look. We'll swap the hairstyle onto your photo.</Text>
             </View>
             <View style={st.tryOnIconWrap}>
               <Svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.8} strokeLinecap="round">
@@ -582,9 +583,8 @@ export default function HomeScreen() {
           <Animated.View style={st.pickCard}>
             <Text style={st.goldLabel}>PICK OF THE DAY</Text>
             <Text style={st.pickTitle}>{products[0].name}</Text>
-            <Text style={st.pickBrand}>{products[0].brand || 'For your type'}</Text>
-            <Text style={st.pickBody} numberOfLines={3}>
-              {products[0].description || 'Selected for your hair structure today.'}
+            <Text style={st.pickBody} numberOfLines={2}>
+              {products[0].brand ? `${products[0].brand} · ` : ''}{products[0].description || 'Selected for your hair structure today.'}
             </Text>
             <Pressable onPress={() => router.push('/(tabs)/discover')} style={st.pickCta}>
               <Text style={st.pickCtaText}>See in Discover →</Text>
@@ -651,7 +651,7 @@ const st = StyleSheet.create({
   scroll: {
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
     paddingHorizontal: 24,
-    paddingBottom: 120,
+    paddingBottom: 130,
   },
 
   // ── 1. Masthead
@@ -680,13 +680,13 @@ const st = StyleSheet.create({
   streakText: {
     fontFamily: 'Fraunces_700Bold',
     fontSize: 14,
-    color: Colors.violet,
+    color: Colors.lavender,
   },
   streakLabel: {
     fontFamily: Fonts.body,
     fontSize: 10,
     letterSpacing: 0.5,
-    color: Colors.violet,
+    color: Colors.lavender,
   },
   greeting: {
     fontFamily: 'Fraunces_700Bold',
@@ -701,7 +701,7 @@ const st = StyleSheet.create({
     fontFamily: 'Sora_500Medium',
     fontSize: 10,
     letterSpacing: 2.5,
-    color: Colors.violet,
+    color: Colors.lavender,
     marginBottom: 8,
   },
   goldLabel: {
@@ -785,7 +785,7 @@ const st = StyleSheet.create({
     fontFamily: Fonts.body,
     fontSize: 12,
     fontStyle: 'italic',
-    color: Colors.violet,
+    color: Colors.lavender,
     marginTop: 4,
   },
 
@@ -814,7 +814,7 @@ const st = StyleSheet.create({
     fontFamily: 'Sora_500Medium',
     fontSize: 10,
     letterSpacing: 2.5,
-    color: Colors.violet,
+    color: Colors.lavender,
     marginBottom: 10,
   },
   noteText: {
@@ -966,7 +966,7 @@ const st = StyleSheet.create({
     width: 44,
     letterSpacing: 0.8,
   },
-  dayNameToday: { color: Colors.violet },
+  dayNameToday: { color: Colors.lavender },
   dayLabel: {
     flex: 1,
     fontFamily: 'Fraunces_500Medium',
@@ -1019,22 +1019,22 @@ const st = StyleSheet.create({
   dayStepXp: {
     fontFamily: 'Sora_500Medium',
     fontSize: 11,
-    color: Colors.violet,
+    color: Colors.lavender,
   },
 
   // ── 6. Pick of the day
   pickCard: {
-    backgroundColor: '#FAFCE8',
+    backgroundColor: '#2A2E0F',
     borderRadius: Radius.lg,
     padding: 24,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(138,184,0,0.18)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(217,255,0,0.35)',
   },
   pickTitle: {
     fontFamily: 'Fraunces_700Bold',
     fontSize: 22,
-    color: Colors.ink,
+    color: '#FFFEF7',
     letterSpacing: -0.5,
     marginBottom: 4,
   },
@@ -1042,15 +1042,14 @@ const st = StyleSheet.create({
     fontFamily: Fonts.body,
     fontStyle: 'italic',
     fontSize: 12,
-    color: '#8AB800',
+    color: '#D9FF00',
     marginBottom: 12,
   },
   pickBody: {
     fontFamily: Fonts.body,
     fontSize: 13,
     lineHeight: 20,
-    color: Colors.ink,
-    opacity: 0.78,
+    color: '#E8E6D8',
     marginBottom: 16,
   },
   pickCta: {
@@ -1059,7 +1058,7 @@ const st = StyleSheet.create({
   pickCtaText: {
     fontFamily: 'Sora_500Medium',
     fontSize: 12,
-    color: '#241C17',
+    color: '#D9FF00',
     letterSpacing: 0.3,
   },
 
@@ -1074,7 +1073,7 @@ const st = StyleSheet.create({
   seeAll: {
     fontFamily: 'Sora_500Medium',
     fontSize: 11,
-    color: Colors.violet,
+    color: Colors.lavender,
     letterSpacing: 0.3,
   },
   salonCard: {
@@ -1099,7 +1098,7 @@ const st = StyleSheet.create({
   salonInitialsText: {
     fontFamily: 'Fraunces_700Bold',
     fontSize: 14,
-    color: Colors.violet,
+    color: Colors.lavender,
     letterSpacing: -0.3,
   },
   salonName: {
@@ -1161,7 +1160,7 @@ const st = StyleSheet.create({
   toastText: {
     fontFamily: 'Fraunces_700Bold',
     fontSize: 14,
-    color: Colors.white,
+    color: '#FFFFFF',
     letterSpacing: -0.2,
   },
 });

@@ -28,7 +28,9 @@
       "expo-router",
       "expo-font",
       "expo-asset",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-image",
+      "expo-splash-screen"
     ],
     "experiments": {
       "typedRoutes": true

@@ -6,8 +6,11 @@ import {
 import Svg, { Path } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors, Fonts, Radius } from '@/constants/theme';
+import { FluidOrb } from '@/components/FluidOrb';
 import { supabase } from '@/lib/supabase';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { MasonryFeed } from '@/components/MasonryFeed';
+import { feedData } from '@/constants/feedData';
 
 // ─── Icons ───────────────────────────────────────────────────────
 function IconArrowRight() {
@@ -97,6 +100,8 @@ export default function DiscoverScreen() {
 
   return (
     <View style={st.container}>
+      <FluidOrb color={Colors.violet} size={380} top={-60} left={180} spinDuration={16000} spinDirection={1} breatheDuration={4000} baseOpacity={0.22} />
+      <FluidOrb color={Colors.pink} size={300} top={520} left={-90} spinDuration={20000} spinDirection={-1} breatheDuration={4600} baseOpacity={0.14} />
       {/* Header */}
       <View style={st.header}>
         <Text style={st.title}>Discover</Text>
@@ -105,8 +110,14 @@ export default function DiscoverScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={st.content}>
 
+        {/* ── Style Inspiration ── */}
+        <Text style={st.sectionTitle}>Style inspiration</Text>
+        <View style={st.feedWrap}>
+          <MasonryFeed data={feedData} scrollEnabled={false} />
+        </View>
+
         {/* ── Hairstyle Suggestions ── */}
-        <Text style={st.sectionTitle}>Styles for your hair</Text>
+        <Text style={[st.sectionTitle, { marginTop: 8 }]}>Styles for your hair</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.styleScroll}>
           {styles_list.map((s, i) => {
             const active = s.name === activeStyle;
@@ -156,7 +167,7 @@ export default function DiscoverScreen() {
         ) : (
           <View style={st.prodList}>
             {filteredProducts.map((p, i) => (
-              <Animated.View key={p.id} >
+              <Animated.View key={p.id} entering={FadeInUp.duration(280).delay(Math.min(i, 8) * 30)}>
                 <Pressable onPress={() => Linking.openURL(p.url)} style={st.prodCard}>
                   <View style={st.prodTop}>
                     <View style={{ flex: 1 }}>
@@ -195,9 +206,13 @@ const st = StyleSheet.create({
   title: { fontFamily: Fonts.heading, fontSize: 24, color: Colors.ink, letterSpacing: -0.5 },
   subtitle: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, marginTop: 4 },
 
-  content: { paddingBottom: 100 },
+  content: { paddingBottom: 130 },
 
   sectionTitle: { fontFamily: Fonts.headingSemi, fontSize: 17, color: Colors.ink, paddingHorizontal: 20, marginBottom: 12 },
+
+  // Style inspiration feed — minHeight is a safety net for MasonryFlashList's
+  // auto-sizing with scrollEnabled=false; tune this once you see it rendered.
+  feedWrap: { minHeight: 620, marginBottom: 8 },
 
   // Style cards
   styleScroll: { paddingHorizontal: 20, gap: 10, paddingBottom: 4, marginBottom: 16 },
@@ -207,7 +222,7 @@ const st = StyleSheet.create({
   },
   styleCardActive: { borderColor: Colors.violet, backgroundColor: Colors.violet },
   styleName: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.ink, marginBottom: 4 },
-  styleNameActive: { color: Colors.white },
+  styleNameActive: { color: '#FFFFFF' },
   styleDesc: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, lineHeight: 16 },
   styleDescActive: { color: 'rgba(255,255,255,0.75)' },
 
@@ -220,14 +235,14 @@ const st = StyleSheet.create({
   styleDetailSub: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, lineHeight: 20, marginBottom: 14 },
   styleDetailTags: { flexDirection: 'row', gap: 8 },
   tag: { backgroundColor: Colors.violetBg2, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 10 },
-  tagText: { fontFamily: Fonts.bodySemi, fontSize: 10, color: Colors.violet },
+  tagText: { fontFamily: Fonts.bodySemi, fontSize: 10, color: Colors.lavender },
 
   // Category chips
   catScroll: { paddingHorizontal: 20, gap: 8, paddingBottom: 4, marginBottom: 16 },
   catChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18, borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.white },
   catChipActive: { borderColor: Colors.violet, backgroundColor: Colors.violet },
   catText: { fontFamily: Fonts.bodySemi, fontSize: 12, color: Colors.ink },
-  catTextActive: { color: Colors.white },
+  catTextActive: { color: '#FFFFFF' },
 
   // Product list
   loadingWrap: { paddingTop: 40, alignItems: 'center' },
@@ -237,16 +252,16 @@ const st = StyleSheet.create({
     borderWidth: 1.5, borderColor: Colors.border,
   },
   prodTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
-  prodBrand: { fontFamily: Fonts.body, fontSize: 10, color: Colors.violet, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 },
+  prodBrand: { fontFamily: Fonts.body, fontSize: 10, color: Colors.lavender, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 },
   prodName: { fontFamily: Fonts.headingSemi, fontSize: 15, color: Colors.ink, lineHeight: 20 },
   prodPrice: { fontFamily: Fonts.heading, fontSize: 17, color: Colors.ink, marginLeft: 12 },
   prodDesc: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, lineHeight: 18, marginBottom: 12 },
   prodBottom: { flexDirection: 'row', alignItems: 'center' },
-  prodCatBadge: { backgroundColor: '#F7F5FB', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 8, marginRight: 8 },
+  prodCatBadge: { backgroundColor: 'rgba(255,255,255,0.08)', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 8, marginRight: 8 },
   prodCatText: { fontFamily: Fonts.bodyMedium, fontSize: 10, color: Colors.ink, textTransform: 'capitalize' },
   prodRetailer: { fontFamily: Fonts.body, fontSize: 10, color: Colors.muted, flex: 1 },
   prodLinkRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  prodLink: { fontFamily: Fonts.bodySemi, fontSize: 12, color: Colors.violet },
+  prodLink: { fontFamily: Fonts.bodySemi, fontSize: 12, color: Colors.lavender },
 
   emptyText: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, textAlign: 'center', paddingTop: 24 },
 });

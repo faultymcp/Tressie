@@ -1,45 +1,36 @@
 // app/(tabs)/_layout.tsx
 //
-// The tab bar. Editorial chrome that wraps every tab in Halea.
-//
-// Design rules:
-//   - Slimmer silhouette than default RN tabs (76pt on iOS vs 88pt)
-//   - Glass-blur backdrop on iOS for that Apple-Music/Spotify premium feel,
-//     solid cream on Android (BlurView on Android often looks muddy)
-//   - Idle icons: muted lavender, thin 1.5pt stroke
-//   - Active icons: full violet, with a small gold dot below — editorial
-//     marker, harmonises with the reveal pager's dot progress
-//   - Labels: Sora caps idle, Fraunces serif active (subtle but elegant)
-//   - Center AI button: gradient pill (violet → pink), not solid violet.
-//     Slightly recessed glow behind it instead of a hard shadow
-//   - Haptic on tab change
+// Glass pill tab bar, floating above the halo.
+//   - Glass: translucent fill + real blur + light edge. It reads as glass
+//     because the halo light sits behind it.
+//   - One "you are here" signal: icon and label turn cream, and a lime dot
+//     sits in its own space UNDER the label. No glow capsule.
+//   - The Halea tab is a small point of light (matches the chat screen's
+//     radiant core). It has a label like every other tab, so all five sit
+//     on the same baseline — the old raised gradient button is gone, which
+//     is what kept knocking the alignment off.
 
 import { Tabs } from 'expo-router';
-import { View, Text, StyleSheet, Platform, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
-import Svg, { Path, Circle } from 'react-native-svg';
-import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Path, Circle, Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '@/constants/theme';
 
-// ── Color tokens local to chrome ─────────────────────────────────
-const IDLE = 'rgba(51,36,99,0.42)';      // muted ink
-const ACTIVE = '#241C17';                 // violet
-const GOLD = '#8AB800';                   // earthy gold for dot
-const BG_BLUR_TINT = Platform.OS === 'ios' ? 'light' : 'default';
+const IDLE = 'rgba(255,254,247,0.45)';
+const ACTIVE = '#FFFEF7';
 
-// ─── Tab Icons (1.5pt strokes for a finer feel) ──────────────────
+// ─── Icons ────────────────────────────────────────────────────────
 function IconHome({ color }: { color: string }) {
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-      <Path d="M9 22V12h6v10" />
     </Svg>
   );
 }
 function IconDiscover({ color }: { color: string }) {
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round">
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.6} strokeLinecap="round">
       <Circle cx="11" cy="11" r="8" />
       <Path d="M21 21l-4.35-4.35" />
     </Svg>
@@ -47,7 +38,7 @@ function IconDiscover({ color }: { color: string }) {
 }
 function IconSalons({ color }: { color: string }) {
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
       <Circle cx="6" cy="6" r="3" />
       <Circle cx="6" cy="18" r="3" />
       <Path d="M20 4L8.12 15.88" />
@@ -58,74 +49,55 @@ function IconSalons({ color }: { color: string }) {
 }
 function IconProfile({ color }: { color: string }) {
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
       <Path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
       <Circle cx="12" cy="7" r="4" />
     </Svg>
   );
 }
-
-// ─── AI center button — gradient pill, soft glow ─────────────────
-function IconAI({ focused }: { focused: boolean }) {
+// A point of light with a soft cross glint — Halea's mark.
+function IconHalea({ focused }: { focused: boolean }) {
+  const o = focused ? 1 : 0.6;
   return (
-    <View style={styles.aiWrap}>
-      {/* Soft outer glow */}
-      <View style={[styles.aiGlow, focused && styles.aiGlowActive]} />
-      <LinearGradient
-        colors={focused
-          ? ['#8C5A3C', '#241C17']
-          : ['#241C17', '#8C5A3C']
-        }
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.aiBtn}
-      >
-        {/* Sparkle / wand icon */}
-        <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#FFFEF7" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-          <Path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
-          <Path d="M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" />
-          <Circle cx="12" cy="12" r="3" />
-        </Svg>
-      </LinearGradient>
-    </View>
+    <Svg width={26} height={26} viewBox="0 0 30 30">
+      <Defs>
+        <RadialGradient id="tabcore" cx="50%" cy="50%" r="50%">
+          <Stop offset="0%" stopColor="#FFFFFF" stopOpacity={o} />
+          <Stop offset="35%" stopColor="#E6BEF5" stopOpacity={0.8 * o} />
+          <Stop offset="100%" stopColor="#C38CD9" stopOpacity={0} />
+        </RadialGradient>
+      </Defs>
+      <Circle cx="15" cy="15" r="14" fill="url(#tabcore)" />
+      <Rect x="3" y="14.4" width="24" height="1.2" rx="0.6" fill="#FFFFFF" opacity={0.85 * o} />
+      <Rect x="14.4" y="5" width="1.2" height="20" rx="0.6" fill="#FFFFFF" opacity={0.85 * o} />
+    </Svg>
   );
 }
 
-// ─── Editorial label component (cap labels with active state) ────
-// Idle: tiny Sora caps, muted. Active: same size but coloured + gold dot.
+// ─── Label + lime dot (the single active indicator) ───────────────
 function TabLabel({ focused, label }: { focused: boolean; label: string }) {
   return (
     <View style={styles.labelWrap}>
-      <Text style={[styles.label, focused && styles.labelActive]}>
-        {label}
-      </Text>
-      {focused && <View style={styles.activeDot} />}
+      <Text style={[styles.label, focused && styles.labelActive]}>{label}</Text>
+      <View style={[styles.dot, !focused && { opacity: 0 }]} />
     </View>
   );
 }
 
-// ─── Haptic feedback wrapper for tab presses ─────────────────────
-const triggerTabHaptic = () => {
-  Haptics.selectionAsync().catch(() => {});
-};
+const haptic = () => { Haptics.selectionAsync().catch(() => {}); };
 
-// ─── Custom blurred background for iOS ──────────────────────────
-function TabBarBackground() {
-  if (Platform.OS === 'ios') {
-    return (
-      <BlurView
-        tint={BG_BLUR_TINT}
-        intensity={80}
-        style={StyleSheet.absoluteFill}
-      />
-    );
-  }
-  return <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.porcelain }]} />;
+// ─── Glass background ─────────────────────────────────────────────
+function GlassBackground() {
+  return (
+    <View style={StyleSheet.absoluteFill}>
+      {Platform.OS === 'ios' ? (
+        <BlurView tint="dark" intensity={60} style={StyleSheet.absoluteFill} />
+      ) : null}
+      <View style={[StyleSheet.absoluteFill, styles.glassFill]} />
+    </View>
+  );
 }
 
-// ═══════════════════════════════════════════════════════════════
-// Tab Layout
-// ═══════════════════════════════════════════════════════════════
 export default function TabLayout() {
   return (
     <Tabs
@@ -134,40 +106,38 @@ export default function TabLayout() {
         tabBarStyle: styles.tabBar,
         tabBarActiveTintColor: ACTIVE,
         tabBarInactiveTintColor: IDLE,
-        tabBarBackground: () => <TabBarBackground />,
+        tabBarBackground: () => <GlassBackground />,
         tabBarItemStyle: styles.tabItem,
+        tabBarHideOnKeyboard: true,
       }}
     >
       <Tabs.Screen
         name="home"
-        listeners={{ tabPress: triggerTabHaptic }}
+        listeners={{ tabPress: haptic }}
         options={{
-          tabBarIcon: ({ focused, color }) => <IconHome color={focused ? ACTIVE : IDLE} />,
+          tabBarIcon: ({ focused }) => <IconHome color={focused ? ACTIVE : IDLE} />,
           tabBarLabel: ({ focused }) => <TabLabel focused={focused} label="HOME" />,
         }}
       />
       <Tabs.Screen
         name="discover"
-        listeners={{ tabPress: triggerTabHaptic }}
+        listeners={{ tabPress: haptic }}
         options={{
           tabBarIcon: ({ focused }) => <IconDiscover color={focused ? ACTIVE : IDLE} />,
           tabBarLabel: ({ focused }) => <TabLabel focused={focused} label="DISCOVER" />,
         }}
       />
-
-      {/* Centre AI ─ raised gradient button */}
       <Tabs.Screen
         name="ai-chat"
-        listeners={{ tabPress: triggerTabHaptic }}
+        listeners={{ tabPress: haptic }}
         options={{
-          tabBarIcon: ({ focused }) => <IconAI focused={focused} />,
-          tabBarLabel: () => null,
+          tabBarIcon: ({ focused }) => <IconHalea focused={focused} />,
+          tabBarLabel: ({ focused }) => <TabLabel focused={focused} label="HALEA" />,
         }}
       />
-
       <Tabs.Screen
         name="salons"
-        listeners={{ tabPress: triggerTabHaptic }}
+        listeners={{ tabPress: haptic }}
         options={{
           tabBarIcon: ({ focused }) => <IconSalons color={focused ? ACTIVE : IDLE} />,
           tabBarLabel: ({ focused }) => <TabLabel focused={focused} label="SALONS" />,
@@ -175,7 +145,7 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="profile"
-        listeners={{ tabPress: triggerTabHaptic }}
+        listeners={{ tabPress: haptic }}
         options={{
           tabBarIcon: ({ focused }) => <IconProfile color={focused ? ACTIVE : IDLE} />,
           tabBarLabel: ({ focused }) => <TabLabel focused={focused} label="ME" />,
@@ -185,76 +155,49 @@ export default function TabLayout() {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════
-// Styles
-// ═══════════════════════════════════════════════════════════════
 const styles = StyleSheet.create({
   tabBar: {
-    height: Platform.OS === 'ios' ? 84 : 66,
-    paddingBottom: Platform.OS === 'ios' ? 26 : 8,
-    paddingTop: 8,
-    borderTopWidth: Platform.OS === 'ios' ? 0 : 1,
-    borderTopColor: 'rgba(51,36,99,0.06)',
-    backgroundColor: 'transparent',
-    elevation: 0,
-    shadowOpacity: 0,
     position: 'absolute',
+    left: 20,
+    right: 20,
+    bottom: Platform.OS === 'ios' ? 30 : 18,
+    height: 74,
+    paddingBottom: 0,
+    borderRadius: 999,
+    borderTopWidth: 0,
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
+    elevation: 0,
+  },
+  glassFill: {
+    backgroundColor: 'rgba(40,28,80,0.45)',
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.14)',
   },
   tabItem: {
-    paddingTop: 4,
+    paddingTop: 12,
+    height: 74,
   },
-
-  // ── Labels (caps style, idle vs active) ──
   labelWrap: {
     alignItems: 'center',
-    marginTop: 2,
+    marginTop: 3,
   },
   label: {
     fontFamily: 'Sora_500Medium',
     fontSize: 9,
-    letterSpacing: 1.4,
+    letterSpacing: 1.2,
     color: IDLE,
   },
   labelActive: {
-    color: ACTIVE,
     fontFamily: 'Sora_600SemiBold',
+    color: ACTIVE,
   },
-  activeDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: GOLD,
+  dot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: Colors.lime,
     marginTop: 4,
-  },
-
-  // ── AI raised button ──
-  aiWrap: {
-    width: 54,
-    height: 54,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Platform.OS === 'ios' ? 14 : 8,
-  },
-  aiGlow: {
-    position: 'absolute',
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(118,67,172,0.18)',
-  },
-  aiGlowActive: {
-    backgroundColor: 'rgba(244,132,185,0.32)',
-  },
-  aiBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#241C17',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 8,
   },
 });

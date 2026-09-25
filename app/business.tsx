@@ -191,7 +191,7 @@ export default function BusinessSetup() {
           style={[s.btn, (!canContinue || saving) && s.btnOff]}
         >
           {saving
-            ? <ActivityIndicator color={Colors.white} />
+            ? <ActivityIndicator color="#FFFFFF" />
             : <Text style={s.btnText}>{step === 2 ? 'Create listing' : 'Continue'}</Text>}
         </Pressable>
       </View>
@@ -280,7 +280,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.violet, alignItems: 'center',
   },
   btnOff: { opacity: 0.4 },
-  btnText: { fontFamily: Fonts.headingSemi, fontSize: 15, color: Colors.white, letterSpacing: 0.2 },
+  btnText: { fontFamily: Fonts.headingSemi, fontSize: 15, color: '#FFFFFF', letterSpacing: 0.2 },
 
   doneBlock: { gap: 14, alignItems: 'center' },
   doneTitle: { fontFamily: Fonts.heading, fontSize: 28, color: Colors.ink, textAlign: 'center', letterSpacing: -0.6 },

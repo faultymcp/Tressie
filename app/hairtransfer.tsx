@@ -362,7 +362,7 @@ const st = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     backgroundColor: Colors.violet, paddingVertical: 16, borderRadius: 16, marginTop: 8,
   },
-  generateBtnDisabled: { backgroundColor: '#E0DCD5' },
+  generateBtnDisabled: { backgroundColor: 'rgba(255,255,255,0.12)' },
   generateBtnText: { fontFamily: Fonts.headingSemi, fontSize: 16, color: '#fff' },
   creditNote: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, textAlign: 'center', marginTop: 10 },
 

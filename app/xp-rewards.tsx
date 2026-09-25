@@ -175,7 +175,7 @@ export default function XpRewardsScreen() {
                   <Text style={st.redeemLabel} numberOfLines={2}>{r.label}</Text>
                   <View style={[st.redeemCost, canAfford && st.redeemCostAffordable]}>
                     <IC.Zap />
-                    <Text style={[st.redeemCostText, canAfford && { color: Colors.violet }]}>{r.xp_cost.toLocaleString()}</Text>
+                    <Text style={[st.redeemCostText, canAfford && { color: Colors.lavender }]}>{r.xp_cost.toLocaleString()}</Text>
                   </View>
                 </Pressable>
               );
@@ -222,7 +222,7 @@ const st = StyleSheet.create({
   scroll: { paddingBottom: 40 },
 
   // Balance
-  balanceCard: { marginHorizontal: 20, marginBottom: 24, padding: 24, backgroundColor: Colors.ink, borderRadius: 20 },
+  balanceCard: { marginHorizontal: 20, marginBottom: 24, padding: 24, backgroundColor: 'rgba(118,67,172,0.32)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)', borderRadius: 20 },
   balanceTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
   balanceLabel: { fontFamily: Fonts.body, fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 4 },
   balanceValue: { fontFamily: Fonts.heading, fontSize: 36, color: '#fff' },
@@ -252,7 +252,7 @@ const st = StyleSheet.create({
   },
   earnDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.violet },
   earnAction: { flex: 1, fontFamily: Fonts.body, fontSize: 14, color: Colors.ink },
-  earnXp: { fontFamily: Fonts.headingSemi, fontSize: 14, color: Colors.violet },
+  earnXp: { fontFamily: Fonts.headingSemi, fontSize: 14, color: Colors.lavender },
 
   // Redeem
   redeemGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, paddingHorizontal: 20, marginBottom: 24 },
@@ -265,7 +265,7 @@ const st = StyleSheet.create({
   redeemLabel: { fontFamily: Fonts.bodySemi, fontSize: 13, color: Colors.ink, marginBottom: 10, lineHeight: 18 },
   redeemCost: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    alignSelf: 'flex-start', backgroundColor: '#F7F5FB',
+    alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.08)',
     paddingVertical: 4, paddingHorizontal: 10, borderRadius: 10,
   },
   redeemCostAffordable: { backgroundColor: '#EDE8F5' },
@@ -290,5 +290,5 @@ const st = StyleSheet.create({
   historyBody: { flex: 1 },
   historyAction: { fontFamily: Fonts.bodyMedium, fontSize: 13, color: Colors.ink },
   historyDate: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, marginTop: 2 },
-  historyXp: { fontFamily: Fonts.headingSemi, fontSize: 14, color: Colors.violet },
+  historyXp: { fontFamily: Fonts.headingSemi, fontSize: 14, color: Colors.lavender },
 });

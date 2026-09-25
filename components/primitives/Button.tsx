@@ -19,6 +19,7 @@
 //   - accessibilityLabel falls back to label string
 
 import { Pressable, Text, StyleSheet, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -94,7 +95,10 @@ export default function Button({
   return (
     <Animated.View style={[animStyle, shadowStyle, fullWidth && s.fullWidth]}>
       <Pressable
-        onPress={disabled ? undefined : onPress}
+        onPress={disabled ? undefined : () => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+          onPress();
+        }}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
         disabled={disabled}

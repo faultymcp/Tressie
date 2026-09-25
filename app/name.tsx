@@ -183,7 +183,7 @@ const s = StyleSheet.create({
   ctaText: {
     fontFamily: Fonts.headingSemi,
     fontSize: 15,
-    color: Colors.white,
+    color: '#FFFFFF',
     letterSpacing: 0.2,
   },
 });

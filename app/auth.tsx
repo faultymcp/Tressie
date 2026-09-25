@@ -232,7 +232,7 @@ export default function AuthScreen() {
               style={styles.submitGradient}
             >
               {loading ? (
-                <ActivityIndicator size="small" color={Colors.white} />
+                <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
                 <Text style={styles.submitText}>Verify & sign in</Text>
               )}
@@ -321,7 +321,7 @@ export default function AuthScreen() {
             style={styles.submitGradient}
           >
             {loading ? (
-              <ActivityIndicator size="small" color={Colors.white} />
+              <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
               <Text style={styles.submitText}>Send verification code</Text>
             )}
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 32,
   },
   headerContent: { alignItems: 'center' },
-  brand: { fontFamily: Fonts.heading, fontSize: 28, color: Colors.white, letterSpacing: -0.5 },
+  brand: { fontFamily: Fonts.heading, fontSize: 28, color: '#FFFFFF', letterSpacing: -0.5 },
   tagline: {
     fontFamily: Fonts.heading, fontSize: 9, color: Colors.lime,
     letterSpacing: 3, marginTop: 8, textTransform: 'uppercase',
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
   },
   submitBtnPressed: { transform: [{ scale: 0.98 }], shadowOpacity: 0.15 },
   submitGradient: { paddingVertical: 16, alignItems: 'center', justifyContent: 'center' },
-  submitText: { fontFamily: Fonts.headingSemi, color: Colors.white, fontSize: 16, letterSpacing: 0.3 },
+  submitText: { fontFamily: Fonts.headingSemi, color: '#FFFFFF', fontSize: 16, letterSpacing: 0.3 },
   btnDisabled: { opacity: 0.5 },
 
   // Legal

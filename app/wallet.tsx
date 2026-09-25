@@ -197,7 +197,7 @@ const st = StyleSheet.create({
 
   balanceCard: {
     marginHorizontal: 20, marginBottom: 24, padding: 28,
-    backgroundColor: Colors.ink, borderRadius: 20, alignItems: 'center',
+    backgroundColor: 'rgba(118,67,172,0.32)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)', borderRadius: 20, alignItems: 'center',
   },
   balanceLabel: { fontFamily: Fonts.body, fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 12, marginBottom: 4 },
   balanceAmount: { fontFamily: Fonts.heading, fontSize: 40, color: '#fff', marginBottom: 4 },
@@ -221,11 +221,11 @@ const st = StyleSheet.create({
     borderWidth: 1, borderColor: Colors.border, overflow: 'hidden',
   },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, paddingHorizontal: 18 },
-  infoIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F7F5FB', alignItems: 'center', justifyContent: 'center' },
+  infoIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
   infoBody: { flex: 1 },
   infoTitle: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.ink, marginBottom: 2 },
   infoSub: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted },
-  infoPrice: { fontFamily: Fonts.heading, fontSize: 15, color: Colors.violet },
+  infoPrice: { fontFamily: Fonts.heading, fontSize: 15, color: Colors.lavender },
   infoDivider: { height: 1, backgroundColor: Colors.border, marginHorizontal: 18 },
 
   emptyCard: {

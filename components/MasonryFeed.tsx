@@ -1,13 +1,17 @@
 // components/MasonryFeed.tsx
-// Pinterest-style masonry feed. New dependency:
-//   npx expo install @shopify/flash-list
-// Built to match components/primitives/Button.tsx's existing conventions —
-// same semantic tokens, same press-spring values, Reanimated FadeInDown for
-// entrance (Motion.medium, no bounce, per the theme's own motion rule).
+// Pinterest-style masonry feed.
+//
+// CORRECTED: @shopify/flash-list v2 (what's actually installed — 2.0.2) removed
+// MasonryFlashList entirely. Masonry is now a boolean `masonry` prop on plain
+// FlashList, and estimatedItemSize is no longer read at all in v2. The earlier
+// version of this file used the v1 API from memory without checking it against
+// the installed version — that's what crashed. Verified against the real
+// v2 docs before writing this.
 
 import React from 'react';
-import { MasonryFlashList } from '@shopify/flash-list';
+import { FlashList } from '@shopify/flash-list';
 import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import Animated, {
   FadeInDown,
   useSharedValue,
@@ -36,14 +40,16 @@ export type FeedItem = {
 type Props = {
   data: FeedItem[];
   onPressItem?: (item: FeedItem) => void;
+  scrollEnabled?: boolean;
 };
 
-export function MasonryFeed({ data, onPressItem }: Props) {
+export function MasonryFeed({ data, onPressItem, scrollEnabled = true }: Props) {
   return (
-    <MasonryFlashList
+    <FlashList
       data={data}
+      masonry
       numColumns={2}
-      estimatedItemSize={220}
+      scrollEnabled={scrollEnabled}
       contentContainerStyle={styles.content}
       renderItem={({ item, index }: { item: FeedItem; index: number }) => (
         <Animated.View
@@ -66,7 +72,10 @@ function FeedCard({ item, onPress }: { item: FeedItem; onPress?: () => void }) {
     <Animated.View style={[animStyle, Shadows.card]}>
       <Pressable
         style={styles.card}
-        onPress={onPress}
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+          onPress?.();
+        }}
         onPressIn={() => { scale.value = withSpring(0.97, Motion.springTight); }}
         onPressOut={() => { scale.value = withSpring(1, Motion.springCalm); }}
       >

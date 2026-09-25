@@ -8,6 +8,7 @@ import { useFocusEffect } from 'expo-router';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors, Fonts, Radius } from '@/constants/theme';
+import { FluidOrb } from '@/components/FluidOrb';
 import { supabase } from '@/lib/supabase';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 
@@ -15,9 +16,9 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 const IC = {
   Chevron: () => <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={Colors.muted} strokeWidth={2} strokeLinecap="round"><Path d="M9 18l6-6-6-6" /></Svg>,
   Wallet: () => <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={Colors.ink} strokeWidth={1.6} strokeLinecap="round"><Rect x="2" y="5" width="20" height="14" rx="2" /><Path d="M2 10h20" /></Svg>,
-  Star: () => <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={Colors.violet} strokeWidth={1.6} strokeLinecap="round"><Path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z" /></Svg>,
+  Star: () => <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={Colors.ink} strokeWidth={1.6} strokeLinecap="round"><Path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z" /></Svg>,
   Heart: () => <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={Colors.ink} strokeWidth={1.6}><Path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" /></Svg>,
-  Gift: () => <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={Colors.violet} strokeWidth={1.6} strokeLinecap="round"><Rect x="3" y="8" width="18" height="4" rx="1" /><Path d="M12 8v13" /><Path d="M19 12v7a2 2 0 01-2 2H7a2 2 0 01-2-2v-7" /><Path d="M7.5 8a2.5 2.5 0 010-5C10 3 12 8 12 8" /><Path d="M16.5 8a2.5 2.5 0 000-5C14 3 12 8 12 8" /></Svg>,
+  Gift: () => <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={Colors.ink} strokeWidth={1.6} strokeLinecap="round"><Rect x="3" y="8" width="18" height="4" rx="1" /><Path d="M12 8v13" /><Path d="M19 12v7a2 2 0 01-2 2H7a2 2 0 01-2-2v-7" /><Path d="M7.5 8a2.5 2.5 0 010-5C10 3 12 8 12 8" /><Path d="M16.5 8a2.5 2.5 0 000-5C14 3 12 8 12 8" /></Svg>,
   Calendar: () => <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={Colors.ink} strokeWidth={1.6} strokeLinecap="round"><Rect x="3" y="4" width="18" height="18" rx="2" /><Line x1="16" y1="2" x2="16" y2="6" /><Line x1="8" y1="2" x2="8" y2="6" /><Line x1="3" y1="10" x2="21" y2="10" /></Svg>,
   Settings: () => <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={Colors.ink} strokeWidth={1.6} strokeLinecap="round"><Circle cx="12" cy="12" r="3" /><Path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" /></Svg>,
   CreditCard: () => <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={Colors.ink} strokeWidth={1.6} strokeLinecap="round"><Rect x="1" y="4" width="22" height="16" rx="2" /><Line x1="1" y1="10" x2="23" y2="10" /></Svg>,
@@ -43,7 +44,7 @@ function MenuRow({ icon, label, sublabel, right, rightColor, onPress, last, dest
   onPress: () => void; last?: boolean; destructive?: boolean;
 }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [st.menuRow, last && { borderBottomWidth: 0 }, pressed && { backgroundColor: '#F9F8FC' }]}>
+    <Pressable onPress={onPress} style={({ pressed }) => [st.menuRow, last && { borderBottomWidth: 0 }, pressed && { backgroundColor: 'rgba(255,255,255,0.06)' }]}>
       <View style={st.menuIcon}>{icon}</View>
       <View style={st.menuBody}>
         <Text style={[st.menuLabel, destructive && { color: Colors.error }]}>{label}</Text>
@@ -148,15 +149,18 @@ export default function ProfileScreen() {
   }
 
   return (
-    <ScrollView
-      style={st.container} contentContainerStyle={st.scroll}
-      showsVerticalScrollIndicator={false}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Colors.violet} />}
-    >
+    <View style={{ flex: 1, backgroundColor: Colors.porcelain }}>
+      <FluidOrb color={Colors.violet} size={380} top={-80} left={200} spinDuration={16000} spinDirection={1} breatheDuration={4000} baseOpacity={0.22} />
+      <FluidOrb color={Colors.pink} size={300} top={540} left={-80} spinDuration={20000} spinDirection={-1} breatheDuration={4600} baseOpacity={0.14} />
+      <ScrollView
+        style={st.container} contentContainerStyle={st.scroll}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Colors.violet} />}
+      >
       <View style={st.header}><Text style={st.pageTitle}>Profile</Text></View>
 
       {/* User card */}
-      <Animated.View >
+      <Animated.View entering={FadeInUp.duration(280)}>
         <Pressable onPress={() => router.push('/settings')} style={st.userCard}>
           <View style={st.avatar}><Text style={st.avatarText}>{initial}</Text></View>
           <View style={st.userInfo}>
@@ -169,7 +173,7 @@ export default function ProfileScreen() {
       </Animated.View>
 
       {/* Stats */}
-      <Animated.View style={st.statsRow}>
+      <Animated.View entering={FadeInUp.duration(280).delay(40)} style={st.statsRow}>
         <Pressable onPress={() => router.push('/xp-rewards')} style={st.statCard}>
           <Text style={st.statValue}>{xp.toLocaleString()}</Text>
           <Text style={st.statLabel}>XP</Text>
@@ -187,7 +191,7 @@ export default function ProfileScreen() {
       </Animated.View>
 
       {/* Activity */}
-      <Animated.View >
+      <Animated.View entering={FadeInUp.duration(280).delay(80)}>
         <SectionLabel>Activity</SectionLabel>
         <View style={st.menuCard}>
           <MenuRow icon={<IC.Calendar />} label="My Bookings" sublabel={upcomingBookings > 0 ? `${upcomingBookings} upcoming` : 'No upcoming bookings'} onPress={() => router.push('/bookings')} />
@@ -198,7 +202,7 @@ export default function ProfileScreen() {
       </Animated.View>
 
       {/* Account */}
-      <Animated.View >
+      <Animated.View entering={FadeInUp.duration(280).delay(120)}>
         <SectionLabel>Account</SectionLabel>
         <View style={st.menuCard}>
           <MenuRow icon={<IC.Wallet />} label="Wallet" right={`£${(walletPence / 100).toFixed(2)}`} onPress={() => router.push('/wallet')} />
@@ -207,8 +211,8 @@ export default function ProfileScreen() {
         </View>
       </Animated.View>
 
-      {/* General. FIXED ROUTING */}
-      <Animated.View >
+      {/* General */}
+      <Animated.View entering={FadeInUp.duration(280).delay(160)}>
         <SectionLabel>General</SectionLabel>
         <View style={st.menuCard}>
           <MenuRow icon={<IC.Settings />} label="Settings" sublabel="Notifications, appearance, account" onPress={() => router.push('/settings')} />
@@ -218,31 +222,32 @@ export default function ProfileScreen() {
       </Animated.View>
 
       {/* Sign out */}
-      <Animated.View >
+      <Animated.View entering={FadeInUp.duration(280).delay(200)}>
         <View style={st.menuCard}>
           <MenuRow icon={<IC.LogOut />} label="Sign out" onPress={handleSignOut} destructive last />
         </View>
         <Text style={st.emailLabel}>{email}</Text>
         <Text style={st.version}>Halea v1.0.0</Text>
       </Animated.View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const st = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.porcelain },
-  scroll: { paddingTop: Platform.OS === 'ios' ? 62 : 48, paddingBottom: 40 },
+  container: { flex: 1, backgroundColor: 'transparent' },
+  scroll: { paddingTop: Platform.OS === 'ios' ? 62 : 48, paddingBottom: 130 },
   loadingWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.porcelain },
   header: { paddingHorizontal: 20, marginBottom: 20 },
   pageTitle: { fontFamily: Fonts.heading, fontSize: 28, color: Colors.ink, letterSpacing: -0.5 },
   userCard: { flexDirection: 'row', alignItems: 'center', gap: 16, marginHorizontal: 20, marginBottom: 16, backgroundColor: Colors.white, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: Colors.border },
-  avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.ink, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontFamily: Fonts.heading, fontSize: 22, color: Colors.porcelain },
+  avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(118,67,172,0.55)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontFamily: Fonts.heading, fontSize: 22, color: '#FFFFFF' },
   userInfo: { flex: 1 },
   userName: { fontFamily: Fonts.heading, fontSize: 20, color: Colors.ink, marginBottom: 2 },
   userMeta: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginBottom: 8 },
   tierBadge: { alignSelf: 'flex-start', backgroundColor: Colors.violet, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 12 },
-  tierText: { fontFamily: Fonts.bodySemi, fontSize: 11, color: Colors.white },
+  tierText: { fontFamily: Fonts.bodySemi, fontSize: 11, color: '#FFFFFF' },
   statsRow: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, marginBottom: 24, backgroundColor: Colors.white, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Colors.border },
   statCard: { flex: 1, alignItems: 'center' },
   statValue: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.ink, marginBottom: 2 },

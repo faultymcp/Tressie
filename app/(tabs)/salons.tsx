@@ -7,6 +7,7 @@ import { Picker } from '@react-native-picker/picker';
 import Svg, { Path, Circle } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors, Fonts } from '@/constants/theme';
+import { FluidOrb } from '@/components/FluidOrb';
 import { supabase } from '@/lib/supabase';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 
@@ -42,6 +43,19 @@ type Salon = {
   snacks?: boolean;
 };
 
+// Human-readable labels for the current picker value — used by the custom
+// overlay label, since the native Picker's own closed-state text doesn't
+// reliably respect color styling on iOS (a known library limitation, not
+// something fixable by changing a hex value).
+const DISTANCE_LABELS: Record<string, string> = {
+  Any: 'Any distance', '1': 'Within 1 mile', '5': 'Within 5 miles',
+  '10': 'Within 10 miles', '15': 'Within 15 miles',
+};
+const BUDGET_LABELS: Record<string, string> = {
+  Any: 'Any budget', '20-40': '£20 - £40', '40-60': '£40 - £60',
+  '60-80': '£60 - £80', '80-100': '£80 - £100+',
+};
+
 export default function SalonsScreen() {
   const [salons, setSalons] = useState<Salon[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,8 +64,6 @@ export default function SalonsScreen() {
   // All filters are now states for dropdowns
   const [selectedDistance, setSelectedDistance] = useState('Any');
   const [selectedBudget, setSelectedBudget] = useState('Any');
-  const [selectedAmbience, setSelectedAmbience] = useState('Any');
-  const [selectedSnacks, setSelectedSnacks] = useState('Any');
 
   const typeGroup = hairType.charAt(0) || '';
 
@@ -82,18 +94,14 @@ export default function SalonsScreen() {
     const matchesType = !typeGroup || s.hair_types.includes(typeGroup);
     const matchesDistance = selectedDistance === 'Any' || (s.distance && s.distance <= parseInt(selectedDistance));
     const matchesBudget = selectedBudget === 'Any' || s.budget_level === selectedBudget;
-    const matchesAmbience = selectedAmbience === 'Any' || s.ambience === selectedAmbience;
-    
-    // Logic for the new snacks dropdown
-    let matchesSnacks = true;
-    if (selectedSnacks === 'Yes') matchesSnacks = s.snacks === true;
-    if (selectedSnacks === 'No') matchesSnacks = s.snacks === false;
 
-    return matchesType && matchesDistance && matchesBudget && matchesAmbience && matchesSnacks;
+    return matchesType && matchesDistance && matchesBudget;
   });
 
   return (
     <View style={st.container}>
+      <FluidOrb color={Colors.violet} size={360} top={-50} left={-90} spinDuration={16000} spinDirection={1} breatheDuration={4000} baseOpacity={0.22} />
+      <FluidOrb color={Colors.pink} size={280} top={560} left={220} spinDuration={20000} spinDirection={-1} breatheDuration={4600} baseOpacity={0.14} />
       <View style={st.header}>
         <Text style={st.title}>Salons</Text>
         <Text style={st.subtitle}>
@@ -113,10 +121,13 @@ export default function SalonsScreen() {
           <View style={st.filterBlock}>
             <Text style={st.filterLabel}>Distance</Text>
             <View style={st.pickerWrapper}>
+              {/* Custom overlay label — always readable, doesn't depend on the
+                  native picker's own text color, which iOS handles unreliably. */}
+              <Text style={st.pickerLabel} pointerEvents="none">{DISTANCE_LABELS[selectedDistance]}</Text>
               <Picker
                 selectedValue={selectedDistance}
                 onValueChange={(value) => setSelectedDistance(value)}
-                style={st.picker}
+                style={st.pickerHidden}
               >
                 <Picker.Item label="Any distance" value="Any" />
                 <Picker.Item label="Within 1 mile" value="1" />
@@ -131,52 +142,17 @@ export default function SalonsScreen() {
           <View style={st.filterBlock}>
             <Text style={st.filterLabel}>Budget</Text>
             <View style={st.pickerWrapper}>
+              <Text style={st.pickerLabel} pointerEvents="none">{BUDGET_LABELS[selectedBudget]}</Text>
               <Picker
                 selectedValue={selectedBudget}
                 onValueChange={(value) => setSelectedBudget(value)}
-                style={st.picker}
+                style={st.pickerHidden}
               >
                 <Picker.Item label="Any budget" value="Any" />
                 <Picker.Item label="£20 - £40" value="20-40" />
                 <Picker.Item label="£40 - £60" value="40-60" />
                 <Picker.Item label="£60 - £80" value="60-80" />
                 <Picker.Item label="£80 - £100+" value="80-100" />
-              </Picker>
-            </View>
-          </View>
-
-          {/* 3. Ambience Dropdown */}
-          <View style={st.filterBlock}>
-            <Text style={st.filterLabel}>Ambience</Text>
-            <View style={st.pickerWrapper}>
-              <Picker
-                selectedValue={selectedAmbience}
-                onValueChange={(value) => setSelectedAmbience(value)}
-                style={st.picker}
-              >
-                <Picker.Item label="Any ambience" value="Any" />
-                <Picker.Item label="Cozy & Intimate" value="cozy" />
-                <Picker.Item label="Bright Lighting" value="bright" />
-                <Picker.Item label="Quiet & Relaxing" value="quiet" />
-                <Picker.Item label="Bustling & Social" value="social" />
-                <Picker.Item label="Luxury Premium" value="luxury" />
-              </Picker>
-            </View>
-          </View>
-
-          {/* 4. Snacks Dropdown */}
-          <View style={st.filterBlock}>
-            <Text style={st.filterLabel}>Snacks Offered</Text>
-            <View style={st.pickerWrapper}>
-              <Picker
-                selectedValue={selectedSnacks}
-                onValueChange={(value) => setSelectedSnacks(value)}
-                style={st.picker}
-              >
-                <Picker.Item label="Does not matter" value="Any" />
-                <Picker.Item label="Yes please" value="Yes" />
-                <Picker.Item label="No thanks" value="No" />
-                <Picker.Item label="Maybe" value="Maybe" />
               </Picker>
             </View>
           </View>
@@ -192,7 +168,7 @@ export default function SalonsScreen() {
           <Text style={st.resultCount}>{filtered.length} salon{filtered.length !== 1 ? 's' : ''} found</Text>
 
           {filtered.map((salon, i) => (
-            <Animated.View key={salon.id} >
+            <Animated.View key={salon.id} entering={FadeInUp.duration(280).delay(Math.min(i, 8) * 30)}>
               <View style={st.card}>
                 <View style={st.cardTop}>
                   <View style={{ flex: 1 }}>
@@ -284,19 +260,32 @@ const st = StyleSheet.create({
     borderRadius: 12, 
     borderWidth: 1.5, 
     borderColor: Colors.border,
-    height: 48, // Forces the wrapper to stay neat
+    height: 48,
     justifyContent: 'center',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    position: 'relative', // hosts the absolutely-positioned overlay label below
   },
-  picker: { 
-    width: '100%',
+  // The visible label — this is what the user actually reads. Fully
+  // independent of the native picker's own (unreliable) text rendering.
+  pickerLabel: {
+    position: 'absolute',
+    left: 14,
+    right: 14,
+    fontFamily: Fonts.body,
+    fontSize: 14,
     color: Colors.ink,
-    // On iOS, native pickers can sometimes be stubborn. If it acts weird, 
-    // it's an iOS native quirk, but giving it a fixed width wrapper usually solves it.
+  },
+  // The real, functional picker — kept fully transparent (not display:none,
+  // it still needs to receive taps and open the wheel) so its own unreliable
+  // text rendering is invisible, while pickerLabel shows the real value on top.
+  pickerHidden: {
+    width: '100%',
+    height: 48,
+    opacity: 0,
   },
 
   loadingWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 60 },
-  list: { paddingHorizontal: 20, paddingBottom: 100 },
+  list: { paddingHorizontal: 20, paddingBottom: 130 },
   resultCount: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginBottom: 16 },
 
   card: { 
@@ -311,26 +300,26 @@ const st = StyleSheet.create({
   salonName: { fontFamily: Fonts.headingSemi, fontSize: 17, color: Colors.ink, marginBottom: 4 },
   locRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   salonArea: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted },
-  ratingBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#F9F8FC', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 10 },
+  ratingBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.white, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 10 },
   ratingText: { fontFamily: Fonts.headingSemi, fontSize: 14, color: Colors.ink },
   reviewCount: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted },
   speciality: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, lineHeight: 20, marginBottom: 14 },
 
   tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  typeTag: { backgroundColor: '#F7F5FB', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 10 },
+  typeTag: { backgroundColor: Colors.white, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 10 },
   typeTagMatch: { backgroundColor: Colors.violet },
   typeTagText: { fontFamily: Fonts.bodySemi, fontSize: 11, color: Colors.ink },
-  typeTagTextMatch: { color: Colors.white },
-  highlightTag: { backgroundColor: 'rgba(138,184,0,0.12)', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 10 },
-  highlightText: { fontFamily: Fonts.body, fontSize: 11, color: '#5a6b00' },
-  snacksTag: { backgroundColor: '#FFF3E0', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 10 },
+  typeTagTextMatch: { color: '#FFFFFF' },
+  highlightTag: { backgroundColor: 'rgba(138,184,0,0.22)', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 10 },
+  highlightText: { fontFamily: Fonts.body, fontSize: 11, color: '#c8e878' },
+  snacksTag: { backgroundColor: 'rgba(245,158,11,0.14)', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 10 },
   snacksTagText: { fontFamily: Fonts.body, fontSize: 11, color: '#E67E22' },
 
   btnRow: { flexDirection: 'row', gap: 12 },
   dirBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: Colors.violet, paddingVertical: 14, borderRadius: 12 },
-  dirText: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.white },
+  dirText: { fontFamily: Fonts.bodySemi, fontSize: 14, color: '#FFFFFF' },
   webBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 20, borderRadius: 12, borderWidth: 1.5, borderColor: Colors.violet },
-  webText: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.violet },
+  webText: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.lavender },
 
   empty: { alignItems: 'center', paddingTop: 60 },
   emptyTitle: { fontFamily: Fonts.headingSemi, fontSize: 17, color: Colors.ink, marginBottom: 8 },

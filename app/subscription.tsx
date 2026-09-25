@@ -209,7 +209,7 @@ const st = StyleSheet.create({
 
   currentCard: {
     marginHorizontal: 20, marginBottom: 20, padding: 24,
-    backgroundColor: Colors.ink, borderRadius: 20, alignItems: 'center',
+    backgroundColor: 'rgba(118,67,172,0.32)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)', borderRadius: 20, alignItems: 'center',
   },
   currentLabel: { fontFamily: Fonts.body, fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 4 },
   currentTier: { fontFamily: Fonts.heading, fontSize: 24, color: '#fff', marginBottom: 2 },
@@ -224,7 +224,7 @@ const st = StyleSheet.create({
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
     paddingVertical: 10, borderRadius: 10,
   },
-  toggleActive: { backgroundColor: Colors.ink },
+  toggleActive: { backgroundColor: Colors.violet },
   toggleText: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.muted },
   toggleTextActive: { color: '#fff' },
   saveBadge: { backgroundColor: '#D9FF00', paddingVertical: 2, paddingHorizontal: 8, borderRadius: 8 },
@@ -239,7 +239,7 @@ const st = StyleSheet.create({
   planHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 },
   planName: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.ink, marginBottom: 2 },
   planPrice: { fontFamily: Fonts.headingSemi, fontSize: 15, color: Colors.ink },
-  planSave: { fontFamily: Fonts.bodySemi, fontSize: 11, color: '#16A34A', marginTop: 2 },
+  planSave: { fontFamily: Fonts.bodySemi, fontSize: 11, color: '#4ADE80', marginTop: 2 },
   activeBadge: { backgroundColor: Colors.violet, paddingVertical: 4, paddingHorizontal: 14, borderRadius: 12 },
   activeText: { fontFamily: Fonts.bodySemi, fontSize: 11, color: '#fff' },
   planBtn: {
@@ -264,7 +264,7 @@ const st = StyleSheet.create({
     paddingVertical: 12, paddingHorizontal: 16,
     borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
-  featureHeader: { backgroundColor: '#F9F8FC' },
+  featureHeader: { backgroundColor: 'rgba(255,255,255,0.06)' },
   featureLabel: { fontFamily: Fonts.body, fontSize: 12, color: Colors.ink },
   featureCol: { width: 50, fontFamily: Fonts.bodySemi, fontSize: 11, color: Colors.muted, textAlign: 'center' },
   featureColWrap: { width: 50, alignItems: 'center' },

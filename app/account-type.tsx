@@ -123,7 +123,7 @@ const s = StyleSheet.create({
   btnOff: { opacity: 0.4 },
   btnText: {
     fontFamily: Fonts.headingSemi, fontSize: 15,
-    color: Colors.white, letterSpacing: 0.2,
+    color: '#FFFFFF', letterSpacing: 0.2,
   },
   footNote: {
     fontFamily: Fonts.body, fontSize: 12,

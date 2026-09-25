@@ -128,7 +128,7 @@ const st = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 8,
     marginHorizontal: 20, marginVertical: 8,
     paddingVertical: 12, paddingHorizontal: 16,
-    backgroundColor: '#F7F5FB', borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14,
     borderWidth: 1, borderColor: 'rgba(118,67,172,0.15)',
   },
   bannerText: { flex: 1, fontFamily: Fonts.body, fontSize: 12, color: Colors.ink },

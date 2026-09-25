@@ -20,11 +20,11 @@ const IC = {
 };
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }> = {
-  pending: { label: 'Pending', bg: '#FFF7ED', color: '#C2410C' },
-  confirmed: { label: 'Confirmed', bg: '#F0FDF4', color: '#16A34A' },
-  completed: { label: 'Completed', bg: '#F5F3EE', color: Colors.muted },
-  cancelled: { label: 'Cancelled', bg: '#FEF2F2', color: Colors.error },
-  no_show: { label: 'No show', bg: '#FEF2F2', color: Colors.error },
+  pending: { label: 'Pending', bg: 'rgba(245,158,11,0.16)', color: '#FBBF24' },
+  confirmed: { label: 'Confirmed', bg: 'rgba(34,197,94,0.16)', color: '#4ADE80' },
+  completed: { label: 'Completed', bg: 'rgba(255,255,255,0.08)', color: Colors.muted },
+  cancelled: { label: 'Cancelled', bg: 'rgba(239,68,68,0.16)', color: '#F87171' },
+  no_show: { label: 'No show', bg: 'rgba(239,68,68,0.16)', color: '#F87171' },
 };
 
 export default function BookingsScreen() {
@@ -193,13 +193,13 @@ const st = StyleSheet.create({
   // Tabs
   tabRow: { flexDirection: 'row', marginHorizontal: 20, marginBottom: 16, backgroundColor: Colors.white, borderRadius: 14, padding: 4, borderWidth: 1, borderColor: Colors.border },
   tab: { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center' },
-  tabActive: { backgroundColor: Colors.ink },
+  tabActive: { backgroundColor: Colors.violet },
   tabText: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.muted },
   tabTextActive: { color: '#fff' },
 
   // Empty
   emptyWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40, paddingBottom: 80 },
-  emptyIcon: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#F7F5FB', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  emptyIcon: { width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
   emptyTitle: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.ink, marginBottom: 4 },
   emptySub: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, textAlign: 'center', marginBottom: 20 },
   emptyBtn: { paddingVertical: 12, paddingHorizontal: 28, backgroundColor: Colors.violet, borderRadius: 14 },
@@ -225,8 +225,8 @@ const st = StyleSheet.create({
   originalPrice: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, textDecorationLine: 'line-through' },
   finalPrice: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.ink },
 
-  discountRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, backgroundColor: '#F0FDF4', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 10, alignSelf: 'flex-start' },
-  discountText: { fontFamily: Fonts.bodySemi, fontSize: 11, color: '#16A34A' },
+  discountRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, backgroundColor: 'rgba(34,197,94,0.14)', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 10, alignSelf: 'flex-start' },
+  discountText: { fontFamily: Fonts.bodySemi, fontSize: 11, color: '#4ADE80' },
 
   cancelBtn: { marginTop: 14, paddingVertical: 12, alignItems: 'center', borderRadius: 12, borderWidth: 1, borderColor: Colors.border },
   cancelText: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.error },

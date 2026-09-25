@@ -223,7 +223,7 @@ const s = StyleSheet.create({
   skipText: {
     fontFamily: Fonts.bodyMedium,
     fontSize: 12,
-    color: Colors.white,
+    color: '#FFFFFF',
     letterSpacing: 0.4,
   },
 
@@ -274,7 +274,7 @@ const s = StyleSheet.create({
   btnText: {
     fontFamily: Fonts.headingSemi,
     fontSize: 15,
-    color: Colors.white,
+    color: '#FFFFFF',
     letterSpacing: 0.2,
   },
 });

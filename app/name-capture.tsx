@@ -226,7 +226,7 @@ export default function NameCaptureScreen() {
               style={st.ctaInner}
             >
               {submitting ? (
-                <ActivityIndicator color={Colors.white} />
+                <ActivityIndicator color="#FFFFFF" />
               ) : (
                 <Text style={st.ctaText}>See my routine</Text>
               )}
@@ -328,7 +328,7 @@ const st = StyleSheet.create({
   ctaText: {
     fontFamily: Fonts.headingSemi,
     fontSize: 15,
-    color: Colors.white,
+    color: '#FFFFFF',
     letterSpacing: -0.2,
   },
 });

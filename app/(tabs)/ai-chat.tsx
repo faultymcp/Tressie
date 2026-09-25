@@ -1,9 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, FlatList, TextInput,
+  View, Text, StyleSheet, FlatList, TextInput, ScrollView,
   Pressable, KeyboardAvoidingView, Platform,
   ActivityIndicator, SafeAreaView, StatusBar,
-  Modal, Alert,
+  Modal, Alert, Keyboard,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Polygon, Line, Path, Rect, Circle } from 'react-native-svg';
@@ -14,6 +14,8 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Colors, Fonts, Radius, Motion } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { HaloBackground } from '@/components/HaloBackground';
+import { LightRays, RadiantCore } from '@/components/RadiantLight';
 
 // ── Mistral, via the mistral-proxy Edge Function ─────────────────
 // The API key lives in Supabase secrets, never in the app bundle.
@@ -286,10 +288,7 @@ function AttachMenu({ onIngredientScan, onBarcodeScan, onDocument }: { onIngredi
 
 // ── Main screen ───────────────────────────────────────────────────
 export default function AIChatScreen() {
-  const [messages, setMessages] = useState<Message[]>([{
-    id: 'welcome', role: 'assistant',
-    text: "I'm Halea. I read your hair profile before we start, so you don't have to explain it to me.\n\nAsk me about your routine, a product you're unsure of, or something your hair has started doing that it didn't before.",
-  }]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [history, setHistory] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -466,121 +465,147 @@ export default function AIChatScreen() {
   }, [sendMessage]);
 
   const suggestions = getSuggestions(hairType);
+  const isEmpty = showSuggestions && messages.length === 0;
+
+  // Keep the input above the floating nav bar — but when the keyboard is up,
+  // the nav bar hides, so the input can drop down to sit on the keyboard.
+  const [keyboardUp, setKeyboardUp] = useState(false);
+  useEffect(() => {
+    const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', () => setKeyboardUp(true));
+    const hide = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => setKeyboardUp(false));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
 
   const listData = [
     ...messages,
     ...(loading ? [{ id: '__typing__', role: 'typing' as any, text: '' }] : []),
     ...(error ? [{ id: '__error__', role: 'error' as any, text: error }] : []),
-    ...(showSuggestions && messages.length === 1 ? [{ id: '__chips__', role: 'chips' as any, text: '' }] : []),
   ];
 
   return (
-    <SafeAreaView style={st.safe}>
-      <StatusBar barStyle="dark-content" />
+    <View style={st.root}>
+      <HaloBackground />
+      {isEmpty ? <LightRays /> : null}
 
-      <View style={st.header}>
-        <Text style={st.headerName}>Halea</Text>
-        <Text style={st.headerSub}>
-          {hairType ? `Reading your Type ${hairType} profile` : 'Hair advice, grounded in your profile'}
-        </Text>
-      </View>
+      <SafeAreaView style={st.safe}>
+        <StatusBar barStyle="light-content" />
 
-      <BarcodeScannerModal
-        visible={showBarcodeScanner}
-        onClose={() => setShowBarcodeScanner(false)}
-        onScanned={handleBarcodeScanned}
-      />
-
-      <KeyboardAvoidingView style={st.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <Pressable style={st.flex} onPress={() => setShowAttachMenu(false)}>
-          <FlatList
-            ref={listRef}
-            data={listData}
-            keyExtractor={item => item.id}
-            contentContainerStyle={st.list}
-            showsVerticalScrollIndicator={true}
-            scrollIndicatorInsets={{ right: 1 }}
-            scrollEnabled={true}
-            bounces={true}
-            alwaysBounceVertical={true}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-            onContentSizeChange={scrollToBottom}
-            renderItem={({ item, index }) => {
-              if (item.role === 'typing') return <TypingDots />;
-              if (item.role === 'error') return (
-                <Animated.View style={st.errorBox}>
-                  <Text style={st.errorText}>{item.text}</Text>
-                </Animated.View>
-              );
-              if (item.role === 'chips') return (
-                <Animated.View style={st.chips}>
-                  {suggestions.map(s => (
-                    <Pressable key={s.label} onPress={() => sendMessage(s.label)} style={({ pressed }) => [st.chip, pressed && { opacity: 0.65 }]}>
-                      <Text style={st.chipText}>{s.label}</Text>
-                    </Pressable>
-                  ))}
-                </Animated.View>
-              );
-              return <MessageRow msg={item as Message} index={index} />;
-            }}
-          />
-        </Pressable>
-
-        {showAttachMenu && (
-          <AttachMenu
-            onIngredientScan={handleIngredientScan}
-            onBarcodeScan={() => { setShowAttachMenu(false); setShowBarcodeScanner(true); }}
-            onDocument={handleDocumentUpload}
-          />
-        )}
-
-        <View style={st.inputWrap}>
-          <View style={[st.inputRow, input.length > 0 && st.inputRowFocused]}>
-            <Pressable onPress={() => setShowAttachMenu(prev => !prev)} style={st.plusBtn}>
-              <View style={[st.plusBtnInner, showAttachMenu && st.plusBtnInnerOn]}>
-                <Text style={[st.plusIcon, showAttachMenu && { color: Colors.white }]}>+</Text>
-              </View>
-            </Pressable>
-            <TextInput
-              style={st.input}
-              value={input}
-              onChangeText={setInput}
-              placeholder="Ask about your hair"
-              placeholderTextColor={Colors.muted}
-              multiline
-              maxLength={500}
-              editable={!loading}
-              returnKeyType="send"
-              blurOnSubmit={false}
-              onSubmitEditing={() => sendMessage()}
-              onFocus={() => setShowAttachMenu(false)}
-            />
-            <Pressable onPress={() => sendMessage()} disabled={loading || !input.trim()} style={({ pressed }) => [pressed && { opacity: 0.8 }]}>
-              <LinearGradient
-                colors={(input.trim() && !loading) ? [Colors.violet, Colors.pink] as any : [Colors.border, Colors.border] as any}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                style={st.sendBtn}
-              >
-                {loading ? <ActivityIndicator color="#fff" size="small" /> : <IconSend />}
-              </LinearGradient>
-            </Pressable>
-          </View>
-          <Text style={st.footerNote}>Halea can be wrong. Check anything medical with a professional.</Text>
+        <View style={st.header}>
+          <Text style={st.headerName}>Halea</Text>
+          {hairType ? (
+            <View style={st.profileChip}>
+              <Text style={st.profileChipText}>Type {hairType}</Text>
+            </View>
+          ) : null}
         </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+        <BarcodeScannerModal
+          visible={showBarcodeScanner}
+          onClose={() => setShowBarcodeScanner(false)}
+          onScanned={handleBarcodeScanned}
+        />
+
+        <KeyboardAvoidingView style={st.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          {isEmpty ? (
+            <ScrollView style={st.flex} contentContainerStyle={st.welcomeWrap} keyboardShouldPersistTaps="handled">
+              <RadiantCore size={200} />
+              <Text style={st.welcomeHeadline}>Let's talk hair.</Text>
+              <Text style={st.welcomeSub}>
+                {hairType
+                  ? 'I already know your hair. Start anywhere.'
+                  : 'Ask about your routine, a product, or something new your hair is doing.'}
+              </Text>
+              <View style={st.chips}>
+                {suggestions.map(s => (
+                  <Pressable key={s.label} onPress={() => sendMessage(s.label)} style={({ pressed }) => [st.chip, pressed && { opacity: 0.65 }]}>
+                    <Text style={st.chipText}>{s.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+              <Text style={st.footerNote}>Halea can be wrong. Check anything medical with a professional.</Text>
+            </ScrollView>
+          ) : (
+            <Pressable style={st.flex} onPress={() => setShowAttachMenu(false)}>
+              <FlatList
+                ref={listRef}
+                data={listData}
+                keyExtractor={item => item.id}
+                contentContainerStyle={st.list}
+                showsVerticalScrollIndicator={true}
+                scrollIndicatorInsets={{ right: 1 }}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
+                onContentSizeChange={scrollToBottom}
+                renderItem={({ item, index }) => {
+                  if (item.role === 'typing') return <TypingDots />;
+                  if (item.role === 'error') return (
+                    <Animated.View style={st.errorBox}>
+                      <Text style={st.errorText}>{item.text}</Text>
+                    </Animated.View>
+                  );
+                  return <MessageRow msg={item as Message} index={index} />;
+                }}
+              />
+            </Pressable>
+          )}
+
+          {showAttachMenu && (
+            <AttachMenu
+              onIngredientScan={handleIngredientScan}
+              onBarcodeScan={() => { setShowAttachMenu(false); setShowBarcodeScanner(true); }}
+              onDocument={handleDocumentUpload}
+            />
+          )}
+
+          <View style={[st.inputWrap, { paddingBottom: keyboardUp ? 10 : 118 }]}>
+            <View style={[st.inputRow, input.length > 0 && st.inputRowFocused]}>
+              <Pressable onPress={() => setShowAttachMenu(prev => !prev)} style={st.plusBtn}>
+                <View style={[st.plusBtnInner, showAttachMenu && st.plusBtnInnerOn]}>
+                  <Text style={[st.plusIcon, showAttachMenu && { color: '#FFFFFF' }]}>+</Text>
+                </View>
+              </Pressable>
+              <TextInput
+                style={st.input}
+                value={input}
+                onChangeText={setInput}
+                placeholder="What are you noticing?"
+                placeholderTextColor={Colors.muted}
+                multiline
+                maxLength={500}
+                editable={!loading}
+                returnKeyType="send"
+                blurOnSubmit={false}
+                onSubmitEditing={() => sendMessage()}
+                onFocus={() => setShowAttachMenu(false)}
+              />
+              <Pressable onPress={() => sendMessage()} disabled={loading || !input.trim()} style={({ pressed }) => [pressed && { opacity: 0.8 }]}>
+                <View style={[st.sendBtn, { backgroundColor: (input.trim() && !loading) ? Colors.violet : 'rgba(255,255,255,0.10)' }]}>
+                  {loading ? <ActivityIndicator color="#fff" size="small" /> : <IconSend />}
+                </View>
+              </Pressable>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 // ── Styles ────────────────────────────────────────────────────────
 const st = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.porcelain },
+  root: { flex: 1, backgroundColor: Colors.porcelain },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   flex: { flex: 1 },
 
-  header: { paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 4 : 12, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: Colors.border, backgroundColor: Colors.porcelain },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 8 : 16, paddingBottom: 8 },
   headerName: { fontFamily: Fonts.heading, fontSize: 24, color: Colors.ink, letterSpacing: -0.5 },
-  headerSub: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginTop: 2 },
+  profileChip: { backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', borderRadius: 999, paddingVertical: 6, paddingHorizontal: 12 },
+  profileChipText: { fontFamily: Fonts.bodyMedium, fontSize: 11, color: 'rgba(255,254,247,0.75)' },
+
+  // Empty state: radiant core, headline, glass chips
+  welcomeWrap: { alignItems: 'center', paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 },
+  welcomeHeadline: { fontFamily: Fonts.heading, fontSize: 30, color: Colors.ink, letterSpacing: -0.5, marginTop: 8, textAlign: 'center' },
+  welcomeSub: { fontFamily: Fonts.body, fontSize: 14, color: 'rgba(255,254,247,0.6)', textAlign: 'center', marginTop: 8, lineHeight: 21 },
 
   list: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12, gap: 24 },
   // Assistant: full-width text under a small attributed header.
@@ -600,7 +625,7 @@ const st = StyleSheet.create({
   attachName: { fontFamily: Fonts.bodyMedium, fontSize: 12, color: 'rgba(255,255,255,0.75)', marginBottom: 4 },
   attachNameAI: { fontFamily: Fonts.bodyMedium, fontSize: 12, color: Colors.muted },
   bubbleText: { fontFamily: Fonts.body, fontSize: 15, color: Colors.ink, lineHeight: 24 },
-  bubbleTextUser: { color: Colors.white },
+  bubbleTextUser: { color: '#FFFFFF' },
 
 
   bulletRow: { flexDirection: 'row', gap: 6, marginBottom: 2 },
@@ -608,8 +633,8 @@ const st = StyleSheet.create({
   dotsWrap: { flexDirection: 'row', gap: 4, alignItems: 'center', paddingVertical: 2 },
   dot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: Colors.violet },
 
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingTop: 2 },
-  chip: { borderWidth: 1, borderColor: Colors.border, borderRadius: 20, paddingVertical: 9, paddingHorizontal: 14, backgroundColor: Colors.white },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 24 },
+  chip: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', borderRadius: 999, paddingVertical: 10, paddingHorizontal: 14, backgroundColor: 'rgba(255,255,255,0.07)' },
   chipText: { fontFamily: Fonts.bodyMedium, fontSize: 13, color: Colors.ink },
 
   errorBox: { backgroundColor: 'rgba(239,68,68,0.06)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.12)', borderRadius: Radius.md, padding: 12 },
@@ -622,22 +647,16 @@ const st = StyleSheet.create({
   attachSub: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginTop: 2 },
   attachDivider: { height: 1, backgroundColor: Colors.border, marginLeft: 70 },
 
-  inputWrap: {
-    paddingHorizontal: 16, paddingTop: 10,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 14,
-    borderTopWidth: 1, borderTopColor: Colors.border,
-    backgroundColor: Colors.porcelain,
-    position: 'relative',
-  },
-  inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.lg, paddingLeft: 6, paddingRight: 6, paddingVertical: 6 },
-  inputRowFocused: { borderColor: Colors.violet },
+  inputWrap: { paddingHorizontal: 16, paddingTop: 8, backgroundColor: 'transparent' },
+  inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', borderRadius: 26, paddingLeft: 6, paddingRight: 6, paddingVertical: 6 },
+  inputRowFocused: { borderColor: 'rgba(195,140,217,0.6)' },
   plusBtn: { flexShrink: 0 },
   plusBtnInner: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.violetBg2 },
   plusBtnInnerOn: { backgroundColor: Colors.violet },
   plusIcon: { fontFamily: Fonts.body, fontSize: 22, color: Colors.violet, lineHeight: 26 },
   input: { flex: 1, fontFamily: Fonts.body, fontSize: 14, color: Colors.ink, maxHeight: 100, paddingVertical: 6, paddingHorizontal: 8 },
   sendBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  footerNote: { fontFamily: Fonts.body, fontSize: 10, color: Colors.muted, textAlign: 'center', marginTop: 8, opacity: 0.55 },
+  footerNote: { fontFamily: Fonts.body, fontSize: 10, color: Colors.muted, textAlign: 'center', marginTop: 28, opacity: 0.6 },
 
   scanModal: { flex: 1, backgroundColor: '#000' },
   scanHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 54 : 40, paddingBottom: 16, backgroundColor: '#14100D' },

@@ -460,7 +460,7 @@ const st = StyleSheet.create({
     color: Colors.ink,
   },
   dayPillTextToday: {
-    color: Colors.white,
+    color: '#FFFFFF',
   },
   dayPillTextPast: {
     color: Colors.muted,

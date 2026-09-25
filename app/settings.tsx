@@ -52,7 +52,7 @@ function NavRow({ icon, label, sublabel, right, onPress, last, destructive }: {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [st.row, last && { borderBottomWidth: 0 }, pressed && { backgroundColor: '#F9F8FC' }]}
+      style={({ pressed }) => [st.row, last && { borderBottomWidth: 0 }, pressed && { backgroundColor: 'rgba(255,255,255,0.06)' }]}
     >
       <View style={st.rowIcon}>{icon}</View>
       <View style={st.rowBody}>

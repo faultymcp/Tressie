@@ -127,7 +127,7 @@ export default function ReferralScreen() {
           </View>
           <View style={st.statDivider} />
           <View style={st.statCard}>
-            <Text style={[st.statValue, { color: Colors.violet }]}>{totalConverted}</Text>
+            <Text style={[st.statValue, { color: Colors.lavender }]}>{totalConverted}</Text>
             <Text style={st.statLabel}>Converted</Text>
           </View>
         </Animated.View>
@@ -163,7 +163,7 @@ export default function ReferralScreen() {
                   </View>
                   <View style={[st.refStatus, r.converted ? st.refConverted : r.signed_up ? st.refPending : st.refWaiting]}>
                     {r.converted ? <IC.Check /> : <IC.Clock />}
-                    <Text style={[st.refStatusText, r.converted && { color: '#16A34A' }]}>
+                    <Text style={[st.refStatusText, r.converted && { color: '#4ADE80' }]}>
                       {r.converted ? 'Converted' : r.signed_up ? 'Signed up' : 'Pending'}
                     </Text>
                   </View>
@@ -188,7 +188,7 @@ const st = StyleSheet.create({
   headerTitle: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.ink },
   scroll: { paddingBottom: 40 },
 
-  heroCard: { marginHorizontal: 20, marginBottom: 20, padding: 24, backgroundColor: Colors.ink, borderRadius: 20 },
+  heroCard: { marginHorizontal: 20, marginBottom: 20, padding: 24, backgroundColor: 'rgba(118,67,172,0.32)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)', borderRadius: 20 },
   heroTitle: { fontFamily: Fonts.heading, fontSize: 24, color: '#fff', marginBottom: 8 },
   heroSub: { fontFamily: Fonts.body, fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 20, marginBottom: 20 },
   codeRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
@@ -222,8 +222,8 @@ const st = StyleSheet.create({
     paddingVertical: 16, paddingHorizontal: 18,
     borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
-  stepNum: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#F7F5FB', alignItems: 'center', justifyContent: 'center' },
-  stepNumText: { fontFamily: Fonts.headingSemi, fontSize: 13, color: Colors.violet },
+  stepNum: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
+  stepNumText: { fontFamily: Fonts.headingSemi, fontSize: 13, color: Colors.lavender },
   stepText: { flex: 1, fontFamily: Fonts.body, fontSize: 14, color: Colors.ink },
 
   listCard: {
@@ -235,13 +235,13 @@ const st = StyleSheet.create({
     paddingVertical: 14, paddingHorizontal: 18,
     borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
-  refIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F7F5FB', alignItems: 'center', justifyContent: 'center' },
+  refIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
   refBody: { flex: 1 },
   refCode: { fontFamily: Fonts.bodySemi, fontSize: 13, color: Colors.ink },
   refDate: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, marginTop: 2 },
   refStatus: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 10 },
-  refConverted: { backgroundColor: '#F0FDF4' },
-  refPending: { backgroundColor: '#FFF7ED' },
-  refWaiting: { backgroundColor: '#F5F3EE' },
+  refConverted: { backgroundColor: 'rgba(34,197,94,0.14)' },
+  refPending: { backgroundColor: 'rgba(245,158,11,0.14)' },
+  refWaiting: { backgroundColor: 'rgba(255,255,255,0.08)' },
   refStatusText: { fontFamily: Fonts.bodySemi, fontSize: 11, color: Colors.muted },
 });

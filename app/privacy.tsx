@@ -141,7 +141,7 @@ const st = StyleSheet.create({
     marginHorizontal: 20, marginBottom: 24, padding: 24, alignItems: 'center',
     backgroundColor: Colors.white, borderRadius: 20, borderWidth: 1, borderColor: Colors.border,
   },
-  infoIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#F7F5FB', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
+  infoIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
   infoTitle: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.ink, marginBottom: 8 },
   infoDesc: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, textAlign: 'center', lineHeight: 20 },
 

@@ -56,7 +56,7 @@ const st = StyleSheet.create({
   container: { alignItems: 'center', paddingVertical: 48, paddingHorizontal: 32 },
   iconWrap: {
     width: 64, height: 64, borderRadius: 32,
-    backgroundColor: '#F7F5FB', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center',
     marginBottom: 18,
   },
   title: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.ink, textAlign: 'center', marginBottom: 6 },
