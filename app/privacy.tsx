@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import { Colors, Fonts } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const IC = {
   Back: () => <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke={Colors.ink} strokeWidth={2} strokeLinecap="round"><Path d="M19 12H5M12 19l-7-7 7-7" /></Svg>,
@@ -38,7 +39,14 @@ export default function PrivacyScreen() {
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Delete My Account', style: 'destructive', onPress: async () => {
-          await supabase.auth.signOut();
+          // Really delete, on the server. Signing out alone would leave the data behind.
+          const { error } = await supabase.functions.invoke('delete-account');
+          if (error) {
+            Alert.alert('Could not delete', 'Something went wrong on our side. Please try again in a minute.');
+            return;
+          }
+          await AsyncStorage.clear().catch(() => {});
+          await supabase.auth.signOut().catch(() => {});
           router.replace('/');
         }},
       ]

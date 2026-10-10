@@ -166,7 +166,6 @@ export default function ProfileScreen() {
           <View style={st.userInfo}>
             <Text style={st.userName}>{name}</Text>
             <Text style={st.userMeta}>{hairType ? `Type ${hairType} · ${typeName}` : 'Complete your hair quiz'}</Text>
-            <View style={st.tierBadge}><Text style={st.tierText}>{tierLabel}</Text></View>
           </View>
           <IC.Edit />
         </Pressable>
@@ -177,11 +176,6 @@ export default function ProfileScreen() {
         <Pressable onPress={() => router.push('/xp-rewards')} style={st.statCard}>
           <Text style={st.statValue}>{xp.toLocaleString()}</Text>
           <Text style={st.statLabel}>XP</Text>
-        </Pressable>
-        <View style={st.statDivider} />
-        <Pressable onPress={() => router.push('/wallet')} style={st.statCard}>
-          <Text style={st.statValue}>£{(walletPence / 100).toFixed(2)}</Text>
-          <Text style={st.statLabel}>Wallet</Text>
         </Pressable>
         <View style={st.statDivider} />
         <View style={st.statCard}>
@@ -205,8 +199,7 @@ export default function ProfileScreen() {
       <Animated.View entering={FadeInUp.duration(280).delay(120)}>
         <SectionLabel>Account</SectionLabel>
         <View style={st.menuCard}>
-          <MenuRow icon={<IC.Wallet />} label="Wallet" right={`£${(walletPence / 100).toFixed(2)}`} onPress={() => router.push('/wallet')} />
-          <MenuRow icon={<IC.CreditCard />} label="Subscription" right={tierLabel} rightColor={tier !== 'free' ? Colors.violet : undefined} onPress={() => router.push('/subscription')} />
+          <MenuRow icon={<IC.Star />} label="Face scan" sublabel="Your face shape and styles to try" onPress={() => router.push('/face-scan')} />
           <MenuRow icon={<IC.BarChart />} label="Hair Health Score" onPress={() => router.push('/reveal')} last />
         </View>
       </Animated.View>

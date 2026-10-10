@@ -15,13 +15,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Colors, Fonts } from '@/constants/theme';
 import { HaloBackground } from '@/components/HaloBackground';
+import { HaleaWordmark } from '@/components/HaleaWordmark';
 import { LightRays, RadiantCore } from '@/components/RadiantLight';
 
 const { height: H } = Dimensions.get('window');
 const LETTERS = 'Halea'.split('');
 const LETTER_START = 700;   // ms before the first letter appears
 const LETTER_STEP = 150;    // ms between letters
-const NAME_DONE = LETTER_START + LETTERS.length * LETTER_STEP + 300;
+const NAME_DONE = 2700; // when the wordmark reveal finishes
 const EASE = Easing.out(Easing.cubic);
 
 function FormingLetter({ ch, delay }: { ch: string; delay: number }) {
@@ -103,15 +104,9 @@ export default function Intro() {
         <Animated.View style={[s.core, coreStyle]} pointerEvents="none">
           <RadiantCore size={280} glint={false} />
         </Animated.View>
-        <View style={s.nameRow}>
-          {LETTERS.map((ch, i) => (
-            <FormingLetter key={i} ch={ch} delay={LETTER_START + i * LETTER_STEP} />
-          ))}
-          <HaloGlint delay={NAME_DONE} size={30} style={{ position: 'absolute', top: -6, right: -26 }} />
-          <HaloGlint delay={NAME_DONE + 600} size={18} style={{ position: 'absolute', bottom: 8, left: -22 }} />
-        </View>
+        <HaleaWordmark width={250} delay={500} />
         <Animated.Text entering={FadeInUp.duration(600).delay(NAME_DONE + 200)} style={s.tag}>
-          Step into your halo
+          Step into your halo.
         </Animated.Text>
       </View>
 

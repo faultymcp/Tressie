@@ -33,7 +33,7 @@ export default function NameScreen() {
     } catch (e) {
       // Non-blocking: screens fall back to "You" if the name isn't there.
     }
-    router.replace('/quiz');
+    router.replace('/face-scan?onboarding=1');
   }, [trimmed, canContinue, router]);
 
   return (

@@ -24,10 +24,14 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Path, Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
+import Svg, { Path, Circle, Defs, RadialGradient, Stop, Rect, LinearGradient as LinearGradientSvg } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { captureRef } from 'react-native-view-shot';
+import * as Sharing from 'expo-sharing';
+import { HaloBackground } from '@/components/HaloBackground';
+import { HaloButton } from '@/components/HaloButton';
 import { Colors, Fonts } from '@/constants/theme';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -204,27 +208,15 @@ function generateResults(name: string, data: any) {
     insight: buildOneInsight(data),
     strengths: buildStrengths(ht, strand, porosity),
     routineTeaser: buildRoutineTeaser(data),
+    // Up to three short labels for the share card. Skips anything unmeasured.
+    traits: [POROSITY_LABEL[porosity], STRAND_LABEL[strand], `${buildRoutineTeaser(data).count}-step routine`]
+      .filter(t => t && t !== 'unmeasured'),
   };
 }
 
 // ═══════════════════════════════════════════════════════════════
 // Card illustrations — one distinct shape per card
 // ═══════════════════════════════════════════════════════════════
-
-function StarBurst() {
-  return (
-    <Svg width={120} height={120} viewBox="0 0 120 120">
-      <Defs>
-        <RadialGradient id="g1" cx="50%" cy="50%">
-          <Stop offset="0%" stopColor="#D9FF00" stopOpacity="1" />
-          <Stop offset="100%" stopColor="#8C5A3C" stopOpacity="0" />
-        </RadialGradient>
-      </Defs>
-      <Circle cx="60" cy="60" r="50" fill="url(#g1)" opacity="0.6" />
-      <Path d="M60 20 L65 55 L100 60 L65 65 L60 100 L55 65 L20 60 L55 55 Z" fill="#8C5A3C" opacity="0.85" />
-    </Svg>
-  );
-}
 
 function CurlGlyph({ type, color = '#FFFEF7', size = 130 }: { type: string; color?: string; size?: number }) {
   let d = '';
@@ -244,55 +236,6 @@ function CurlGlyph({ type, color = '#FFFEF7', size = 130 }: { type: string; colo
   else if (type === '4C') { d = `M${cx} 2`; for (let y = 2; y + 5 <= 68; y += 5) { d += ` C${cx+9} ${y+1}, ${cx+9} ${y+4}, ${cx} ${y+5} C${cx-9} ${y+6}, ${cx-9} ${y+9}, ${cx} ${y+10}`; y += 5; } sw = 1.6; }
   if (!d) return null;
   return <Svg width={size * 0.7} height={size} viewBox="0 0 50 70"><Path d={d} stroke={color} strokeWidth={sw} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>;
-}
-
-function SealRing() {
-  return (
-    <Svg width={100} height={100} viewBox="0 0 100 100">
-      <Circle cx="50" cy="50" r="44" fill="none" stroke="#D9FF00" strokeWidth="1.5" opacity="0.7" />
-      <Circle cx="50" cy="50" r="36" fill="none" stroke="#8C5A3C" strokeWidth="1" opacity="0.6" />
-      <Circle cx="50" cy="50" r="28" fill="none" stroke="#D9FF00" strokeWidth="1" opacity="0.4" />
-    </Svg>
-  );
-}
-
-function LeafSprig() {
-  return (
-    <Svg width={110} height={110} viewBox="0 0 110 110">
-      <Path d="M55 15 Q35 40 30 70 Q40 85 55 95" stroke="#D9FF00" strokeWidth="2" fill="none" strokeLinecap="round" />
-      <Path d="M55 30 Q70 32 78 25" stroke="#D9FF00" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-      <Path d="M48 50 Q33 50 25 42" stroke="#D9FF00" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-      <Path d="M45 70 Q62 73 72 65" stroke="#D9FF00" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-function StepRings() {
-  return (
-    <Svg width={130} height={70} viewBox="0 0 130 70">
-      <Circle cx="20" cy="35" r="14" fill="none" stroke="#8C5A3C" strokeWidth="1.8" />
-      <Circle cx="55" cy="35" r="14" fill="none" stroke="#B08968" strokeWidth="1.8" />
-      <Circle cx="90" cy="35" r="14" fill="none" stroke="#241C17" strokeWidth="1.8" />
-      <Path d="M34 35 L41 35" stroke="#FFFEF7" strokeWidth="1" opacity="0.5" />
-      <Path d="M69 35 L76 35" stroke="#FFFEF7" strokeWidth="1" opacity="0.5" />
-    </Svg>
-  );
-}
-
-function ClosingBloom() {
-  return (
-    <Svg width={140} height={140} viewBox="0 0 140 140">
-      <Defs>
-        <RadialGradient id="bloom" cx="50%" cy="50%">
-          <Stop offset="0%" stopColor="#D9FF00" stopOpacity="0.9" />
-          <Stop offset="50%" stopColor="#8C5A3C" stopOpacity="0.5" />
-          <Stop offset="100%" stopColor="#241C17" stopOpacity="0" />
-        </RadialGradient>
-      </Defs>
-      <Circle cx="70" cy="70" r="60" fill="url(#bloom)" />
-      <Circle cx="70" cy="70" r="3" fill="#FFFEF7" />
-    </Svg>
-  );
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -333,76 +276,36 @@ function CardWrapper({
   );
 }
 
-function Card1_Opening({ name, index, total }: { name: string; index: number; total: number }) {
+function Card1_Reveal({ results, index, total }: { results: any; index: number; total: number }) {
+  const hello = results.name === 'You' ? 'MEET YOUR HAIR' : `${results.name}, meet your hair`.toUpperCase();
   return (
     <CardWrapper index={index} total={total}>
-      <View style={st.illust}>
-        <StarBurst />
-      </View>
-      <Text style={st.eyebrowGold}>WE MADE THIS FOR YOU</Text>
-      <Text style={st.heroName}>{name}.</Text>
-      <Text style={st.openingBody}>
-        Here is what your answers tell us about your hair, and the routine
-        we have built from it.
-      </Text>
-    </CardWrapper>
-  );
-}
-
-function Card2_Cover({ results, index, total }: { results: any; index: number; total: number }) {
-  return (
-    <CardWrapper index={index} total={total}>
-      <Text style={st.coverIssue}>ISSUE · {results.hairType}</Text>
-      <View style={st.illust}>
+      <Text style={st.eyebrowGold}>{hello}</Text>
+      <View style={[st.illust, { marginTop: 24 }]}>
         <CurlGlyph type={results.hairType} size={150} />
       </View>
+      <Text style={st.coverIssue}>TYPE {results.hairType}</Text>
       <Text style={st.coverHeadline}>{results.typeName}.</Text>
       <Text style={st.coverTagline}>{results.typeTagline}</Text>
-      <View style={st.divider} />
-      <Text style={st.coverFacts}>{results.facts}</Text>
     </CardWrapper>
   );
 }
 
-function Card3_Readback({ results, index, total }: { results: any; index: number; total: number }) {
+// Three single lines. No paragraphs: the longer read can live on the Me tab.
+function Card2_Meaning({ results, index, total }: { results: any; index: number; total: number }) {
+  const lines = [
+    results.strengths?.[0],
+    results.insight?.title,
+    `Your routine: ${results.routineTeaser.count} steps, waiting on Home.`,
+  ].filter(Boolean);
   return (
     <CardWrapper index={index} total={total}>
-      <View style={st.illust}>
-        <SealRing />
-      </View>
-      <Text style={st.eyebrowGold}>WHAT WE KNOW</Text>
-      <View style={{ gap: 14, marginTop: 8 }}>
-        {results.readback.map((line: string, i: number) => (
-          <Text key={i} style={st.readbackLine}>{line}</Text>
-        ))}
-      </View>
-    </CardWrapper>
-  );
-}
-
-function Card4_Insight({ insight, index, total }: { insight: any; index: number; total: number }) {
-  return (
-    <CardWrapper index={index} total={total}>
-      <Text style={st.eyebrowGold}>SOMETHING TO KNOW</Text>
-      <Text style={st.insightTitle}>{insight.title}</Text>
-      <View style={st.divider} />
-      <Text style={st.insightBody}>{insight.body}</Text>
-    </CardWrapper>
-  );
-}
-
-function Card5_Strengths({ strengths, index, total }: { strengths: string[]; index: number; total: number }) {
-  return (
-    <CardWrapper index={index} total={total}>
-      <View style={st.illust}>
-        <LeafSprig />
-      </View>
-      <Text style={st.eyebrowGold}>WHAT YOUR HAIR DOES WELL</Text>
-      <View style={{ gap: 16, marginTop: 12 }}>
-        {strengths.map((s, i) => (
+      <Text style={st.eyebrowGold}>WHAT IT MEANS</Text>
+      <View style={{ gap: 22, marginTop: 20 }}>
+        {lines.map((line: string, i: number) => (
           <View key={i} style={st.strengthRow}>
             <Text style={st.strengthNum}>0{i + 1}</Text>
-            <Text style={st.strengthText}>{s}</Text>
+            <Text style={st.strengthText}>{line}</Text>
           </View>
         ))}
       </View>
@@ -410,39 +313,121 @@ function Card5_Strengths({ strengths, index, total }: { strengths: string[]; ind
   );
 }
 
-function Card6_Routine({ teaser, index, total }: { teaser: any; index: number; total: number }) {
+// ─── The shareable card ──────────────────────────────────────────
+// Drawn in a 360 x 640 design space and scaled to fit, so it keeps the
+// Stories shape (9:16). Shared as a 1080 x 1920 PNG.
+const CARD_W = Math.min(SCREEN_WIDTH - 72, (SCREEN_HEIGHT - 330) * 9 / 16);
+const CARD_H = CARD_W * 16 / 9;
+const K = CARD_W / 360;
+
+function HairCard({ results }: { results: any }) {
+  const coil = 118 * K;
   return (
-    <CardWrapper index={index} total={total}>
-      <View style={st.illust}>
-        <StepRings />
-      </View>
-      <Text style={st.eyebrowGold}>YOUR ROUTINE</Text>
-      <Text style={st.routineCount}>{teaser.count} steps</Text>
-      <Text style={st.routineSub}>built around your hair, your time, your rhythm.</Text>
-      <View style={st.divider} />
-      <View style={{ gap: 10 }}>
-        {teaser.preview.map((p: string, i: number) => (
-          <Text key={i} style={st.routineStep}>· {p}</Text>
+    <View style={st.hairCard}>
+      <Svg width={CARD_W} height={CARD_H} viewBox="0 0 360 640" style={StyleSheet.absoluteFill}>
+        <Defs>
+          <RadialGradient id="hcSky" cx="50%" cy="62%" r="70%">
+            <Stop offset="0%" stopColor="#6B4BD8" stopOpacity={0.85} />
+            <Stop offset="45%" stopColor="#3A2378" stopOpacity={0.9} />
+            <Stop offset="100%" stopColor="#120B2E" />
+          </RadialGradient>
+          <RadialGradient id="hcPlanet" cx="50%" cy="8%" r="80%">
+            <Stop offset="0%" stopColor="#3B2280" />
+            <Stop offset="60%" stopColor="#1B1045" />
+            <Stop offset="100%" stopColor="#120B2E" />
+          </RadialGradient>
+          <LinearGradientSvg id="hcRim" x1="0" y1="0" x2="1" y2="0">
+            <Stop offset="0%" stopColor="#F484B9" />
+            <Stop offset="35%" stopColor="#C38CD9" />
+            <Stop offset="65%" stopColor="#E6BEF5" />
+            <Stop offset="100%" stopColor="#C38CD9" />
+          </LinearGradientSvg>
+          <RadialGradient id="hcGlow" cx="50%" cy="50%" r="50%">
+            <Stop offset="0%" stopColor="#E6BEF5" stopOpacity={0.45} />
+            <Stop offset="100%" stopColor="#E6BEF5" stopOpacity={0} />
+          </RadialGradient>
+        </Defs>
+        <Rect width="360" height="640" fill="url(#hcSky)" />
+        {/* the moon bridge: a planet horizon with a halo rim */}
+        <Circle cx="180" cy="850" r="430" fill="none" stroke="url(#hcRim)" strokeWidth={34} strokeOpacity={0.1} />
+        <Circle cx="180" cy="850" r="430" fill="none" stroke="url(#hcRim)" strokeWidth={16} strokeOpacity={0.2} />
+        <Circle cx="180" cy="850" r="430" fill="url(#hcPlanet)" />
+        <Circle cx="180" cy="850" r="430" fill="none" stroke="url(#hcRim)" strokeWidth={2.5} />
+        <Circle cx="180" cy="400" r="70" fill="url(#hcGlow)" />
+        {[[38, 58, 1.2], [312, 82, 1.6], [266, 36, 1], [62, 268, 1.4], [330, 238, 1], [22, 366, 1.2], [294, 356, 1.4], [134, 28, 1]].map(([x, y, r], i) => (
+          <Circle key={i} cx={x} cy={y} r={r} fill="#FFFEF7" opacity={0.65} />
         ))}
-        <Text style={st.routineMore}>+ the rest, waiting in your dashboard.</Text>
+      </Svg>
+
+      {/* the curl, standing on the horizon */}
+      <View style={{ position: 'absolute', top: 420 * K - coil + 4 * K, left: 0, right: 0, alignItems: 'center' }}>
+        <CurlGlyph type={results.hairType} size={coil} />
       </View>
-    </CardWrapper>
+
+      <View style={[st.hcTop, { top: 52 * K, paddingHorizontal: 24 * K }]}>
+        <Text style={[st.hcKicker, { fontSize: 9 * K }]}>MY HAIR, DECODED</Text>
+        <Text style={[st.hcType, { fontSize: 12 * K, marginTop: 16 * K }]}>TYPE {results.hairType}</Text>
+        <Text style={[st.hcName, { fontSize: 46 * K, lineHeight: 50 * K }]} numberOfLines={2} adjustsFontSizeToFit>
+          {results.typeName}.
+        </Text>
+        {!!results.typeTagline && (
+          <Text style={[st.hcTagline, { fontSize: 15 * K }]}>{results.typeTagline}</Text>
+        )}
+        <View style={[st.hcTraits, { marginTop: 14 * K, gap: 6 * K }]}>
+          {results.traits.map((t: string) => (
+            <Text key={t} style={[st.hcTrait, { fontSize: 8 * K, paddingVertical: 5 * K, paddingHorizontal: 9 * K }]}>
+              {t.toUpperCase()}
+            </Text>
+          ))}
+        </View>
+      </View>
+
+      <View style={[st.hcBottom, { bottom: 46 * K }]}>
+        <Text style={[st.hcHalo, { fontSize: 20 * K }]}>Step into your halo.</Text>
+        <Text style={[st.hcKicker, { fontSize: 8.5 * K, marginTop: 6 * K }]}>FIND YOURS ON HALEA</Text>
+      </View>
+    </View>
   );
 }
 
-function Card7_Closer({ name, index, total }: { name: string; index: number; total: number }) {
+function Card3_Share({ results, index, total }: { results: any; index: number; total: number }) {
+  const cardRef = useRef<View>(null);
+  const [busy, setBusy] = useState(false);
+
+  const share = async () => {
+    if (busy) return;
+    setBusy(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    try {
+      const uri = await captureRef(cardRef, { format: 'png', quality: 1, width: 1080, height: 1920 });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, { mimeType: 'image/png', UTI: 'public.png', dialogTitle: 'Share your hair card' });
+      }
+    } catch (e) {
+      console.log('share card failed:', e);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <CardWrapper index={index} total={total}>
-      <View style={st.illust}>
-        <ClosingBloom />
+      <View style={{ alignItems: 'center', gap: 16 }}>
+        <View ref={cardRef} collapsable={false}>
+          <HairCard results={results} />
+        </View>
+        <Pressable
+          onPress={share}
+          style={({ pressed }) => [st.shareBtn, (pressed || busy) && { opacity: 0.7 }]}
+          accessibilityRole="button"
+          accessibilityLabel="Share my hair card"
+        >
+          <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#FFFEF7" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+            <Path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" /><Path d="M16 6l-4-4-4 4" /><Path d="M12 2v14" />
+          </Svg>
+          <Text style={st.shareText}>{busy ? 'Getting it ready' : 'Share my card'}</Text>
+        </Pressable>
       </View>
-      <Text style={st.closerTitle}>Your hair is complex.</Text>
-      <Text style={st.closerTitleAccent}>That's the point.</Text>
-      <Text style={st.closerBody}>
-        Beautiful hair has never been simple. Yours has a structure, a history,
-        a rhythm, and now, a routine that respects all of it.{'\n\n'}
-        Welcome in, {name}.
-      </Text>
     </CardWrapper>
   );
 }
@@ -474,16 +459,13 @@ export default function RevealScreen() {
   if (!results) {
     return (
       <View style={st.loading}>
-        <LinearGradient
-          colors={['#14100D', '#1C1712', '#241C17']}
-          style={StyleSheet.absoluteFill}
-        />
+        <HaloBackground />
         <Text style={st.loadingText}>Building your routine…</Text>
       </View>
     );
   }
 
-  const TOTAL = 7;
+  const TOTAL = 3;
   const isLast = step === TOTAL - 1;
 
   const goNext = () => {
@@ -511,15 +493,7 @@ export default function RevealScreen() {
 
   return (
     <View style={st.container}>
-      {/* Full-screen gradient background */}
-      <LinearGradient
-        colors={['#0D0A08', '#14100D', '#1a1040', '#1C1712']}
-        style={StyleSheet.absoluteFill}
-      />
-
-      {/* Decorative glow orbs */}
-      <View style={st.glow1} />
-      <View style={st.glow2} />
+      <HaloBackground />
 
       {/* Progress dots at top */}
       <View style={st.progressBar}>
@@ -546,50 +520,19 @@ export default function RevealScreen() {
         style={st.scrollView}
       >
         <View style={st.cardSlot} key="c1">
-          <Card1_Opening name={results.name} index={1} total={TOTAL} />
+          <Card1_Reveal results={results} index={1} total={TOTAL} />
         </View>
         <View style={st.cardSlot} key="c2">
-          <Card2_Cover results={results} index={2} total={TOTAL} />
+          <Card2_Meaning results={results} index={2} total={TOTAL} />
         </View>
         <View style={st.cardSlot} key="c3">
-          <Card3_Readback results={results} index={3} total={TOTAL} />
-        </View>
-        <View style={st.cardSlot} key="c4">
-          <Card4_Insight insight={results.insight} index={4} total={TOTAL} />
-        </View>
-        <View style={st.cardSlot} key="c5">
-          <Card5_Strengths strengths={results.strengths} index={5} total={TOTAL} />
-        </View>
-        <View style={st.cardSlot} key="c6">
-          <Card6_Routine teaser={results.routineTeaser} index={6} total={TOTAL} />
-        </View>
-        <View style={st.cardSlot} key="c7">
-          <Card7_Closer name={results.name} index={7} total={TOTAL} />
+          <Card3_Share results={results} index={3} total={TOTAL} />
         </View>
       </ScrollView>
 
       {/* Bottom CTA */}
       <View style={st.footer}>
-        <Pressable
-          onPress={goNext}
-          accessibilityLabel={isLast ? 'Open my dashboard' : 'Next'}
-          accessibilityRole="button"
-          style={({ pressed }) => [
-            st.cta,
-            pressed && { transform: [{ scale: 0.985 }] },
-          ]}
-        >
-          <LinearGradient
-            colors={['#8C5A3C', '#D9FF00']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={st.ctaInner}
-          >
-            <Text style={st.ctaText}>
-              {isLast ? 'Open my dashboard' : 'Next'}
-            </Text>
-          </LinearGradient>
-        </Pressable>
+        <HaloButton label={isLast ? 'Take me home' : 'Next'} onPress={goNext} />
         {!isLast && !hasInteracted && step === 0 && (
           <Text style={st.swipeHint}>Or swipe →</Text>
         )}
@@ -603,31 +546,10 @@ export default function RevealScreen() {
 // ═══════════════════════════════════════════════════════════════
 
 const st = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D0A08' },
+  container: { flex: 1, backgroundColor: Colors.porcelain },
 
-  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  loading: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.porcelain },
   loadingText: { fontFamily: Fonts.body, fontSize: 14, color: 'rgba(255,255,255,0.7)' },
-
-  glow1: {
-    position: 'absolute',
-    top: SCREEN_HEIGHT * 0.12,
-    left: -60,
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    backgroundColor: '#241C17',
-    opacity: 0.25,
-  },
-  glow2: {
-    position: 'absolute',
-    bottom: SCREEN_HEIGHT * 0.18,
-    right: -50,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: '#8C5A3C',
-    opacity: 0.2,
-  },
 
   progressBar: {
     flexDirection: 'row',
@@ -646,7 +568,7 @@ const st = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.45)',
   },
   dotActive: {
-    backgroundColor: '#D9FF00',
+    backgroundColor: '#C38CD9',
     width: 32,
   },
 
@@ -681,7 +603,7 @@ const st = StyleSheet.create({
     fontFamily: Fonts.bodyMedium,
     fontSize: 11,
     letterSpacing: 2,
-    color: '#D9FF00',
+    color: '#C38CD9',
   },
   pageNumSep: {
     fontFamily: Fonts.bodyMedium,
@@ -700,37 +622,19 @@ const st = StyleSheet.create({
     fontFamily: Fonts.bodyMedium,
     fontSize: 11,
     letterSpacing: 3,
-    color: '#D9FF00',
+    color: '#C38CD9',
     marginBottom: 18,
     textAlign: 'center',
   },
 
   // Card 1: opening
-  heroName: {
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 56,
-    color: '#FFFEF7',
-    letterSpacing: -2,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  openingBody: {
-    fontFamily: Fonts.body,
-    fontStyle: 'italic',
-    fontSize: 16,
-    lineHeight: 26,
-    color: 'rgba(255,254,247,0.75)',
-    textAlign: 'center',
-    maxWidth: 300,
-    alignSelf: 'center',
-  },
 
   // Card 2: cover
   coverIssue: {
     fontFamily: Fonts.bodyMedium,
     fontSize: 11,
     letterSpacing: 4,
-    color: '#D9FF00',
+    color: '#C38CD9',
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -750,51 +654,10 @@ const st = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(255,254,247,0.18)',
-    marginVertical: 18,
-    alignSelf: 'center',
-    width: 60,
-  },
-  coverFacts: {
-    fontFamily: Fonts.body,
-    fontSize: 13,
-    letterSpacing: 0.5,
-    color: 'rgba(255,254,247,0.7)',
-    textAlign: 'center',
-    textTransform: 'uppercase',
-  },
 
   // Card 3: readback
-  readbackLine: {
-    fontFamily: 'Fraunces_500Medium',
-    fontSize: 22,
-    lineHeight: 32,
-    color: '#FFFEF7',
-    letterSpacing: -0.5,
-    textAlign: 'center',
-  },
 
   // Card 4: insight
-  insightTitle: {
-    fontFamily: 'Fraunces_600SemiBold',
-    fontSize: 32,
-    lineHeight: 40,
-    color: '#FFFEF7',
-    letterSpacing: -1,
-    textAlign: 'center',
-    marginVertical: 8,
-  },
-  insightBody: {
-    fontFamily: Fonts.body,
-    fontSize: 15,
-    lineHeight: 25,
-    color: 'rgba(255,254,247,0.78)',
-    textAlign: 'center',
-    maxWidth: 320,
-    alignSelf: 'center',
-  },
 
   // Card 5: strengths
   strengthRow: {
@@ -806,7 +669,7 @@ const st = StyleSheet.create({
   strengthNum: {
     fontFamily: 'Fraunces_600SemiBold',
     fontSize: 22,
-    color: '#D9FF00',
+    color: '#C38CD9',
     letterSpacing: -0.5,
     minWidth: 36,
   },
@@ -820,84 +683,34 @@ const st = StyleSheet.create({
   },
 
   // Card 6: routine teaser
-  routineCount: {
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 64,
-    color: '#FFFEF7',
-    letterSpacing: -2,
-    textAlign: 'center',
-    marginVertical: 4,
-  },
-  routineSub: {
-    fontFamily: Fonts.body,
-    fontStyle: 'italic',
-    fontSize: 14,
-    color: 'rgba(255,254,247,0.7)',
-    textAlign: 'center',
-  },
-  routineStep: {
-    fontFamily: Fonts.body,
-    fontSize: 15,
-    color: '#FFFEF7',
-    textAlign: 'center',
-  },
-  routineMore: {
-    fontFamily: Fonts.body,
-    fontStyle: 'italic',
-    fontSize: 13,
-    color: 'rgba(217,255,0,0.85)',
-    textAlign: 'center',
-    marginTop: 8,
-  },
 
   // Card 7: closer
-  closerTitle: {
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 38,
-    color: '#FFFEF7',
-    letterSpacing: -1.2,
-    textAlign: 'center',
-  },
-  closerTitleAccent: {
-    fontFamily: 'Fraunces_400Regular_Italic',
-    fontSize: 38,
-    color: '#D9FF00',
-    letterSpacing: -1.2,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  closerBody: {
-    fontFamily: Fonts.body,
-    fontSize: 15,
-    lineHeight: 26,
-    color: 'rgba(255,254,247,0.8)',
-    textAlign: 'center',
-    maxWidth: 320,
-    alignSelf: 'center',
-  },
 
   // Footer
+  hairCard: { width: CARD_W, height: CARD_H, borderRadius: 18 * K, overflow: 'hidden', backgroundColor: '#120B2E' },
+  hcTop: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
+  hcKicker: { fontFamily: 'Sora_500Medium', letterSpacing: 3, color: 'rgba(255,254,247,0.6)' },
+  hcType: { fontFamily: 'Sora_600SemiBold', letterSpacing: 3, color: '#E6BEF5' },
+  hcName: { fontFamily: 'Fraunces_700Bold', letterSpacing: -1, color: '#FFFEF7', textAlign: 'center', marginTop: 6 },
+  hcTagline: { fontFamily: 'Fraunces_400Regular_Italic', color: 'rgba(255,254,247,0.8)', textAlign: 'center', marginTop: 6 },
+  hcTraits: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
+  hcTrait: {
+    fontFamily: 'Sora_500Medium', letterSpacing: 1.4, color: '#FFFEF7',
+    borderWidth: 1, borderColor: 'rgba(255,254,247,0.22)', borderRadius: 999, overflow: 'hidden',
+  },
+  hcBottom: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
+  hcHalo: { fontFamily: 'Fraunces_400Regular_Italic', color: '#FFFEF7' },
+  shareBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 12, paddingHorizontal: 22,
+    borderRadius: 999, borderWidth: 1, borderColor: 'rgba(230,190,245,0.5)', backgroundColor: 'rgba(118,67,172,0.3)',
+  },
+  shareText: { fontFamily: 'Sora_600SemiBold', fontSize: 14, color: '#FFFEF7' },
+
   footer: {
     paddingHorizontal: 24,
     paddingTop: 12,
     paddingBottom: Platform.OS === 'ios' ? 38 : 24,
     backgroundColor: 'transparent',
-  },
-  cta: {
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  ctaInner: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 52,
-  },
-  ctaText: {
-    fontFamily: Fonts.headingSemi,
-    fontSize: 15,
-    color: '#0D0A08',
-    letterSpacing: 0.3,
   },
   swipeHint: {
     fontFamily: Fonts.body,

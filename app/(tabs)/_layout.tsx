@@ -1,166 +1,96 @@
 // app/(tabs)/_layout.tsx
-//
-// Glass pill tab bar, floating above the halo.
-//   - Glass: translucent fill + real blur + light edge. It reads as glass
-//     because the halo light sits behind it.
-//   - One "you are here" signal: icon and label turn cream, and a lime dot
-//     sits in its own space UNDER the label. No glow capsule.
-//   - The Halea tab is a small point of light (matches the chat screen's
-//     radiant core). It has a label like every other tab, so all five sit
-//     on the same baseline — the old raised gradient button is gone, which
-//     is what kept knocking the alignment off.
+// Floating glass tab bar (Oct 10 reset).
+//   - Real glass on both platforms. iPhone uses the system blur. Android needs
+//     its blur switched on AND told what to blur: the whole navigator is wrapped
+//     in a BlurTargetView, and the bar's BlurView blurs that target.
+//   - One quiet "you are here" signal: a soft lavender pill behind the active
+//     tab. No dots, no glow.
+//   - Normal-case labels, one font, no letter-spacing, so nothing wraps.
 
+import { useRef, type ReactElement, type RefObject } from 'react';
 import { Tabs } from 'expo-router';
 import { View, Text, StyleSheet, Platform } from 'react-native';
-import { BlurView } from 'expo-blur';
-import Svg, { Path, Circle, Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
+import { BlurView, BlurTargetView } from 'expo-blur';
+import Svg, { Path, Circle } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
-import { Colors } from '@/constants/theme';
 
-const IDLE = 'rgba(255,254,247,0.45)';
+const IDLE = 'rgba(255,254,247,0.55)';
 const ACTIVE = '#FFFEF7';
 
-// ─── Icons ────────────────────────────────────────────────────────
-function IconHome({ color }: { color: string }) {
+// ─── Icons (one stroke weight, one size) ──────────────────────────
+const icon = (color: string, children: React.ReactNode) => (
+  <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+    {children}
+  </Svg>
+);
+const IconHome = ({ color }: { color: string }) => icon(color, <Path d="M3 10l9-7 9 7v10a2 2 0 01-2 2h-4v-6h-6v6H5a2 2 0 01-2-2z" />);
+const IconDiscover = ({ color }: { color: string }) => icon(color, <><Circle cx="11" cy="11" r="7.5" /><Path d="M21 21l-4.3-4.3" /></>);
+const IconShop = ({ color }: { color: string }) => icon(color, <><Path d="M6 8h12l-1 12H7L6 8z" /><Path d="M9 8V6a3 3 0 016 0v2" /></>);
+const IconMe = ({ color }: { color: string }) => icon(color, <><Circle cx="12" cy="8" r="4" /><Path d="M4 21v-1a8 8 0 0116 0v1" /></>);
+// Halea: the halo ring from the app icon
+const IconHalea = ({ color }: { color: string }) => icon(color, <><Circle cx="12" cy="12" r="8.5" /><Circle cx="12" cy="12" r="2.2" fill={color} stroke="none" /></>);
+
+function TabItem({ focused, label, Icon }: { focused: boolean; label: string; Icon: (p: { color: string }) => ReactElement }) {
+  const color = focused ? ACTIVE : IDLE;
   return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-    </Svg>
-  );
-}
-function IconDiscover({ color }: { color: string }) {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.6} strokeLinecap="round">
-      <Circle cx="11" cy="11" r="8" />
-      <Path d="M21 21l-4.35-4.35" />
-    </Svg>
-  );
-}
-function IconSalons({ color }: { color: string }) {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
-      <Circle cx="6" cy="6" r="3" />
-      <Circle cx="6" cy="18" r="3" />
-      <Path d="M20 4L8.12 15.88" />
-      <Path d="M14.47 14.48L20 20" />
-      <Path d="M8.12 8.12L12 12" />
-    </Svg>
-  );
-}
-function IconProfile({ color }: { color: string }) {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-      <Circle cx="12" cy="7" r="4" />
-    </Svg>
-  );
-}
-function IconProducts({ color }: { color: string }) {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M6 8h12l-1 12H7L6 8z" />
-      <Path d="M9 8V6a3 3 0 016 0v2" />
-    </Svg>
-  );
-}
-// A point of light with a soft cross glint — Halea's mark.
-function IconHalea({ focused }: { focused: boolean }) {
-  const o = focused ? 1 : 0.6;
-  return (
-    <Svg width={26} height={26} viewBox="0 0 30 30">
-      <Defs>
-        <RadialGradient id="tabcore" cx="50%" cy="50%" r="50%">
-          <Stop offset="0%" stopColor="#FFFFFF" stopOpacity={o} />
-          <Stop offset="35%" stopColor="#E6BEF5" stopOpacity={0.8 * o} />
-          <Stop offset="100%" stopColor="#C38CD9" stopOpacity={0} />
-        </RadialGradient>
-      </Defs>
-      <Circle cx="15" cy="15" r="14" fill="url(#tabcore)" />
-      <Rect x="3" y="14.4" width="24" height="1.2" rx="0.6" fill="#FFFFFF" opacity={0.85 * o} />
-      <Rect x="14.4" y="5" width="1.2" height="20" rx="0.6" fill="#FFFFFF" opacity={0.85 * o} />
-    </Svg>
+    <View style={[styles.item, focused && styles.itemActive]}>
+      <Icon color={color} />
+      <Text numberOfLines={1} style={[styles.label, { color }]}>{label}</Text>
+    </View>
   );
 }
 
-// ─── Label + lime dot (the single active indicator) ───────────────
-function TabLabel({ focused, label }: { focused: boolean; label: string }) {
+// Glass: system blur + a thin tint so the bar reads on any background
+function GlassBackground({ target }: { target: RefObject<View | null> }) {
   return (
-    <View style={styles.labelWrap}>
-      <Text style={[styles.label, focused && styles.labelActive]}>{label}</Text>
-      <View style={[styles.dot, !focused && { opacity: 0 }]} />
+    <View style={StyleSheet.absoluteFill}>
+      <BlurView
+        tint="dark"
+        intensity={Platform.OS === 'ios' ? 45 : 60}
+        blurMethod="dimezisBlurViewSdk31Plus"
+        blurTarget={target}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={[StyleSheet.absoluteFill, styles.glassTint]} />
     </View>
   );
 }
 
 const haptic = () => { Haptics.selectionAsync().catch(() => {}); };
 
-// ─── Glass background ─────────────────────────────────────────────
-function GlassBackground() {
-  return (
-    <View style={StyleSheet.absoluteFill}>
-      {Platform.OS === 'ios' ? (
-        <BlurView tint="dark" intensity={60} style={StyleSheet.absoluteFill} />
-      ) : null}
-      <View style={[StyleSheet.absoluteFill, styles.glassFill]} />
-    </View>
-  );
-}
-
 export default function TabLayout() {
+  const blurTarget = useRef<View | null>(null);
+
+  const tab = (label: string, Icon: (p: { color: string }) => ReactElement) => ({
+    tabBarIcon: ({ focused }: { focused: boolean }) => <TabItem focused={focused} label={label} Icon={Icon} />,
+    tabBarLabel: () => null,
+  });
+
   return (
     <Tabs
+      layout={({ children }) => (
+        <BlurTargetView ref={blurTarget} style={{ flex: 1 }}>
+          {children}
+        </BlurTargetView>
+      )}
       screenOptions={{
         headerShown: false,
+        tabBarShowLabel: false,
         tabBarStyle: styles.tabBar,
-        tabBarActiveTintColor: ACTIVE,
-        tabBarInactiveTintColor: IDLE,
-        tabBarBackground: () => <GlassBackground />,
-        tabBarItemStyle: styles.tabItem,
+        tabBarBackground: () => <GlassBackground target={blurTarget} />,
+        tabBarIconStyle: styles.iconSlot,
+        tabBarItemStyle: styles.tabSlot,
         tabBarHideOnKeyboard: true,
       }}
     >
-      <Tabs.Screen
-        name="home"
-        listeners={{ tabPress: haptic }}
-        options={{
-          tabBarIcon: ({ focused }) => <IconHome color={focused ? ACTIVE : IDLE} />,
-          tabBarLabel: ({ focused }) => <TabLabel focused={focused} label="HOME" />,
-        }}
-      />
-      <Tabs.Screen
-        name="discover"
-        listeners={{ tabPress: haptic }}
-        options={{
-          tabBarIcon: ({ focused }) => <IconDiscover color={focused ? ACTIVE : IDLE} />,
-          tabBarLabel: ({ focused }) => <TabLabel focused={focused} label="DISCOVER" />,
-        }}
-      />
-      <Tabs.Screen
-        name="ai-chat"
-        listeners={{ tabPress: haptic }}
-        options={{
-          tabBarIcon: ({ focused }) => <IconHalea focused={focused} />,
-          tabBarLabel: ({ focused }) => <TabLabel focused={focused} label="HALEA" />,
-        }}
-      />
-      <Tabs.Screen
-        name="products"
-        listeners={{ tabPress: haptic }}
-        options={{
-          tabBarIcon: ({ focused }) => <IconProducts color={focused ? ACTIVE : IDLE} />,
-          tabBarLabel: ({ focused }) => <TabLabel focused={focused} label="PRODUCTS" />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        listeners={{ tabPress: haptic }}
-        options={{
-          tabBarIcon: ({ focused }) => <IconProfile color={focused ? ACTIVE : IDLE} />,
-          tabBarLabel: ({ focused }) => <TabLabel focused={focused} label="ME" />,
-        }}
-      />
-      {/* Salons: still a working screen (Home links here), just not in the bar. */}
+      <Tabs.Screen name="home" listeners={{ tabPress: haptic }} options={tab('Home', IconHome)} />
+      <Tabs.Screen name="discover" listeners={{ tabPress: haptic }} options={tab('Discover', IconDiscover)} />
+      <Tabs.Screen name="ai-chat" listeners={{ tabPress: haptic }} options={tab('Halea', IconHalea)} />
+      <Tabs.Screen name="products" listeners={{ tabPress: haptic }} options={tab('Shop', IconShop)} />
+      <Tabs.Screen name="profile" listeners={{ tabPress: haptic }} options={tab('Me', IconMe)} />
+      {/* Not in the bar, still reachable from other screens */}
       <Tabs.Screen name="salons" options={{ href: null }} />
+
     </Tabs>
   );
 }
@@ -168,46 +98,48 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   tabBar: {
     position: 'absolute',
-    left: 20,
-    right: 20,
-    bottom: Platform.OS === 'ios' ? 30 : 18,
-    height: 74,
+    left: 16,
+    right: 16,
+    bottom: Platform.OS === 'ios' ? 28 : 16,
+    height: 68,
     paddingBottom: 0,
-    borderRadius: 999,
+    paddingTop: 0,
+    borderRadius: 34,
     borderTopWidth: 0,
     backgroundColor: 'transparent',
     overflow: 'hidden',
     elevation: 0,
   },
-  glassFill: {
-    backgroundColor: 'rgba(40,28,80,0.45)',
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
+  glassTint: {
+    backgroundColor: 'rgba(26,16,56,0.38)',
+    borderRadius: 34,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.18)',
   },
-  tabItem: {
-    paddingTop: 12,
-    height: 74,
-  },
-  labelWrap: {
+  tabSlot: {
+    height: 68,
+    paddingTop: 0,
+    paddingBottom: 0,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 3,
+  },
+  iconSlot: {
+    width: 62,
+    height: 54,
+  },
+  item: {
+    width: 62,
+    height: 54,
+    borderRadius: 27,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
+  },
+  itemActive: {
+    backgroundColor: 'rgba(195,140,217,0.22)',
   },
   label: {
-    fontFamily: 'Sora_500Medium',
-    fontSize: 9,
-    letterSpacing: 1.2,
-    color: IDLE,
-  },
-  labelActive: {
     fontFamily: 'Sora_600SemiBold',
-    color: ACTIVE,
-  },
-  dot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: Colors.lime,
-    marginTop: 4,
+    fontSize: 11,
   },
 });

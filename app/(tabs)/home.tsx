@@ -1,40 +1,35 @@
 // app/(tabs)/home.tsx
 //
-// Halea home — the daily editorial surface.
-//
-// Design lineage:
-//   - Flo's ritual (the user returns daily for a relationship with her hair)
-//   - Co-Star's editorial atmosphere (bold serif typography, atmospheric depth,
-//     content written for *you* not for a segment)
+// Halea home: one glance tells you where you are in your hair week.
 //
 // Layout (top to bottom):
-//   1. Masthead — date in caps, greeting in Fraunces serif
-//   2. TODAY — the hero card. "Wash day." / "Refresh day." / "Style day."
-//              with today's actual steps as checkable rows
-//   3. Today's note — one italic Fraunces line, contextual ritual fact
-//   4. Your hair, in numbers — Flo-style cycle stats (day N of N, next wash)
-//   5. Your full routine — collapsed "Open routine" CTA
-//   6. Pick of the day — featured product OR educational content
-//   7. Salons near you — 2 teaser cards, "See all in Discover" link
-//   8. Closing note — small italic
+//   1. Masthead: date, greeting, streak pill
+//   2. Week strip (Stardust style): Mon to Sun, each day with its own small
+//      ring showing how much of that day got done. Wash days carry a drop.
+//      Tap a day to preview its steps.
+//   3. The halo: a big ring that fills as today's steps get ticked. When the
+//      day is complete it turns lime and reads "Halo on."
+//   4. Steps card: today's steps, one tap each. Other days show read-only.
+//   5. Wash day card (Shea style): countdown plus the steps of the next wash.
 //
-// Voice: borrowed from the reveal voice doc. Same gold labels (Sora caps),
-// same Fraunces display, same Inter body. Cream/porcelain background instead
-// of deep violet because daily ≠ ceremonial.
+// Home is only "your hair today". Stylists live in Discover and the product
+// shelf in Products; a product shows here only inside the step that uses it.
+//
+// Data is exactly what Home already loaded: week plan, checks, days since
+// wash, streak, products. No new backend.
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Pressable, Platform,
-  Dimensions, Animated as RNAnimated,
+  Animated as RNAnimated, Easing,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Path } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { Colors, Fonts, Radius } from '@/constants/theme';
+import { Colors, Fonts } from '@/constants/theme';
 import { HaloBackground } from '@/components/HaloBackground';
+import { HaloButton } from '@/components/HaloButton';
 import { supabase } from '@/lib/supabase';
 import {
   bootstrapUserRoutine,
@@ -44,36 +39,39 @@ import {
   getTodayCompletions,
   getCurrentUserId,
   type RoutineStep as LibRoutineStep,
-  type WeekPlan as LibWeekPlan,
 } from '@/lib/routines';
 
-const { width } = Dimensions.get('window');
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAY_FULL: Record<string, string> = {
+  Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday',
+  Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday',
+};
 const todayIdx = () => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; };
 const todayLabel = () => DAYS[todayIdx()];
 
-// ─── Types ───────────────────────────────────────────────────────
-// Types come from lib/routines.ts so that home + routine + lib all
-// agree on shape. Local screen still uses `Step`/`DayPlan` names for
-// readability, but they're the same objects as the lib layer.
+const CREAM = '#FFFEF7';
+const CREAM_DIM = 'rgba(255,254,247,0.6)';
+const LAV_LIGHT = '#E6BEF5';
+
 type Step = LibRoutineStep;
 type DayPlan = { label: string; steps: Step[] };
 
-// ─── Icons (small set, reused across the screen) ──────────────────
-function IconCheck({ color = '#FFFEF7' }: { color?: string }) {
+// ─── Icons ───────────────────────────────────────────────────────
+function IconCheck({ color = Colors.porcelain }: { color?: string }) {
   return <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><Path d="M20 6L9 17l-5-5" /></Svg>;
 }
-function IconChev({ color = '#8A7FA0' }: { color?: string }) {
-  return <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round"><Path d="M9 18l6-6-6-6" /></Svg>;
+function IconFlame() {
+  return <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={Colors.lime} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><Path d="M12 22c4 0 7-3 7-7 0-4-3-6-4-10-2 2-3 4-3 6-1-1-2-2-2-4-2 2-5 5-5 8 0 4 3 7 7 7z" /></Svg>;
 }
-function IconStar() {
-  return <Svg width={11} height={11} viewBox="0 0 24 24" fill="#241C17"><Path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z" /></Svg>;
-}
-function IconPin() {
-  return <Svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="#8A7FA0" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><Path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><Circle cx="12" cy="10" r="3" /></Svg>;
+function IconDrop({ size = 10, filled = true }: { size?: number; filled?: boolean }) {
+  return (
+    <Svg width={size} height={size * 1.17} viewBox="0 0 24 28" fill={filled ? Colors.lavender : 'none'} stroke={Colors.lavender} strokeWidth={filled ? 0 : 1.6}>
+      <Path d="M12 1C8 8 3 13 3 19a9 9 0 0018 0c0-6-5-11-9-18z" />
+    </Svg>
+  );
 }
 
-// ─── Greeting based on time ──────────────────────────────────────
+// ─── Greeting and date ───────────────────────────────────────────
 function greeting(): string {
   const h = new Date().getHours();
   if (h < 5) return 'Late evening';
@@ -82,14 +80,18 @@ function greeting(): string {
   if (h < 21) return 'Good evening';
   return 'Late evening';
 }
-
-// ─── Date display: "TUESDAY · 24 NOV" ────────────────────────────
 function dateMasthead(): string {
   const d = new Date();
   const day = d.toLocaleDateString('en-GB', { weekday: 'long' }).toUpperCase();
-  const dayNum = d.getDate();
   const month = d.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
-  return `${day} · ${dayNum} ${month}`;
+  return `${day} ${d.getDate()} ${month}`;
+}
+// Date numbers for this week, Monday first.
+function weekDates(): number[] {
+  const now = new Date();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - todayIdx());
+  return DAYS.map((_, i) => { const d = new Date(monday); d.setDate(monday.getDate() + i); return d.getDate(); });
 }
 
 // ─── Fallback routine ────────────────────────────────────────────
@@ -134,36 +136,6 @@ async function doAwardXp(action: string, refId?: string, desc?: string): Promise
   } catch { return 0; }
 }
 
-// ─── Daily ritual notes (templated by type/segment/cycle) ────────
-// Picks one note per day based on the day of year + hair context.
-// This is the "Co-Star daily horoscope" beat.
-function dailyNote(hairType: string, segments: string[], porosity: string, daysSinceWash: number): string {
-  const group = hairType.charAt(0);
-  const notes: string[] = [];
-
-  // Cycle-based first (most specific)
-  if (daysSinceWash === 0) notes.push("Today's hair is freshly washed. Let the natural oils start to do their work.");
-  else if (daysSinceWash >= 3 && daysSinceWash <= 5) notes.push("Day three to five is often when hair stops cooperating. Trust the rhythm.");
-  else if (daysSinceWash >= 6) notes.push("Your scalp will start letting you know it's wash time. Listen.");
-
-  // Porosity
-  if (porosity === 'low') notes.push("Low porosity hair likes warm water. Rinse on the cooler side of warm today.");
-  if (porosity === 'high') notes.push("Your hair drinks fast. Apply leave-in to soaking wet hair, not damp.");
-
-  // Type-group ritual
-  if (group === '3' || group === '4') notes.push("The less you touch curls as they dry, the more defined they set.");
-  if (group === '1' || group === '2') notes.push("Heat protectant on dry hair before any styling. Always. Five seconds. Three years.");
-
-  // Segments
-  if (segments.includes('postpartum')) notes.push("Postpartum shed is loudest in months three to six. It does end.");
-  if (segments.includes('transitioning')) notes.push("Two textures coexisting in your hair is the whole point of transitioning.");
-  if (segments.includes('transplant')) notes.push("Donor hair acts like the hair it came from. Treat it like the hair it is now.");
-
-  // Pick one deterministically by day so it's stable across re-renders that day
-  const seed = new Date().toISOString().slice(0, 10).split('-').reduce((a, b) => a + parseInt(b), 0);
-  return notes[seed % notes.length] || "Your hair is its own thing today. Read it before you reach for anything.";
-}
-
 // ─── XP Toast ────────────────────────────────────────────────────
 function XpToast({ amount, visible }: { amount: number; visible: boolean }) {
   const opacity = useRef(new RNAnimated.Value(0)).current;
@@ -190,26 +162,84 @@ function XpToast({ amount, visible }: { amount: number; visible: boolean }) {
   );
 }
 
+// ─── The halo ring ───────────────────────────────────────────────
+// Fills as today's steps are ticked. A wider, faint copy of the arc
+// underneath gives it a glow without needing SVG filters.
+const AnimatedCircle = RNAnimated.createAnimatedComponent(Circle);
+const RING = 210;
+const R = 88;
+const CIRC = 2 * Math.PI * R;
+
+function HaloRing({ done, total }: { done: number; total: number }) {
+  const progress = total > 0 ? done / total : 0;
+  const complete = total > 0 && done === total;
+  const anim = useRef(new RNAnimated.Value(progress)).current;
+
+  useEffect(() => {
+    RNAnimated.timing(anim, {
+      toValue: progress, duration: 700, easing: Easing.out(Easing.cubic), useNativeDriver: false,
+    }).start();
+  }, [progress]);
+
+  const offset = anim.interpolate({ inputRange: [0, 1], outputRange: [CIRC, 0] });
+  const arc = complete ? Colors.lime : LAV_LIGHT;
+  const visible = progress > 0 ? 1 : 0;
+
+  return (
+    <View style={st.ringWrap}>
+      <Svg width={RING} height={RING} style={{ transform: [{ rotate: '-90deg' }] }}>
+        <Circle cx={RING / 2} cy={RING / 2} r={R} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={10} />
+        <AnimatedCircle
+          cx={RING / 2} cy={RING / 2} r={R} fill="none"
+          stroke={arc} strokeWidth={24} strokeOpacity={0.14 * visible}
+          strokeDasharray={`${CIRC} ${CIRC}`} strokeDashoffset={offset} strokeLinecap="round"
+        />
+        <AnimatedCircle
+          cx={RING / 2} cy={RING / 2} r={R} fill="none"
+          stroke={arc} strokeWidth={10} strokeOpacity={visible}
+          strokeDasharray={`${CIRC} ${CIRC}`} strokeDashoffset={offset} strokeLinecap="round"
+        />
+      </Svg>
+      <View style={st.ringCenter} pointerEvents="none">
+        {total === 0 ? (
+          <Text style={st.ringDone}>Rest day.</Text>
+        ) : complete ? (
+          <>
+            <Text style={st.ringDone}>Halo on.</Text>
+            <Text style={st.ringLabel}>ALL DONE TODAY</Text>
+          </>
+        ) : (
+          <>
+            <Text style={st.ringCount}>
+              {done}<Text style={st.ringTotal}>/{total}</Text>
+            </Text>
+            <Text style={st.ringLabel}>TODAY</Text>
+          </>
+        )}
+      </View>
+    </View>
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════
 // Home screen
 // ═══════════════════════════════════════════════════════════════
 export default function HomeScreen() {
   const router = useRouter();
   const [firstName, setFirstName] = useState('');
-  const [hairType, setHairType] = useState('');
-  const [porosity, setPorosity] = useState('');
-  const [segments, setSegments] = useState<string[]>([]);
   const [weekPlan, setWeekPlan] = useState<Record<string, DayPlan>>({});
   const [checks, setChecks] = useState<Record<string, Record<string, boolean>>>({});
   const [daysSinceWash, setDaysSinceWash] = useState(0);
-  const [salons, setSalons] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [streak, setStreak] = useState(0);
   const [xpToday, setXpToday] = useState(0);
   const [toastAmount, setToastAmount] = useState(0);
   const [toastVisible, setToastVisible] = useState(false);
-  const [routineExpanded, setRoutineExpanded] = useState(false);
-  const [expandedDay, setExpandedDay] = useState<string | null>(null);
+  // Which day the steps card shows. Today is tickable; other days are a read-only preview.
+  const [selectedDay, setSelectedDay] = useState(todayLabel());
+  const [washKnown, setWashKnown] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
+  const stepsY = useRef(0);
 
   const showXpToast = (amount: number) => {
     setToastAmount(amount);
@@ -231,10 +261,6 @@ export default function HomeScreen() {
       const ht = data?.hairType || '3A';
       const goals = data?.goals || [];
       const segs = data?.segments || ['natural'];
-      const por = data?.porosity || 'medium';
-      setHairType(ht);
-      setSegments(segs);
-      setPorosity(por);
 
       // Build routine — try the user layer (Supabase per-user copy) first,
       // fall back to the template layer / local fallback if unauthenticated
@@ -278,6 +304,7 @@ export default function HomeScreen() {
         const last = new Date(lastWashRaw);
         const diff = Math.floor((Date.now() - last.getTime()) / (1000 * 60 * 60 * 24));
         setDaysSinceWash(Math.max(0, Math.min(diff, 14)));
+        setWashKnown(true);
       }
 
       // Daily login XP
@@ -303,19 +330,10 @@ export default function HomeScreen() {
         }
       } catch {}
 
-      // Products
-      supabase.from('products').select('*').contains('hair_types', [ht.charAt(0)]).limit(3)
+      // Products for this hair type, matched to steps by category below
+      supabase.from('products').select('id, name, brand, category').contains('hair_types', [ht.charAt(0)]).limit(40)
         .then(({ data: prods }) => { if (prods) setProducts(prods); });
 
-      // Top salons
-      supabase.from('salons').select('id, name, area, city, rating, review_count, hair_types')
-        .order('rating', { ascending: false }).limit(2)
-        .then(({ data: sds }) => {
-          if (sds) setSalons(sds.map((s: any) => ({
-            ...s,
-            initials: s.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase(),
-          })));
-        });
     })();
   }, []);
 
@@ -331,12 +349,19 @@ export default function HomeScreen() {
     dayChecks[stepId] = !wasDone;
     const updated = { ...checks, [day]: dayChecks };
     setChecks(updated);
+
+    // Last step of the day: the halo closes. Give it a proper success buzz.
+    const todayPlan = weekPlan[day];
+    if (!wasDone && todayPlan && todayPlan.steps.length > 0 && todayPlan.steps.every(s => updated[day]?.[s.id])) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    }
     await AsyncStorage.setItem('halea_checks', JSON.stringify(updated)).catch(() => {});
 
     // If wash step completed, record wash date
     if (!wasDone && (stepName.toLowerCase().includes('cleanse') || stepName.toLowerCase().includes('wash') || stepName.toLowerCase().includes('shampoo'))) {
       await AsyncStorage.setItem('halea_last_wash', new Date().toISOString());
       setDaysSinceWash(0);
+      setWashKnown(true);
     }
 
     // Persist to Supabase + award XP via the lib data layer.
@@ -387,253 +412,209 @@ export default function HomeScreen() {
   const totalCount = today.steps.length;
   const progress = totalCount > 0 ? completedCount / totalCount : 0;
 
-  const note = dailyNote(hairType || '3A', segments, porosity, daysSinceWash);
+  const todayKey = todayLabel();
+  const tIdx = todayIdx();
+  const dates = weekDates();
 
-  // Determine next wash day
-  const nextWashDay = (() => {
-    const todayI = todayIdx();
+  // Where you are in your wash week, in one line under the halo.
+  const nextWash = (() => {
     for (let i = 1; i <= 7; i++) {
-      const d = DAYS[(todayI + i) % 7];
-      if (weekPlan[d]?.label === 'Wash day') return d;
+      const d = DAYS[(tIdx + i) % 7];
+      if (weekPlan[d]?.label === 'Wash day') return { day: d, inDays: i };
     }
     return null;
   })();
+  const cycleLine = (() => {
+    if (today.label === 'Wash day') return 'Take your time with this one.';
+    const next = nextWash ? `wash day ${nextWash.inDays === 1 ? 'tomorrow' : DAY_FULL[nextWash.day]}` : '';
+    if (washKnown) return `Day ${daysSinceWash + 1} since wash${next ? ` · ${next}` : ''}`;
+    return next ? next.charAt(0).toUpperCase() + next.slice(1) : '';
+  })();
+
+  // Each day's little ring in the strip. Checks are stored per weekday, so
+  // only days up to today are filled in; later days are still to come.
+  const strip = DAYS.map((d, i) => {
+    const plan = weekPlan[d];
+    const n = plan?.steps.length || 0;
+    let pct = 0;
+    if (i === tIdx) pct = progress;
+    else if (i < tIdx && n > 0) pct = plan!.steps.filter(s => checks[d]?.[s.id]).length / n;
+    return { d, i, date: dates[i], pct, wash: plan?.label === 'Wash day' };
+  });
+
+  const viewing = selectedDay === todayKey;
+  const shownPlan = weekPlan[selectedDay] || { label: '', steps: [] };
+  const washPlan = nextWash ? weekPlan[nextWash.day] : null;
+
+  // The one product a step needs, if we have one in its category.
+  const productFor = (step: Step) => {
+    const cats = step.recommended_categories || [];
+    return cats.length ? products.find(p => cats.includes(p.category)) : undefined;
+  };
+
+  const pickDay = (d: string) => {
+    Haptics.selectionAsync().catch(() => {});
+    setSelectedDay(d);
+  };
+  const openWashDay = () => {
+    if (!nextWash) return;
+    pickDay(nextWash.day);
+    scrollRef.current?.scrollTo({ y: Math.max(0, stepsY.current - 24), animated: true });
+  };
 
   return (
     <View style={st.container}>
       <HaloBackground />
-      <ScrollView
-        contentContainerStyle={st.scroll}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* ── 1. MASTHEAD ── */}
-        <Animated.View style={st.masthead}>
-          <View style={st.mastheadTop}>
+      <ScrollView ref={scrollRef} contentContainerStyle={st.scroll} showsVerticalScrollIndicator={false}>
+
+        {/* ── 1. Masthead ── */}
+        <View style={st.masthead}>
+          <View style={{ flex: 1 }}>
             <Text style={st.dateLabel}>{dateMasthead()}</Text>
-            {streak > 0 && (
-              <View style={st.streakPill}>
-                <Text style={st.streakText}>{streak}</Text>
-                <Text style={st.streakLabel}>day streak</Text>
-              </View>
-            )}
-          </View>
-          <Text style={st.greeting}>
-            {greeting()}{firstName ? `, ${firstName}` : ''}.
-          </Text>
-        </Animated.View>
-
-        {/* ── 2. TODAY (hero) ── */}
-        <Animated.View style={st.heroCard}>
-          <Text style={st.editorialLabel}>TODAY</Text>
-          <Text style={st.heroTitle}>{today.label || 'A quiet day.'}</Text>
-          {totalCount > 0 && (
-            <Text style={st.heroSubtitle}>
-              {completedCount} of {totalCount} done · {Math.round(progress * 100)}%
+            <Text style={st.greeting}>
+              {greeting()}{firstName ? ', ' : '.'}
+              {firstName ? <Text style={st.greetingName}>{firstName}.</Text> : null}
             </Text>
-          )}
-
-          {/* Step rows */}
-          <View style={st.steps}>
-            {today.steps.map(step => {
-              const done = !!todayChecks[step.id];
-              return (
-                <Pressable
-                  key={step.id}
-                  onPress={() => toggleStep(step.id, step.name)}
-                  style={({ pressed }) => [st.stepRow, pressed && { opacity: 0.7 }]}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: done }}
-                  accessibilityLabel={`${done ? 'Completed' : 'Mark complete'}: ${step.name}`}
-                >
-                  <View style={[st.stepCheck, done && st.stepCheckDone]}>
-                    {done && <IconCheck />}
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[st.stepName, done && st.stepNameDone]}>{step.name}</Text>
-                    <Text style={[st.stepDesc, done && st.stepDescDone]}>{step.desc}</Text>
-                  </View>
-                </Pressable>
-              );
-            })}
           </View>
-
-          {/* Progress bar at bottom */}
-          {totalCount > 0 && (
-            <View style={st.progressTrack}>
-              <View style={[st.progressFill, { width: `${progress * 100}%` }]} />
+          {streak > 0 && (
+            <View style={st.streakPill} accessibilityLabel={`${streak} day streak`}>
+              <IconFlame />
+              <Text style={st.streakText}>{streak} {streak === 1 ? 'day' : 'days'}</Text>
             </View>
           )}
-        </Animated.View>
+        </View>
 
-        {/* ── 3. TODAY'S NOTE ── */}
-        <Animated.View style={st.noteCard}>
-          <Text style={st.noteLabel}>TODAY'S NOTE</Text>
-          <Text style={st.noteText}>{note}</Text>
-        </Animated.View>
-
-        {/* ── 4. YOUR HAIR, IN NUMBERS ── */}
-        <Animated.View style={st.rhythmCard}>
-          <Text style={st.editorialLabel}>YOUR RHYTHM</Text>
-          <View style={st.rhythmRow}>
-            <View style={st.rhythmCol}>
-              <Text style={st.rhythmNum}>{daysSinceWash}</Text>
-              <Text style={st.rhythmLabel}>days since wash</Text>
-            </View>
-            <View style={st.rhythmDivider} />
-            <View style={st.rhythmCol}>
-              <Text style={st.rhythmNum}>{nextWashDay || '–'}</Text>
-              <Text style={st.rhythmLabel}>next wash</Text>
-            </View>
-            <View style={st.rhythmDivider} />
-            <View style={st.rhythmCol}>
-              <Text style={st.rhythmNum}>{hairType || '–'}</Text>
-              <Text style={st.rhythmLabel}>your type</Text>
-            </View>
-          </View>
-        </Animated.View>
-
-        {/* ── Try-on entry ── */}
-        <Animated.View >
-          <Pressable
-            onPress={() => router.push('/hairtransfer')}
-            style={st.tryOnCard}
-            accessibilityRole="button"
-            accessibilityLabel="Virtual hair try-on. Swap a reference hairstyle onto your photo."
-          >
-            <View style={st.tryOnTextCol}>
-              <Text style={st.tryOnLabel}>VIRTUAL TRY-ON</Text>
-              <Text style={st.tryOnTitle}>See a new style on you</Text>
-            </View>
-            <View style={st.tryOnIconWrap}>
-              <Svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.8} strokeLinecap="round">
-                <Path d="M12 2L2 7l10 5 10-5-10-5z" />
-                <Path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
-              </Svg>
-            </View>
-          </Pressable>
-        </Animated.View>
-
-        {/* ── 5. YOUR FULL ROUTINE (collapsible) ── */}
-        <Animated.View style={st.routineCard}>
-          <Pressable
-            onPress={() => {
-              Haptics.selectionAsync().catch(() => {});
-              setRoutineExpanded(!routineExpanded);
-            }}
-            style={st.routineHeader}
-            accessibilityRole="button"
-            accessibilityLabel={routineExpanded ? 'Collapse full routine' : 'Open full routine'}
-          >
-            <View>
-              <Text style={st.editorialLabel}>YOUR FULL ROUTINE</Text>
-              <Text style={st.routineTitle}>Across the week</Text>
-            </View>
-            <View style={[st.chevWrap, routineExpanded && st.chevWrapOpen]}>
-              <IconChev color="#241C17" />
-            </View>
-          </Pressable>
-          {routineExpanded && (
-            <View style={st.routineWeek}>
-              {DAYS.map(d => {
-                const plan = weekPlan[d];
-                if (!plan) return null;
-                const isToday = d === todayLabel();
-                const isOpen = expandedDay === d;
-                return (
-                  <View key={d}>
-                    <Pressable
-                      onPress={() => {
-                        Haptics.selectionAsync().catch(() => {});
-                        setExpandedDay(isOpen ? null : d);
-                      }}
-                      style={[st.dayRow, isToday && st.dayRowToday]}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${d}, ${plan.label}, ${plan.steps.length} steps. ${isOpen ? 'Hide' : 'Show'} steps.`}
-                    >
-                      <Text style={[st.dayName, isToday && st.dayNameToday]}>{d}</Text>
-                      <Text style={[st.dayLabel, isToday && st.dayLabelToday]}>{plan.label}</Text>
-                      <Text style={st.dayStepCount}>{plan.steps.length} steps</Text>
-                      <View style={[st.dayChev, isOpen && st.dayChevOpen]}>
-                        <IconChev color="#8A7FA0" />
-                      </View>
-                    </Pressable>
-                    {isOpen && (
-                      <View style={st.dayStepsList}>
-                        {plan.steps.map(s => (
-                          <View key={s.id} style={st.dayStepItem}>
-                            <View style={st.dayStepDot} />
-                            <View style={{ flex: 1 }}>
-                              <Text style={st.dayStepName}>{s.name}</Text>
-                              {!!s.desc && <Text style={st.dayStepDesc}>{s.desc}</Text>}
-                            </View>
-                            <Text style={st.dayStepXp}>+{s.xp ?? 10} XP</Text>
-                          </View>
-                        ))}
-                      </View>
-                    )}
-                  </View>
-                );
-              })}
-            </View>
-          )}
-        </Animated.View>
-
-        {/* ── 6. PICK OF THE DAY (product OR content) ── */}
-        {products.length > 0 && (
-          <Animated.View style={st.pickCard}>
-            <Text style={st.goldLabel}>PICK OF THE DAY</Text>
-            <Text style={st.pickTitle}>{products[0].name}</Text>
-            <Text style={st.pickBody} numberOfLines={2}>
-              {products[0].brand ? `${products[0].brand} · ` : ''}{products[0].description || 'Selected for your hair structure today.'}
-            </Text>
-            <Pressable onPress={() => router.push('/(tabs)/products')} style={st.pickCta}>
-              <Text style={st.pickCtaText}>See in Products →</Text>
-            </Pressable>
-          </Animated.View>
-        )}
-
-        {/* ── 7. SALONS NEAR YOU ── */}
-        {salons.length > 0 && (
-          <Animated.View style={st.salonsSection}>
-            <View style={st.sectionHeader}>
-              <Text style={st.editorialLabel}>SALONS NEAR YOU</Text>
-              <Pressable onPress={() => router.push('/(tabs)/salons')}>
-                <Text style={st.seeAll}>See all →</Text>
-              </Pressable>
-            </View>
-            {salons.map(s => (
+        {/* ── 2. Week strip ── */}
+        <View style={st.strip}>
+          {strip.map(s => {
+            const isToday = s.i === tIdx;
+            const isPicked = s.d === selectedDay;
+            const r = 16;
+            const c = 2 * Math.PI * r;
+            return (
               <Pressable
-                key={s.id}
-                onPress={() => router.push('/(tabs)/salons')}
-                style={st.salonCard}
+                key={s.d}
+                onPress={() => pickDay(s.d)}
+                style={({ pressed }) => [st.stripDay, pressed && { transform: [{ scale: 0.94 }] }]}
                 accessibilityRole="button"
-                accessibilityLabel={`Salon: ${s.name}`}
+                accessibilityState={{ selected: isPicked }}
+                accessibilityLabel={`${DAY_FULL[s.d]}${s.wash ? ', wash day' : ''}${isToday ? ', today' : ''}`}
               >
-                <View style={st.salonInitials}>
-                  <Text style={st.salonInitialsText}>{s.initials}</Text>
+                <Text style={[st.stripLetter, isToday && { color: Colors.lime }]}>{s.d.charAt(0)}</Text>
+                <View style={[st.stripCircle, isPicked && st.stripCirclePicked]}>
+                  <Svg width={40} height={40} style={StyleSheet.absoluteFill}>
+                    <Circle cx={20} cy={20} r={r} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth={3} />
+                    {s.pct > 0 && (
+                      <Circle
+                        cx={20} cy={20} r={r} fill="none"
+                        stroke={s.pct >= 1 ? Colors.lime : LAV_LIGHT} strokeWidth={3} strokeLinecap="round"
+                        strokeDasharray={`${c} ${c}`} strokeDashoffset={c * (1 - s.pct)}
+                        transform="rotate(-90 20 20)"
+                      />
+                    )}
+                  </Svg>
+                  <Text style={st.stripDate}>{s.date}</Text>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={st.salonName}>{s.name}</Text>
-                  <View style={st.salonMeta}>
-                    <IconPin />
-                    <Text style={st.salonArea}>{s.area || s.city || 'Nearby'}</Text>
-                    <Text style={st.salonDot}>·</Text>
-                    <IconStar />
-                    <Text style={st.salonRating}>{(s.rating || 0).toFixed(1)}</Text>
+                <View style={st.stripMark}>{s.wash ? <IconDrop /> : null}</View>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/* ── 3. The halo ── */}
+        <View style={st.hero}>
+          <HaloRing done={completedCount} total={totalCount} />
+          <Text style={st.heroTitle}>{today.label || 'A quiet day.'}</Text>
+          {!!cycleLine && <Text style={st.heroSub}>{cycleLine}</Text>}
+        </View>
+
+        {/* ── 4. Steps ── */}
+        <View style={st.card} onLayout={e => { stepsY.current = e.nativeEvent.layout.y; }}>
+          {!viewing && (
+            <View style={st.previewHead}>
+              <Text style={st.previewTitle}>{DAY_FULL[selectedDay]} · {shownPlan.label || 'Nothing planned'}</Text>
+              <Pressable onPress={() => pickDay(todayKey)} style={st.backPill} accessibilityRole="button" accessibilityLabel="Back to today">
+                <Text style={st.backPillText}>Today</Text>
+              </Pressable>
+            </View>
+          )}
+
+          {viewing && today.steps.length === 0 && (
+            <Text style={st.emptyText}>Nothing planned today. Rest counts too.</Text>
+          )}
+
+          {viewing
+            ? today.steps.map((step, i) => {
+                const done = !!todayChecks[step.id];
+                return (
+                  <Pressable
+                    key={step.id}
+                    onPress={() => toggleStep(step.id, step.name)}
+                    style={({ pressed }) => [st.stepRow, i > 0 && st.stepDivider, pressed && { opacity: 0.7 }]}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: done }}
+                    accessibilityLabel={`${done ? 'Done' : 'Tick off'}: ${step.name}`}
+                  >
+                    <View style={[st.check, done && st.checkDone]}>{done && <IconCheck />}</View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[st.stepName, done && st.stepNameDone]} numberOfLines={2}>{step.name}</Text>
+                      {(() => {
+                        const prod = productFor(step);
+                        if (!prod) return null;
+                        return (
+                          <Pressable
+                            onPress={() => router.push('/(tabs)/products')}
+                            hitSlop={8}
+                            style={st.stepProduct}
+                            accessibilityRole="link"
+                            accessibilityLabel={`Product for this step: ${prod.name}`}
+                          >
+                            <View style={st.stepProductThumb} />
+                            <Text style={st.stepProductText} numberOfLines={1}>with {prod.brand ? `${prod.brand} ` : ''}{prod.name}</Text>
+                          </Pressable>
+                        );
+                      })()}
+                    </View>
+                    <Text style={st.stepXp}>+{step.xp ?? 10}</Text>
+                  </Pressable>
+                );
+              })
+            : shownPlan.steps.map((step, i) => (
+                <View key={step.id} style={[st.stepRow, i > 0 && st.stepDivider]}>
+                  <View style={st.previewDot} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={st.stepName}>{step.name}</Text>
+                    {!!step.desc && <Text style={st.stepDesc} numberOfLines={1}>{step.desc}</Text>}
                   </View>
                 </View>
-                <IconChev />
-              </Pressable>
-            ))}
-          </Animated.View>
+              ))}
+        </View>
+
+        {/* ── 5. Wash day ── */}
+        {nextWash && washPlan && today.label !== 'Wash day' && (
+          <View style={st.washCard}>
+            <View style={st.washTop}>
+              <View style={{ flex: 1 }}>
+                <Text style={st.washLabel}>
+                  {nextWash.inDays === 1 ? 'WASH DAY TOMORROW' : `WASH DAY IN ${nextWash.inDays} DAYS`}
+                </Text>
+                <Text style={st.washTitle}>{DAY_FULL[nextWash.day]}</Text>
+                <Text style={st.washSub}>{washPlan.steps.length} steps</Text>
+              </View>
+              <IconDrop size={26} filled={false} />
+            </View>
+            <View style={st.washSteps}>
+              {washPlan.steps.slice(0, 5).map(s => (
+                <View key={s.id} style={st.washStep}>
+                  <View style={st.washBar} />
+                  <Text style={st.washStepText} numberOfLines={1}>{s.name}</Text>
+                </View>
+              ))}
+            </View>
+            <HaloButton label="See wash day" onPress={openWashDay} />
+          </View>
         )}
 
-        {/* ── 8. CLOSING NOTE ── */}
-        <Animated.View style={st.closer}>
-          <Text style={st.closerText}>
-            Halea adjusts as you do. Tap any step to make it yours.
-          </Text>
-        </Animated.View>
       </ScrollView>
 
       <XpToast amount={toastAmount} visible={toastVisible} />
@@ -642,507 +623,83 @@ export default function HomeScreen() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// Styles — cream/porcelain editorial. Fraunces display, Sora caps,
-// Inter body. Gold (lime) for labels only. Violet for action.
+// Styles: dark glass on the halo. Fraunces for display, Sora for labels,
+// Inter for body. Lime only for "done" and today.
 // ═══════════════════════════════════════════════════════════════
-
 const st = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.porcelain },
-  scroll: {
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingHorizontal: 24,
-    paddingBottom: 130,
-  },
+  scroll: { paddingTop: Platform.OS === 'ios' ? 64 : 44, paddingHorizontal: 22, paddingBottom: 140 },
 
-  // ── 1. Masthead
-  masthead: { marginBottom: 28 },
-  mastheadTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  dateLabel: {
-    fontFamily: 'Sora_500Medium',
-    fontSize: 10,
-    letterSpacing: 2.5,
-    color: Colors.muted,
-  },
+  // 1. Masthead
+  masthead: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, marginBottom: 22 },
+  dateLabel: { fontFamily: 'Sora_500Medium', fontSize: 11, letterSpacing: 2, color: CREAM_DIM },
+  greeting: { fontFamily: Fonts.heading, fontSize: 30, letterSpacing: -0.5, color: CREAM, marginTop: 4 },
+  greetingName: { fontFamily: 'Fraunces_400Regular_Italic', color: LAV_LIGHT },
   streakPill: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 4,
-    backgroundColor: Colors.violetBg2,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  streakText: {
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 14,
-    color: Colors.lavender,
-  },
-  streakLabel: {
-    fontFamily: Fonts.body,
-    fontSize: 10,
-    letterSpacing: 0.5,
-    color: Colors.lavender,
-  },
-  greeting: {
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 34,
-    color: Colors.ink,
-    letterSpacing: -1.2,
-    lineHeight: 40,
-  },
-
-  // ── Shared editorial label (gold caps)
-  editorialLabel: {
-    fontFamily: 'Sora_500Medium',
-    fontSize: 10,
-    letterSpacing: 2.5,
-    color: Colors.lavender,
-    marginBottom: 8,
-  },
-  goldLabel: {
-    fontFamily: 'Sora_500Medium',
-    fontSize: 10,
-    letterSpacing: 2.5,
-    color: '#8AB800',
-    marginBottom: 8,
-  },
-
-  // ── 2. Hero (today)
-  heroCard: {
-    backgroundColor: 'rgba(124,77,200,0.10)',
-    borderRadius: Radius.lg,
-    padding: 24,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(124,77,200,0.22)',
-    shadowColor: Colors.violet,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    elevation: 3,
-  },
-  heroTitle: {
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 30,
-    color: Colors.ink,
-    letterSpacing: -1,
-    lineHeight: 36,
+    flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 12,
+    borderRadius: 999, backgroundColor: 'rgba(195,140,217,0.1)', borderWidth: 1, borderColor: 'rgba(195,140,217,0.35)',
     marginBottom: 4,
   },
-  heroSubtitle: {
-    fontFamily: Fonts.body,
-    fontSize: 12,
-    color: Colors.muted,
-    marginBottom: 18,
-  },
+  streakText: { fontFamily: 'Sora_600SemiBold', fontSize: 12, color: Colors.lime },
 
-  steps: { gap: 12 },
-  stepRow: {
-    flexDirection: 'row',
-    gap: 12,
-    alignItems: 'flex-start',
-    paddingVertical: 8,
-  },
-  stepCheck: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 2,
-  },
-  stepCheckDone: {
-    backgroundColor: Colors.violet,
-    borderColor: Colors.violet,
-  },
-  stepName: {
-    fontFamily: 'Fraunces_500Medium',
-    fontSize: 15,
-    color: Colors.ink,
-    letterSpacing: -0.2,
-  },
-  stepNameDone: {
-    color: Colors.muted,
-    textDecorationLine: 'line-through',
-  },
-  stepDesc: {
-    fontFamily: Fonts.body,
-    fontSize: 12,
-    lineHeight: 18,
-    color: Colors.muted,
-    marginTop: 2,
-  },
-  stepDescDone: { opacity: 0.5 },
-  moreSteps: {
-    fontFamily: Fonts.body,
-    fontSize: 12,
-    fontStyle: 'italic',
-    color: Colors.lavender,
-    marginTop: 4,
-  },
+  // 2. Week strip
+  strip: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
+  stripDay: { alignItems: 'center', gap: 6, paddingVertical: 4, minWidth: 44 },
+  stripLetter: { fontFamily: 'Sora_500Medium', fontSize: 10, letterSpacing: 1, color: 'rgba(255,254,247,0.55)' },
+  stripCircle: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  stripCirclePicked: { backgroundColor: 'rgba(255,254,247,0.14)' },
+  stripDate: { fontFamily: Fonts.bodySemi, fontSize: 13, color: CREAM },
+  stripMark: { height: 12, alignItems: 'center', justifyContent: 'center' },
 
-  progressTrack: {
-    height: 2,
-    backgroundColor: Colors.violetBg,
-    borderRadius: 1,
-    marginTop: 18,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: Colors.violet,
-  },
+  // 3. Halo
+  hero: { alignItems: 'center', marginBottom: 22 },
+  ringWrap: { width: RING, height: RING },
+  ringCenter: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', gap: 2 },
+  ringCount: { fontFamily: Fonts.heading, fontSize: 48, letterSpacing: -1, color: CREAM },
+  ringTotal: { fontFamily: Fonts.heading, fontSize: 26, color: 'rgba(255,254,247,0.5)' },
+  ringDone: { fontFamily: 'Fraunces_400Regular_Italic', fontSize: 30, color: Colors.lime },
+  ringLabel: { fontFamily: 'Sora_500Medium', fontSize: 11, letterSpacing: 2, color: CREAM_DIM },
+  heroTitle: { fontFamily: Fonts.headingSemi, fontSize: 20, color: CREAM, marginTop: 14 },
+  heroSub: { fontFamily: Fonts.body, fontSize: 13, color: 'rgba(255,254,247,0.65)', marginTop: 4, textAlign: 'center' },
 
-  // ── 3. Today's note
-  noteCard: {
-    backgroundColor: 'rgba(118,67,172,0.04)',
-    borderRadius: Radius.lg,
-    padding: 24,
-    marginBottom: 16,
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.violet,
+  // 4. Steps
+  card: {
+    borderRadius: 24, backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.border,
+    paddingHorizontal: 16, paddingVertical: 6, marginBottom: 16,
   },
-  noteLabel: {
-    fontFamily: 'Sora_500Medium',
-    fontSize: 10,
-    letterSpacing: 2.5,
-    color: Colors.lavender,
-    marginBottom: 10,
-  },
-  noteText: {
-    fontFamily: 'Fraunces_400Regular_Italic',
-    fontSize: 17,
-    lineHeight: 26,
-    color: Colors.ink,
-    letterSpacing: -0.2,
-  },
+  previewHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, paddingBottom: 6, gap: 10 },
+  previewTitle: { flex: 1, fontFamily: 'Sora_600SemiBold', fontSize: 12, letterSpacing: 0.5, color: LAV_LIGHT },
+  backPill: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(195,140,217,0.4)' },
+  backPillText: { fontFamily: 'Sora_600SemiBold', fontSize: 12, color: Colors.lime },
+  emptyText: { fontFamily: Fonts.body, fontSize: 14, color: CREAM_DIM, paddingVertical: 16, textAlign: 'center' },
+  stepRow: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 52, paddingVertical: 8 },
+  stepDivider: { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' },
+  check: { width: 26, height: 26, borderRadius: 13, borderWidth: 1.5, borderColor: 'rgba(255,254,247,0.4)', alignItems: 'center', justifyContent: 'center' },
+  checkDone: { backgroundColor: Colors.lime, borderColor: Colors.lime },
+  stepName: { fontFamily: Fonts.bodyMedium, fontSize: 15, color: CREAM },
+  stepNameDone: { color: 'rgba(255,254,247,0.45)', textDecorationLine: 'line-through' },
+  stepDesc: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginTop: 2 },
+  stepProduct: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 5, alignSelf: 'flex-start' },
+  stepProductThumb: { width: 18, height: 18, borderRadius: 5, backgroundColor: Colors.lavender, opacity: 0.8 },
+  stepProductText: { fontFamily: Fonts.body, fontSize: 12, color: LAV_LIGHT, flexShrink: 1 },
+  stepXp: { fontFamily: 'Sora_500Medium', fontSize: 11, color: 'rgba(255,254,247,0.45)' },
+  previewDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.lavender, marginHorizontal: 9 },
 
-  // ── Try-on hero card
-  tryOnCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.violet,
-    borderRadius: Radius.lg,
-    padding: 20,
-    marginBottom: 16,
-    gap: 16,
-    shadowColor: Colors.violet,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.22,
-    shadowRadius: 18,
-    elevation: 5,
+  // 5. Wash day
+  washCard: {
+    borderRadius: 24, backgroundColor: 'rgba(118,67,172,0.28)', borderWidth: 1, borderColor: 'rgba(230,190,245,0.35)',
+    padding: 18, gap: 16, marginBottom: 24,
   },
-  tryOnTextCol: { flex: 1 },
-  tryOnLabel: {
-    fontFamily: 'Sora_600SemiBold',
-    fontSize: 11,
-    letterSpacing: 1.2,
-    color: 'rgba(255,255,255,0.7)',
-    marginBottom: 4,
-  },
-  tryOnTitle: {
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 20,
-    color: '#fff',
-    letterSpacing: -0.5,
-    marginBottom: 4,
-  },
-  tryOnSub: {
-    fontFamily: Fonts.body,
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.85)',
-    lineHeight: 17,
-  },
-  tryOnIconWrap: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  washTop: { flexDirection: 'row', alignItems: 'flex-start' },
+  washLabel: { fontFamily: 'Sora_500Medium', fontSize: 10, letterSpacing: 2, color: LAV_LIGHT },
+  washTitle: { fontFamily: Fonts.heading, fontSize: 22, color: CREAM, marginTop: 4 },
+  washSub: { fontFamily: Fonts.body, fontSize: 13, color: 'rgba(255,254,247,0.65)', marginTop: 2 },
+  washSteps: { flexDirection: 'row', gap: 6 },
+  washStep: { flex: 1, alignItems: 'center', gap: 6 },
+  washBar: { alignSelf: 'stretch', height: 4, borderRadius: 2, backgroundColor: 'rgba(230,190,245,0.5)' },
+  washStepText: { fontFamily: Fonts.body, fontSize: 10, color: 'rgba(255,254,247,0.7)' },
 
-  // ── 4. Your rhythm
-  rhythmCard: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.lg,
-    padding: 24,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  rhythmRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  rhythmCol: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  rhythmNum: {
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 32,
-    color: Colors.ink,
-    letterSpacing: -1.5,
-    lineHeight: 36,
-  },
-  rhythmLabel: {
-    fontFamily: Fonts.body,
-    fontSize: 10,
-    letterSpacing: 0.6,
-    color: Colors.muted,
-    marginTop: 4,
-    textTransform: 'lowercase',
-  },
-  rhythmDivider: {
-    width: 1,
-    height: 36,
-    backgroundColor: Colors.border,
-  },
-
-  // ── 5. Full routine
-  routineCard: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.lg,
-    padding: 24,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  routineHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  routineTitle: {
-    fontFamily: 'Fraunces_600SemiBold',
-    fontSize: 18,
-    color: Colors.ink,
-    letterSpacing: -0.4,
-  },
-  chevWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.violetBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    transform: [{ rotate: '0deg' }],
-  },
-  chevWrapOpen: {
-    transform: [{ rotate: '90deg' }],
-  },
-  routineWeek: {
-    marginTop: 18,
-    gap: 2,
-  },
-  dayRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.violetBg,
-  },
-  dayRowToday: {
-    backgroundColor: Colors.violetBg,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    marginHorizontal: -8,
-    borderBottomWidth: 0,
-  },
-  dayName: {
-    fontFamily: 'Sora_500Medium',
-    fontSize: 12,
-    color: Colors.muted,
-    width: 44,
-    letterSpacing: 0.8,
-  },
-  dayNameToday: { color: Colors.lavender },
-  dayLabel: {
-    flex: 1,
-    fontFamily: 'Fraunces_500Medium',
-    fontSize: 14,
-    color: Colors.ink,
-  },
-  dayLabelToday: {
-    fontFamily: 'Fraunces_700Bold',
-  },
-  dayStepCount: {
-    fontFamily: Fonts.body,
-    fontSize: 11,
-    color: Colors.muted,
-  },
-  dayChev: {
-    marginLeft: 8,
-    transform: [{ rotate: '90deg' }],
-  },
-  dayChevOpen: {
-    transform: [{ rotate: '-90deg' }],
-  },
-  dayStepsList: {
-    paddingLeft: 40,
-    paddingBottom: 10,
-    gap: 10,
-  },
-  dayStepItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
-  },
-  dayStepDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Colors.lavender,
-    marginTop: 6,
-  },
-  dayStepName: {
-    fontFamily: 'Sora_500Medium',
-    fontSize: 13,
-    color: Colors.ink,
-  },
-  dayStepDesc: {
-    fontFamily: Fonts.body,
-    fontSize: 11,
-    color: Colors.muted,
-    marginTop: 2,
-  },
-  dayStepXp: {
-    fontFamily: 'Sora_500Medium',
-    fontSize: 11,
-    color: Colors.lavender,
-  },
-
-  // ── 6. Pick of the day
-  pickCard: {
-    backgroundColor: '#2A2E0F',
-    borderRadius: Radius.lg,
-    padding: 24,
-    marginBottom: 16,
-    borderWidth: 1.5,
-    borderColor: 'rgba(217,255,0,0.35)',
-  },
-  pickTitle: {
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 22,
-    color: '#FFFEF7',
-    letterSpacing: -0.5,
-    marginBottom: 4,
-  },
-  pickBrand: {
-    fontFamily: Fonts.body,
-    fontStyle: 'italic',
-    fontSize: 12,
-    color: '#D9FF00',
-    marginBottom: 12,
-  },
-  pickBody: {
-    fontFamily: Fonts.body,
-    fontSize: 13,
-    lineHeight: 20,
-    color: '#E8E6D8',
-    marginBottom: 16,
-  },
-  pickCta: {
-    alignSelf: 'flex-start',
-  },
-  pickCtaText: {
-    fontFamily: 'Sora_500Medium',
-    fontSize: 12,
-    color: '#D9FF00',
-    letterSpacing: 0.3,
-  },
-
-  // ── 7. Salons
-  salonsSection: { marginBottom: 16 },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    marginBottom: 12,
-  },
-  seeAll: {
-    fontFamily: 'Sora_500Medium',
-    fontSize: 11,
-    color: Colors.lavender,
-    letterSpacing: 0.3,
-  },
-  salonCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    borderRadius: Radius.lg,
-    padding: 14,
-    marginBottom: 8,
-    gap: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  salonInitials: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.violetBg2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  salonInitialsText: {
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 14,
-    color: Colors.lavender,
-    letterSpacing: -0.3,
-  },
-  salonName: {
-    fontFamily: 'Fraunces_600SemiBold',
-    fontSize: 15,
-    color: Colors.ink,
-    marginBottom: 4,
-    letterSpacing: -0.2,
-  },
-  salonMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  salonArea: {
-    fontFamily: Fonts.body,
-    fontSize: 11,
-    color: Colors.muted,
-  },
-  salonDot: {
-    fontFamily: Fonts.body,
-    fontSize: 11,
-    color: Colors.muted,
-  },
-  salonRating: {
-    fontFamily: 'Sora_500Medium',
-    fontSize: 11,
-    color: Colors.ink,
-  },
-
-  // ── 8. Closer
-  closer: {
-    marginTop: 8,
-    paddingHorizontal: 20,
-  },
-  closerText: {
-    fontFamily: 'Fraunces_400Regular_Italic',
-    fontSize: 13,
-    lineHeight: 20,
-    color: Colors.muted,
-    textAlign: 'center',
-  },
-
-  // XP Toast
+  // XP toast
   toast: {
     position: 'absolute',
     top: Platform.OS === 'ios' ? 100 : 80,

@@ -5,10 +5,10 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/halea-icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "scheme": "halea",
     "splash": {
-      "backgroundColor": "#0D0A08"
+      "backgroundColor": "#120B2E"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -16,11 +16,15 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.halea.app",
-      "buildNumber": "1"
+      "buildNumber": "1",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0D0A08"
+        "backgroundColor": "#120B2E",
+        "foregroundImage": "./assets/halea-adaptive-foreground.png"
       },
       "package": "com.halea.app"
     },
@@ -30,10 +34,25 @@
       "expo-asset",
       "expo-web-browser",
       "expo-image",
-      "expo-splash-screen"
+      "expo-splash-screen",
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Halea uses your camera so you can take a selfie for your face scan and to try on hairstyles. Your face scan photo stays on your phone.",
+          "photosPermission": "Halea uses your photos so you can choose a picture for your face scan and to try on hairstyles.",
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "95ece596-3c14-4279-a979-5b4ac5369bf7"
+      }
     }
   }
 }

@@ -334,7 +334,7 @@ const SUBTYPES: Record<string, { value: string; label: string; desc: string }[]>
 // density, length, history, time budget) already fall back to sensible
 // defaults in finish(). History overlapped almost entirely with the
 // segments step, which is the one the routine builder actually uses.
-const KEEP_STEPS = new Set(['curl', 'subtype', 'porosity', 'scalp', 'wash_frequency', 'segments', 'goals']);
+const KEEP_STEPS = new Set(['curl', 'subtype', 'porosity', 'scalp', 'segments', 'goals']);
 const SHORT_QUESTIONS: Record<string, string> = {
   curl: "What's your curl pattern?",
   subtype: 'How tight?',
@@ -376,7 +376,7 @@ function interstitialDisplay(stepId: string): string | null {
 }
 
 // ─── Component ───────────────────────────────────────────────────
-const PROGRESS_KEY = 'halea_quiz_progress_v2'; // v2: 7-step quiz, so old 15-step positions are ignored
+const PROGRESS_KEY = 'halea_quiz_progress_v3'; // v2: 7-step quiz, so old 15-step positions are ignored
 
 export default function QuizScreen() {
   const router = useRouter();
@@ -385,6 +385,7 @@ export default function QuizScreen() {
   const [showHelp, setShowHelp] = useState(false);
   const [firstName, setFirstName] = useState('');
   const handleNextRef = useRef<() => void>(() => {});
+  const advancingRef = useRef(false);
   useEffect(() => {
     AsyncStorage.getItem('halea_user')
       .then(raw => { const n = raw ? JSON.parse(raw)?.firstName : ''; if (n) setFirstName(n); })
@@ -484,9 +485,18 @@ export default function QuizScreen() {
       const cur = (answers[step.id] as string[]) || [];
       setAnswers(a => ({ ...a, [step.id]: cur.includes(val) ? cur.filter(v => v !== val) : [...cur, val] }));
     } else {
+      // Ignore extra taps while we're already moving on, otherwise a second
+      // tap fires a second timer and skips a question.
+      if (advancingRef.current) return;
       setAnswers(a => ({ ...a, [step.id]: val }));
-      // One tap, move on. Short pause so the selection registers visually.
-      if (val !== 'skip') setTimeout(() => { handleNextRef.current(); }, 320);
+      // One tap, move on. A brief beat so the lit-up answer is seen.
+      if (val !== 'skip') {
+        advancingRef.current = true;
+        setTimeout(() => {
+          handleNextRef.current();
+          advancingRef.current = false;
+        }, 180);
+      }
     }
   };
 
@@ -635,7 +645,7 @@ export default function QuizScreen() {
             {/* we_hear, almost: deliberately no visual */}
           </Animated.View>
         ) : step.kind === 'segments' ? (
-          <Animated.View key={`seg-${idx}`} entering={FadeIn.duration(280)}>
+          <Animated.View key={`seg-${idx}`} entering={FadeIn.duration(200)}>
             <View style={$.qRow}>
               <View style={{ flex: 1 }}>
                 <Text style={$.question}>{step.question}</Text>
@@ -651,7 +661,7 @@ export default function QuizScreen() {
             />
           </Animated.View>
         ) : (
-          <Animated.View key={`q-${step.id}-${idx}`} entering={FadeIn.duration(280)}>
+          <Animated.View key={`q-${step.id}-${idx}`} entering={FadeIn.duration(200)}>
             {idx === 0 && firstName ? (
               <Text style={$.greeting}>Nice to meet you, {firstName}.</Text>
             ) : null}
@@ -873,7 +883,7 @@ const $ = StyleSheet.create({
     borderColor: 'rgba(230,190,245,0.7)', backgroundColor: 'rgba(118,67,172,0.35)',
     shadowColor: '#C38CD9', shadowOpacity: 0.45, shadowRadius: 14, shadowOffset: { width: 0, height: 0 },
   },
-  optPressed: { transform: [{ scale: 0.985 }], opacity: 0.92 },
+  optPressed: { transform: [{ scale: 0.985 }] },
 
   optStrand: {
     width: 50, height: 60, alignItems: 'center', justifyContent: 'center',

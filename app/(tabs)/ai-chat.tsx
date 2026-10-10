@@ -14,6 +14,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Colors, Fonts, Radius, Motion } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { useRouter } from 'expo-router';
 import { HaloBackground } from '@/components/HaloBackground';
 import { LightRays, RadiantCore } from '@/components/RadiantLight';
 
@@ -127,6 +128,14 @@ function IconBarcode({ color = Colors.violet }: { color?: string }) {
   );
 }
 
+function IconStyle({ color = Colors.violet }: { color?: string }) {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M12 2L2 7l10 5 10-5-10-5z" />
+      <Path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
+    </Svg>
+  );
+}
 function IconDoc({ color = Colors.violet }: { color?: string }) {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -263,10 +272,11 @@ function BarcodeScannerModal({ visible, onClose, onScanned }: { visible: boolean
 }
 
 // ── Attach menu ───────────────────────────────────────────────────
-function AttachMenu({ onIngredientScan, onBarcodeScan, onDocument }: { onIngredientScan: () => void; onBarcodeScan: () => void; onDocument: () => void }) {
+function AttachMenu({ onTryOn, onIngredientScan, onBarcodeScan, onDocument }: { onTryOn: () => void; onIngredientScan: () => void; onBarcodeScan: () => void; onDocument: () => void }) {
   return (
     <Animated.View style={st.attachMenu}>
       {[
+        { icon: <IconStyle />, label: 'Try a Style On', sub: 'Your photo plus a look you like', onPress: onTryOn },
         { icon: <IconCamera />, label: 'Scan Ingredients', sub: 'Photo of product label', onPress: onIngredientScan },
         { icon: <IconBarcode />, label: 'Scan Barcode', sub: 'Look up product by barcode', onPress: onBarcodeScan },
         { icon: <IconDoc />, label: 'Upload Document', sub: 'PDF or text file (max 5MB)', onPress: onDocument },
@@ -298,6 +308,8 @@ export default function AIChatScreen() {
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const listRef = useRef<FlatList>(null);
+  const router = useRouter();
+  const openTryOn = () => { setShowAttachMenu(false); router.push('/hairtransfer'); };
 
   const [products, setProducts] = useState<any[]>([]);
 
@@ -357,7 +369,14 @@ export default function AIChatScreen() {
       });
 
       if (response.status === 429) throw new Error('Give me a few seconds, then ask again.');
-      if (!response.ok) throw new Error('I had trouble with that one. Try again?');
+      if (!response.ok) {
+        // In test builds, show the real reason so the chat can be fixed. Users never see this.
+        if (__DEV__) {
+          const detail = await response.text().catch(() => '');
+          throw new Error(`Chat error ${response.status}: ${detail || 'no details'}`);
+        }
+        throw new Error('I had trouble with that one. Try again?');
+      }
 
       const data = await response.json();
       const replyText = data?.reply;
@@ -515,6 +534,15 @@ export default function AIChatScreen() {
                   ? 'I already know your hair. Start anywhere.'
                   : 'Ask about your routine, a product, or something new your hair is doing.'}
               </Text>
+              <Pressable
+                onPress={openTryOn}
+                style={({ pressed }) => [st.tryOn, pressed && { opacity: 0.7 }]}
+                accessibilityRole="button"
+                accessibilityLabel="Try a new style on your photo"
+              >
+                <IconStyle color="#E6BEF5" />
+                <Text style={st.tryOnText}>See a new style on you</Text>
+              </Pressable>
               <View style={st.chips}>
                 {suggestions.map(s => (
                   <Pressable key={s.label} onPress={() => sendMessage(s.label)} style={({ pressed }) => [st.chip, pressed && { opacity: 0.65 }]}>
@@ -551,6 +579,7 @@ export default function AIChatScreen() {
 
           {showAttachMenu && (
             <AttachMenu
+              onTryOn={openTryOn}
               onIngredientScan={handleIngredientScan}
               onBarcodeScan={() => { setShowAttachMenu(false); setShowBarcodeScanner(true); }}
               onDocument={handleDocumentUpload}
@@ -633,7 +662,9 @@ const st = StyleSheet.create({
   dotsWrap: { flexDirection: 'row', gap: 4, alignItems: 'center', paddingVertical: 2 },
   dot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: Colors.violet },
 
-  chips: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 24 },
+  tryOn: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 24, paddingVertical: 13, paddingHorizontal: 20, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(230,190,245,0.45)', backgroundColor: 'rgba(118,67,172,0.25)' },
+  tryOnText: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.ink },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 16 },
   chip: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', borderRadius: 999, paddingVertical: 10, paddingHorizontal: 14, backgroundColor: 'rgba(255,255,255,0.07)' },
   chipText: { fontFamily: Fonts.bodyMedium, fontSize: 13, color: Colors.ink },
 

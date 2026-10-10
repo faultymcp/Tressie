@@ -46,5 +46,5 @@ export function PhotoCarousel({ photos, width, height, radius = 22 }: Props) {
 const st = StyleSheet.create({
   dots: { position: 'absolute', bottom: 12, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 6 },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.45)' },
-  dotOn: { backgroundColor: '#D9FF00', width: 16 },
+  dotOn: { backgroundColor: '#C38CD9', width: 16 },
 });

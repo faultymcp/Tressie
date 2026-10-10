@@ -6,10 +6,11 @@ import {
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { Colors, Fonts, Radius } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
+import { getDeviceId } from '@/lib/deviceId';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 
 const IC = {
@@ -88,32 +89,7 @@ export default function HairTransferScreen() {
       return;
     }
 
-    // Check try-on credits
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        Alert.alert('Sign in required', 'Please sign in to use AI try-on.');
-        return;
-      }
-
-      // Check credits via consume_tryon RPC
-      const { data: creditCheck, error: creditErr } = await supabase.rpc('consume_tryon', {
-        p_user_id: user.id,
-        p_requested_resolution: '4k',
-      });
-
-      if (creditErr || !creditCheck?.allowed) {
-        const reason = creditCheck?.reason || creditErr?.message || 'No try-on credits available.';
-        Alert.alert('No Credits', `${reason}\n\nGet more credits from your wallet or upgrade to Pro.`, [
-          { text: 'Go to Wallet', onPress: () => router.push('/wallet') },
-          { text: 'Cancel', style: 'cancel' },
-        ]);
-        return;
-      }
-    } catch (e) {
-      // If credit check fails, let them try anyway (MVP approach)
-      console.log('Credit check failed, proceeding:', e);
-    }
+    // Free daily limits are checked on the server (supabase/functions/ai-tryon)
 
     setStage('processing');
     setProgress('Uploading your photos...');
@@ -140,7 +116,7 @@ export default function HairTransferScreen() {
           body: JSON.stringify({
             selfie_base64: selfieBase64,
             reference_base64: refBase64,
-            resolution: '4k',
+            device_id: await getDeviceId(),
           }),
         }
       );
@@ -168,7 +144,7 @@ export default function HairTransferScreen() {
       setStage('result');
     } catch (err: any) {
       console.log('Try-on error:', err);
-      Alert.alert('Generation Failed', err.message || 'Something went wrong. Your credit has been restored. Please try again.');
+      Alert.alert('Try-on', err.message || 'Something went wrong. Please try again.');
       setStage('upload');
     }
   };
@@ -206,7 +182,7 @@ export default function HairTransferScreen() {
     <View style={st.container}>
       <View style={st.header}>
         <Pressable onPress={() => router.back()} style={st.backBtn}><IC.Back /></Pressable>
-        <Text style={st.headerTitle}>AI Hair Try-On</Text>
+        <Text style={st.headerTitle}>Try a style</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -262,7 +238,7 @@ export default function HairTransferScreen() {
               <IC.Zap />
               <Text style={[st.generateBtnText, (!selfie || !reference) && { color: '#999' }]}>Generate my look</Text>
             </Pressable>
-            <Text style={st.creditNote}>Uses 1 try-on credit · 4K resolution</Text>
+            <Text style={st.creditNote}>3 free try-ons a day</Text>
           </Animated.View>
         </ScrollView>
       )}
@@ -294,7 +270,7 @@ export default function HairTransferScreen() {
               </Pressable>
             </View>
 
-            <Text style={st.resultNote}>Generated at 4K resolution with AI</Text>
+            <Text style={st.resultNote}>Your new look</Text>
           </Animated.View>
         </ScrollView>
       )}

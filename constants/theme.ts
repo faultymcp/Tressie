@@ -14,7 +14,7 @@ export const Colors = {
   violet: '#7643AC',
   pink: '#F484B9',
   lavender: '#C38CD9',
-  lime: '#D9FF00',
+  lime: '#C38CD9',
   // Background/text/card roles — FLIPPED for dark theme.
   // porcelain is now the dark base (was the light background).
   // ink is now the light text colour (was the dark text colour).
@@ -22,8 +22,8 @@ export const Colors = {
   ink: '#FFFEF7',         // was '#332463' — now the light text colour
   inkDeep: '#120B2E',     // unchanged — still the deepest tone, same as porcelain now
   muted: '#A79BC4',       // brightened from #8A7FA0 — the old value was too dim on dark
-  white: 'rgba(255,255,255,0.07)', // GLASS card fill — translucent so the halo light shows through. Never use as a text colour; use '#FFFFFF'.
-  border: 'rgba(255,255,255,0.14)', // glass edge
+  white: 'rgba(255,255,255,0.04)', // GLASS card fill (softened: boxes should melt into the sky) — translucent so the halo light shows through. Never use as a text colour; use '#FFFFFF'.
+  border: 'rgba(255,255,255,0.08)', // glass edge (softened)
   dark: '#0c0a15',
   // Functional — unchanged
   success: '#22c55e',
@@ -34,20 +34,20 @@ export const Colors = {
   gradientHeader: ['#120B2E', '#332463', '#7643AC'],
   gradientSplash: ['#120B2E', '#2d1854', '#4a2070', '#7643AC'],
   gradientWelcome: ['#120B2E', '#2d1854', '#4a2070', '#7643AC'],
-  gradientLime: ['#D9FF00', '#7643AC', '#F484B9'],
+  gradientLime: ['#C38CD9', '#7643AC', '#F484B9'],
   gradientWarm: ['#C38CD9', '#F484B9'],
   // Translucent — unchanged, these tint whatever's behind them and still work
   violetBg: 'rgba(118,67,172,0.06)',
   violetBg2: 'rgba(118,67,172,0.12)',
   violetBg3: 'rgba(118,67,172,0.18)',
-  limeBg: 'rgba(217,255,0,0.08)',
+  limeBg: 'rgba(195,140,217,0.08)',
 };
 
 // ─── Semantic colour tokens ────────────────────────────────────────
 // Same roles as before, values flipped for dark.
 export const Surface = {
   base: '#120B2E',        // was porcelain — now the dark primary background
-  raised: 'rgba(255,255,255,0.07)', // glass card fill
+  raised: 'rgba(255,255,255,0.04)', // glass card fill (softened)
   inset: '#241B4D',       // was a light violet tint — now a slightly-lighter-still inset
   accentSoft: 'rgba(118,67,172,0.14)',  // bumped from 0.06 — needs more presence on dark
   careSoft:   'rgba(244,132,185,0.14)', // bumped from 0.08 — same reason
@@ -62,7 +62,7 @@ export const Foreground = {
 
 export const BorderTone = {
   subtle: 'rgba(255,254,247,0.06)',  // was dark translucent — now light translucent
-  base:   'rgba(255,254,247,0.14)',  // was solid light lavender — now light translucent
+  base:   'rgba(255,254,247,0.09)',  // was solid light lavender — now light translucent
   strong: 'rgba(255,254,247,0.20)',  // was dark translucent — now light translucent
   accent: '#7643AC',                 // unchanged — violet accent border works on dark
 };
@@ -79,8 +79,8 @@ export const Care = {
 };
 
 export const Energy = {
-  base: '#D9FF00',
-  soft: 'rgba(217,255,0,0.12)',      // bumped from 0.08
+  base: '#C38CD9',
+  soft: 'rgba(195,140,217,0.12)',      // bumped from 0.08
 };
 
 // ─── Type scale ────────────────────────────────────────────────────

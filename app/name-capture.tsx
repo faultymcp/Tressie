@@ -26,7 +26,6 @@ import {
   Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
@@ -35,14 +34,37 @@ import {
   Surface, Foreground, BorderTone, Accent, Shadows, TouchTarget,
 } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
+import { HaloButton } from '@/components/HaloButton';
+import Svg, { Path } from 'react-native-svg';
+
+// A quiet checkbox row: the box melts into the background until ticked.
+function ConsentRow({ checked, onToggle, children }: { checked: boolean; onToggle: () => void; children: React.ReactNode }) {
+  return (
+    <Pressable
+      onPress={() => { Haptics.selectionAsync().catch(() => {}); onToggle(); }}
+      style={st.consentRow}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked }}
+    >
+      <View style={[st.consentTick, checked && st.consentTickOn]}>
+        {checked && (
+          <Svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#120B2E" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+            <Path d="M20 6L9 17l-5-5" />
+          </Svg>
+        )}
+      </View>
+      <Text style={st.consentText}>{children}</Text>
+    </Pressable>
+  );
+}
 
 // ── Legal URLs ───────────────────────────────────────────────────
 // TODO: Replace with real URLs once Privacy Policy and Terms of Service
 // are drafted and hosted. Until then these point to placeholder paths
 // on the Halea domain so the links are real but obviously pending.
 // Do NOT ship to public release with these placeholder URLs unresolved.
-const TERMS_URL = 'https://halea.app/terms';
-const PRIVACY_URL = 'https://halea.app/privacy';
+const TERMS_URL = 'https://lumaraelabs.com/terms';
+const PRIVACY_URL = 'https://lumaraelabs.com/privacy';
 
 // ── Validation ───────────────────────────────────────────────────
 // Permissive but real. Catches typos like missing @ or trailing space,
@@ -58,11 +80,14 @@ export default function NameCaptureScreen() {
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Two separate agreements, as UK GDPR expects for hair and scalp details.
+  const [agreeData, setAgreeData] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const emailRef = useRef<TextInput>(null);
 
   const nameOk = isValidName(firstName);
   const emailOk = isValidEmail(email);
-  const canContinue = nameOk && emailOk && !submitting;
+  const canContinue = nameOk && emailOk && agreeData && agreeTerms && !submitting;
 
   const handleContinue = useCallback(async () => {
     if (!canContinue) return;
@@ -79,6 +104,7 @@ export default function NameCaptureScreen() {
         firstName: trimmedName,
         email: trimmedEmail,
         capturedAt: new Date().toISOString(),
+        consentAt: new Date().toISOString(),
       };
       await AsyncStorage.setItem('halea_user', JSON.stringify(userRecord));
 
@@ -182,25 +208,19 @@ export default function NameCaptureScreen() {
               </Animated.View>
             )}
 
-            <Text style={st.fine}>
-              By continuing, you agree to our{' '}
-              <Text
-                style={st.fineLink}
-                onPress={() => Linking.openURL(TERMS_URL).catch(() => {})}
-                accessibilityRole="link"
-              >
-                terms
-              </Text>
-              {' '}and{' '}
-              <Text
-                style={st.fineLink}
-                onPress={() => Linking.openURL(PRIVACY_URL).catch(() => {})}
-                accessibilityRole="link"
-              >
-                privacy policy
-              </Text>
-              . You can delete your account and all data any time from settings.
-            </Text>
+            <View style={st.consentBox}>
+              <ConsentRow checked={agreeData} onToggle={() => setAgreeData(v => !v)}>
+                I agree to Halea using my hair and scalp details to build my routine.
+              </ConsentRow>
+              <View style={st.consentDivider} />
+              <ConsentRow checked={agreeTerms} onToggle={() => setAgreeTerms(v => !v)}>
+                I agree to the{' '}
+                <Text style={st.fineLink} onPress={() => Linking.openURL(TERMS_URL).catch(() => {})} accessibilityRole="link">terms</Text>
+                {' '}and{' '}
+                <Text style={st.fineLink} onPress={() => Linking.openURL(PRIVACY_URL).catch(() => {})} accessibilityRole="link">privacy policy</Text>.
+              </ConsentRow>
+            </View>
+            <Text style={st.fine}>You can delete your account and all your data any time in settings.</Text>
           </Animated.View>
 
           <View style={st.spacer} />
@@ -208,30 +228,13 @@ export default function NameCaptureScreen() {
 
         {/* ── CTA pinned to bottom ── */}
         <View style={st.footer}>
-          <Pressable
+          <HaloButton
+            label="See my routine"
             onPress={handleContinue}
             disabled={!canContinue}
+            loading={submitting}
             accessibilityLabel="Continue to your routine"
-            accessibilityRole="button"
-            style={({ pressed }) => [
-              st.cta,
-              !canContinue && st.ctaDisabled,
-              pressed && canContinue && { transform: [{ scale: 0.985 }] },
-            ]}
-          >
-            <LinearGradient
-              colors={canContinue ? (Colors.gradientPrimary as any) : ['#D8D2E4', '#D8D2E4']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={st.ctaInner}
-            >
-              {submitting ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <Text style={st.ctaText}>See my routine</Text>
-              )}
-            </LinearGradient>
-          </Pressable>
+          />
         </View>
       </KeyboardAvoidingView>
     </View>
@@ -282,6 +285,19 @@ const st = StyleSheet.create({
     marginTop: -Spacing.sm,
   },
 
+  consentBox: {
+    marginTop: Spacing.lg, borderRadius: 18, borderWidth: 1,
+    borderColor: 'rgba(255,254,247,0.08)', backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  consentRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 14 },
+  consentDivider: { height: 1, backgroundColor: 'rgba(255,254,247,0.06)', marginHorizontal: 14 },
+  consentTick: {
+    width: 22, height: 22, borderRadius: 7, borderWidth: 1.5, borderColor: 'rgba(255,254,247,0.35)',
+    alignItems: 'center', justifyContent: 'center', marginTop: 1,
+  },
+  consentTickOn: { backgroundColor: '#C38CD9', borderColor: '#C38CD9' },
+  consentText: { flex: 1, fontFamily: Fonts.body, fontSize: 13, lineHeight: 19, color: Foreground.primary },
+
   fine: {
     fontFamily: Fonts.body,
     fontSize: 11,
@@ -309,26 +325,5 @@ const st = StyleSheet.create({
     backgroundColor: Surface.base,
     borderTopWidth: 1,
     borderTopColor: BorderTone.subtle,
-  },
-  cta: {
-    borderRadius: Radius.lg,
-    overflow: 'hidden',
-    ...Shadows.cta,
-  },
-  ctaDisabled: {
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  ctaInner: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: TouchTarget.min + 8,
-  },
-  ctaText: {
-    fontFamily: Fonts.headingSemi,
-    fontSize: 15,
-    color: '#FFFFFF',
-    letterSpacing: -0.2,
   },
 });

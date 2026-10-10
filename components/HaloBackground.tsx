@@ -8,13 +8,22 @@
 // so it never blocks taps.
 
 import { useEffect } from 'react';
-import { StyleSheet, Dimensions, View } from 'react-native';
+import { StyleSheet, Dimensions, View, Image } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, Easing,
 } from 'react-native-reanimated';
 import Svg, { Defs, RadialGradient, Stop, Circle, Rect } from 'react-native-svg';
 
-const { width: W } = Dimensions.get('window');
+const { width: W, height: H } = Dimensions.get('window');
+
+// A few fixed stars, placed by hand so every screen gets the same sky.
+// [x, y] as fractions of the screen, radius in points, opacity.
+const STARS: [number, number, number, number][] = [
+  [0.08, 0.22, 1.1, 0.55], [0.86, 0.18, 1.4, 0.7], [0.72, 0.31, 0.9, 0.45],
+  [0.18, 0.44, 1.2, 0.5], [0.93, 0.52, 1, 0.5], [0.05, 0.63, 1.3, 0.45],
+  [0.64, 0.68, 0.9, 0.4], [0.35, 0.78, 1.1, 0.4], [0.88, 0.84, 1.2, 0.45],
+  [0.14, 0.92, 0.9, 0.35], [0.5, 0.12, 0.8, 0.4], [0.42, 0.56, 0.8, 0.3],
+];
 const RING = W * 1.45;          // ring diameter, wider than the screen
 const RING_TOP = -RING * 0.6;   // most of the ring sits above the screen; its lower arc shows
 
@@ -49,6 +58,16 @@ export function HaloBackground() {
         </Defs>
         <Rect x="0" y="0" width={W} height={W * 1.3} fill="url(#wash)" />
       </Svg>
+
+      {/* stars */}
+      <Svg width={W} height={H} style={StyleSheet.absoluteFill}>
+        {STARS.map(([x, y, r, o], i) => (
+          <Circle key={i} cx={x * W} cy={y * H} r={r} fill="#FFFEF7" opacity={o} />
+        ))}
+      </Svg>
+
+      {/* fine grain over everything: the difference between flat and printed */}
+      <Image source={require('../assets/grain.png')} resizeMode="repeat" style={[StyleSheet.absoluteFill, { opacity: 0.55 }]} />
 
       <Animated.View
         style={[

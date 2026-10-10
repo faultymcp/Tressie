@@ -34,6 +34,9 @@ export function FluidOrb({
   color, size, top, left,
   spinDuration = 4000, spinDirection = 1, breatheDuration = 1100, baseOpacity = 0.35,
 }: Props) {
+  // Personality, but calm: never faster than one turn every 18s or one breath every 4.5s
+  spinDuration = Math.max(spinDuration, 18000);
+  breatheDuration = Math.max(breatheDuration, 4500);
   const spin = useSharedValue(0);
   const breathe = useSharedValue(0);
 

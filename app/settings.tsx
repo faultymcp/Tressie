@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import { Colors, Fonts, Radius } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
+import { deleteMyAccount } from '@/lib/deleteAccount';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ─── Icons ───────────────────────────────────────────────────────
@@ -109,7 +110,11 @@ export default function SettingsScreen() {
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Delete', style: 'destructive', onPress: async () => {
-          // In production, call an Edge Function that handles cascade deletion
+          const deleted = await deleteMyAccount();
+          if (!deleted) {
+            Alert.alert('Could not delete account', 'Please try again, or email support@lumaraelabs.com and we will delete it for you.');
+            return;
+          }
           await supabase.auth.signOut();
           // Clear the cached hair profile too. Otherwise the next person
           // to sign in on this device sees the previous person's hair.

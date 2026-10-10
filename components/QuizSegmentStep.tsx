@@ -125,7 +125,7 @@ const st = StyleSheet.create({
     borderColor: 'rgba(230,190,245,0.7)', backgroundColor: 'rgba(118,67,172,0.35)',
     shadowColor: '#C38CD9', shadowOpacity: 0.45, shadowRadius: 14, shadowOffset: { width: 0, height: 0 },
   },
-  cardPressed: { transform: [{ scale: 0.985 }], opacity: 0.92 },
+  cardPressed: { transform: [{ scale: 0.985 }] },
   iconWrap: {
     width: 44, height: 44, borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center',

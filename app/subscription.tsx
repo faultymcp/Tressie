@@ -227,7 +227,7 @@ const st = StyleSheet.create({
   toggleActive: { backgroundColor: Colors.violet },
   toggleText: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.muted },
   toggleTextActive: { color: '#fff' },
-  saveBadge: { backgroundColor: '#D9FF00', paddingVertical: 2, paddingHorizontal: 8, borderRadius: 8 },
+  saveBadge: { backgroundColor: '#C38CD9', paddingVertical: 2, paddingHorizontal: 8, borderRadius: 8 },
   saveText: { fontFamily: Fonts.bodySemi, fontSize: 9, color: Colors.ink },
 
   planCard: {
