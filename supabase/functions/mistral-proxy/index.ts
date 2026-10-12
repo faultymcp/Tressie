@@ -55,7 +55,11 @@ Deno.serve(async (req) => {
     }),
   });
 
-  if (mistralRes.status === 429) return json({ error: 'Rate limited' }, 429);
+  if (mistralRes.status === 429) {
+    const detail = await mistralRes.text();
+    console.error('Mistral rate limited', detail);
+    return json({ error: 'Rate limited', detail }, 429);
+  }
 
   if (!mistralRes.ok) {
     const detail = await mistralRes.text();
