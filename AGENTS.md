@@ -24,11 +24,10 @@ Vyshnavi, the CTO, building Halea mostly alone.
 
 - Expo SDK 57, React Native, Expo Router (`app/`), Reanimated, react-native-svg, expo-blur
 - Supabase: database, auth, Edge Functions in `supabase/functions/`
-  - `mistral-proxy`: the Halea chat (Mistral). Key stored as a Supabase secret.
+  - `mistral-proxy`: the Halea chat (Mistral). Builds the assistant's instructions and product list on the server; 40 messages per user per day. Key stored as a Supabase secret.
   - `ai-tryon`: hair try-on via Replicate (Nano Banana Pro, 2K). Free with limits, see below.
   - `delete-account`: real account deletion (Apple requires it).
-  - `create-checkout`, `create-discount`, `stripe-webhook`: Stripe leftovers. Not used in the app any more. Don't build on them.
-- Face scan: on-device ML Kit (`@react-native-ml-kit/face-detection`) in `app/face-scan.tsx` + `lib/faceScan.ts`. The photo never leaves the phone.
+  - Face scan: on-device ML Kit (`@react-native-ml-kit/face-detection`) in `app/face-scan.tsx` + `lib/faceScan.ts`. The photo never leaves the phone.
 - Builds: EAS (`eas.json`). The app needs a development build, not Expo Go (face scan, Rive and blur are native).
 
 ### Commands (Windows CMD)
@@ -70,21 +69,54 @@ Type-check with `npx tsc --noEmit`. Known pre-existing error: `components/QuizSe
 
 3 per phone per day, 3 per account per day, 300 per day for the whole app (about $40 worst case), 2K resolution. The phone is identified by `lib/deviceId.ts` so extra email accounts don't reset the count. Change the numbers at the top of the function and redeploy; no app update needed.
 
-## Where things stand (11 Oct 2026)
+## Where things stand (12 Oct 2026, evening)
 
-Done: face scan + merged onboarding (name → scan → quiz), subscription and wallet removed, free try-on with limits, real account deletion, terms/privacy links pointing at lumaraelabs.com, Android dev build working, design polish (wordmark reveal, glass nav, lavender, slower orbs), new icon.
+Done: face scan + merged onboarding (name → scan → quiz), subscription and wallet removed from Profile, free try-on with limits, real account deletion, terms/privacy links pointing at lumaraelabs.com, Android dev build working, design polish (wordmark reveal, glass nav, lavender, slower orbs), new icon, agent guides. Sign-in emails go through Brevo SMTP (free tier, about 300 emails a day).
 
-### Launch to-do (in order)
+Decided 12 Oct: XP, rewards, referrals and bookings are cut from v1 (nothing real behind them yet). The app is dark-only, so there is no dark mode setting. The day streak stays (it's real).
 
-- [ ] **Chat:** it errors in testing. In dev builds the screen now shows the real error (`Chat error <status>: ...`). Find the cause (Mistral key, deploy, Supabase project paused, or free-tier limits) and fix it.
-- [ ] **Check the glass nav** actually blurs on her Android phone.
-- [ ] **Screen-by-screen polish** from her screenshots: intro, Home, chat, try-on first; then Discover, Shop, Profile, Settings. Make every screen follow the same spacing, radius and type scale.
-- [ ] **Sentry** crash reporting (`@sentry/react-native`), before TestFlight.
-- [ ] **EAS Update** for over-the-air fixes (`expo-updates`), before launch.
-- [ ] **Clean up repo junk** (ask first): `tressie-all.zip`, `tressie-update.zip`, `fix-polish.js`, `rename-and-theme.js`, `day2-feed-and-rive.patch`.
-- [ ] **iPhone build + TestFlight** once the Apple Developer account exists (her business partner is setting it up). Then 15 to 20 testers for a few days.
-- [ ] **App Store listing:** title with keywords, subtitle, description that hooks in two lines, benefit screenshots (scan result, persona card, a stylist), category, age rating, privacy questionnaire.
-- [ ] **Submit to Apple around 23 Oct**, leaving room for one rejection.
+Done 12 Oct: database security (RLS on every user table, salon and booking inserts closed; SQL in `supabase/sql/2026-10-12_chat_limits_and_security.sql`), chat moved server-side with a 40-messages-a-day cap (`chat_usage` table), reviewer password login for `appreview@lumaraelabs.com` only (account created by hand in Supabase; password lives in App Store Connect, never in git), iPhone save-photo permission, XP/referral/bookings/dark-mode/wallet/subscription/business screens and Stripe code removed, unused packages removed. Needs a new dev build because `app.json` plugins changed.
+
+### Launch to-do (in order, one item per session)
+
+**Day 1: can real people sign in safely**
+- [x] **Security check.** Every Supabase table holding user data (`user_hair_profiles`, `profiles`, `favourites`, `user_routines`, `user_routine_steps`, `routine_completions`, `tryon_history`, `tressie_messages`, and any other) must have Row Level Security on, with policies so a user can only read and write their own rows. Check Supabase → Advisors → Security, fix what it flags, and save the policies as a SQL file in `supabase/sql/` so they live in git.
+- [x] **Sign-in works for strangers.** Confirm a sign-in code arrives at an email address that is NOT on the Supabase team (Brevo is set as custom SMTP).
+- [x] **Apple reviewer login.** Apple's reviewer can't receive our email codes. Add one reviewer account that can sign in without a code (for example a password login that only works for one reviewer email). Note the credentials for App Store Connect, not in git.
+
+**Day 1 to 2: close the money and crash holes**
+- [x] **Chat on the server.** `mistral-proxy` currently accepts any system prompt from the app, with no limit, so anyone signed in could use our Mistral account for anything. Move the system prompt into the function (the app sends only the user's messages and hair type), and add a daily cap per user (for example 40 messages) using a small table, like `ai-tryon` does. Friendly message when the cap is hit.
+- [ ] **Fix the chat error** if it still fails after this (dev builds show `Chat error <status>: ...`).
+- [x] **Saving photos on iPhone.** Add the `expo-media-library` plugin to `app.json` with a "save photos" permission sentence, or saving a try-on crashes on iOS.
+
+**Day 2: cut what isn't real**
+- [x] Remove XP everywhere: the XP & Rewards screen, XP toasts on Home, the XP stat on Profile, `award_xp` calls.
+- [x] Remove Refer a Friend (promises £5 off and links to halea.app, which we don't own) and My Bookings (no booking flow yet).
+- [x] Remove the Dark mode toggle in Settings.
+- [x] Delete dead screens and code: `app/wallet.tsx`, `app/subscription.tsx`, `app/account-type.tsx`, `components/ProGate.tsx`, `lib/payments.ts` if unused, and their `Stack.Screen` entries.
+- [x] Remove unused packages: `replicate`, `@gradio/client`, `expo-crypto`, `expo-auth-session` (check nothing imports them first).
+- [x] Undeploy the Stripe functions (`create-checkout`, `create-discount`, `stripe-webhook`) and delete their folders.
+- [x] Remove repo junk: `tressie-all.zip`, `tressie-update.zip`, `fix-polish.js`, `rename-and-theme.js`, `day2-feed-and-rive.patch`.
+
+**Day 3: see what happens after launch**
+- [ ] **Sentry** crash reporting (`@sentry/react-native` with the Expo plugin).
+- [ ] **Analytics:** PostHog (EU cloud, free tier). Track only a few events: onboarding finished, face scan done, try-on done, chat sent, stylist opened, product tapped. No personal data in events.
+- [ ] **EAS Update** (`expo-updates`) so fixes reach phones without a new App Store review.
+- [ ] Add Sentry and PostHog to the privacy policy's list of services.
+
+**Days 4 to 8: make it feel designed**
+- [ ] **Consistency pass.** The app uses 27 text sizes and 26 corner radii. Snap every screen to `DESIGN.md`: type scale only, spacing scale only, radii 8/12/16/20/pill only. Replace leftover lime (`#8AB800`, `#c8e878`) and stray greens/reds with palette colours.
+- [ ] **Profile rebuild.** With XP, wallet, bookings and referral gone, make Profile about the user: persona card, face scan result (with "scan again"), hair profile, saved looks and favourites, then settings, privacy and sign out.
+- [ ] **Home cleanup.** Keep the week strip and routine ring; no XP pop-ups.
+- [ ] **Chat screen.** Choose either the light rays or the glowing core, not both.
+- [ ] **Screen-by-screen polish** from Vyshnavi's phone screenshots.
+
+**When the Apple account exists**
+- [ ] iPhone build, TestFlight with 15 to 20 testers for a few days.
+- [ ] App Store listing: keyword title, subtitle, description that hooks in two lines, benefit screenshots (scan result, persona card, a stylist), category, age rating, privacy questionnaire, reviewer login.
+- [ ] Submit. Aim for late October; expect one rejection round.
+
+**Content blocker (business partner):** Discover is all sample stylists. Apple can reject an app whose main content is placeholders, so real stylists (target 20 to 25) must be in before submission.
 
 ### After launch (not before)
 

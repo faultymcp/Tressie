@@ -546,13 +546,6 @@ export default function QuizScreen() {
       const { supabase } = require('@/lib/supabase');
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase.rpc('award_xp', {
-          p_user_id: user.id,
-          p_action: 'complete_quiz',
-          p_reference_id: null,
-          p_description: 'Completed hair discovery quiz',
-          p_override_amount: null,
-        });
         // Bootstrap the user's routine in Supabase now that we have
         // their goals + segments. Idempotent — safe to re-run on Home
         // open as a defensive guard. Fails silently if Supabase is

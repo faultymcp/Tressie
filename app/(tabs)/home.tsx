@@ -122,46 +122,6 @@ function buildWeekFallback(): Record<string, DayPlan> {
   };
 }
 
-// ─── Award XP ────────────────────────────────────────────────────
-async function doAwardXp(action: string, refId?: string, desc?: string): Promise<number> {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return 0;
-    const { data, error } = await supabase.rpc('award_xp', {
-      p_user_id: user.id, p_action: action,
-      p_reference_id: refId || null, p_description: desc || null, p_override_amount: null,
-    });
-    if (error) return 0;
-    return data || 0;
-  } catch { return 0; }
-}
-
-// ─── XP Toast ────────────────────────────────────────────────────
-function XpToast({ amount, visible }: { amount: number; visible: boolean }) {
-  const opacity = useRef(new RNAnimated.Value(0)).current;
-  const translateY = useRef(new RNAnimated.Value(20)).current;
-  useEffect(() => {
-    if (visible) {
-      RNAnimated.parallel([
-        RNAnimated.timing(opacity, { toValue: 1, duration: 240, useNativeDriver: true }),
-        RNAnimated.timing(translateY, { toValue: 0, duration: 240, useNativeDriver: true }),
-      ]).start();
-      const t = setTimeout(() => {
-        RNAnimated.parallel([
-          RNAnimated.timing(opacity, { toValue: 0, duration: 240, useNativeDriver: true }),
-          RNAnimated.timing(translateY, { toValue: 20, duration: 240, useNativeDriver: true }),
-        ]).start();
-      }, 1800);
-      return () => clearTimeout(t);
-    }
-  }, [visible]);
-  return (
-    <RNAnimated.View style={[st.toast, { opacity, transform: [{ translateY }] }]} pointerEvents="none">
-      <Text style={st.toastText}>+{amount} XP</Text>
-    </RNAnimated.View>
-  );
-}
-
 // ─── The halo ring ───────────────────────────────────────────────
 // Fills as today's steps are ticked. A wider, faint copy of the arc
 // underneath gives it a glow without needing SVG filters.
@@ -232,20 +192,11 @@ export default function HomeScreen() {
   const [daysSinceWash, setDaysSinceWash] = useState(0);
   const [products, setProducts] = useState<any[]>([]);
   const [streak, setStreak] = useState(0);
-  const [xpToday, setXpToday] = useState(0);
-  const [toastAmount, setToastAmount] = useState(0);
-  const [toastVisible, setToastVisible] = useState(false);
   // Which day the steps card shows. Today is tickable; other days are a read-only preview.
   const [selectedDay, setSelectedDay] = useState(todayLabel());
   const [washKnown, setWashKnown] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
   const stepsY = useRef(0);
-
-  const showXpToast = (amount: number) => {
-    setToastAmount(amount);
-    setToastVisible(true);
-    setTimeout(() => setToastVisible(false), 2400);
-  };
 
   // Load all data on mount
   useEffect(() => {
@@ -307,12 +258,10 @@ export default function HomeScreen() {
         setWashKnown(true);
       }
 
-      // Daily login XP
+      // Daily streak: count today once
       const today = new Date().toISOString().split('T')[0];
       const lastLogin = await AsyncStorage.getItem('halea_last_login_xp');
       if (lastLogin !== today) {
-        const xp = await doAwardXp('daily_login', undefined, 'Daily app open');
-        if (xp > 0) { setXpToday(prev => prev + xp); showXpToast(xp); }
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) await supabase.rpc('update_streak', { p_user_id: user.id });
@@ -364,7 +313,7 @@ export default function HomeScreen() {
       setWashKnown(true);
     }
 
-    // Persist to Supabase + award XP via the lib data layer.
+    // Save to Supabase via the lib data layer.
     // The step's routine_id is on the Step itself (carried through from
     // getUserRoutineSteps). If it's missing, the user is on the template
     // fallback and we can only update locally.
@@ -374,34 +323,9 @@ export default function HomeScreen() {
     const userId = await getCurrentUserId();
 
     if (!wasDone && userId && routineId) {
-      const xp = await markStepComplete(userId, routineId, stepId, true);
-      if (xp > 0) {
-        setXpToday(prev => prev + xp);
-        showXpToast(xp);
-        // Bonus when every step for today is done
-        if (today && today.steps.every(s => updated[day]?.[s.id])) {
-          const bonus = await doAwardXp('complete_full_routine', undefined, 'Full routine done');
-          if (bonus > 0) {
-            setTimeout(() => { setXpToday(p => p + bonus); showXpToast(bonus); }, 1000);
-          }
-        }
-      }
-    } else if (!wasDone && !userId) {
-      // Local-only fallback (unauthenticated): keep old XP behaviour so
-      // the UX doesn't degrade for guests.
-      const xp = await doAwardXp('complete_routine_step', stepId, `Completed: ${stepName}`);
-      if (xp > 0) {
-        setXpToday(prev => prev + xp);
-        showXpToast(xp);
-        if (today && today.steps.every(s => updated[day]?.[s.id])) {
-          const bonus = await doAwardXp('complete_full_routine', undefined, 'Full routine done');
-          if (bonus > 0) {
-            setTimeout(() => { setXpToday(p => p + bonus); showXpToast(bonus); }, 1000);
-          }
-        }
-      }
+      await markStepComplete(userId, routineId, stepId, true);
     } else if (wasDone && userId && routineId) {
-      // Uncheck — remove the completion in DB (no XP refund; ledger is append-only)
+      // Uncheck: remove the completion in the database
       await markStepComplete(userId, routineId, stepId, false);
     }
   }, [checks, weekPlan]);
@@ -500,7 +424,7 @@ export default function HomeScreen() {
                 accessibilityState={{ selected: isPicked }}
                 accessibilityLabel={`${DAY_FULL[s.d]}${s.wash ? ', wash day' : ''}${isToday ? ', today' : ''}`}
               >
-                <Text style={[st.stripLetter, isToday && { color: Colors.lime }]}>{s.d.charAt(0)}</Text>
+                <Text style={[st.stripLetter, isToday && { color: Colors.lavender }]}>{s.d.charAt(0)}</Text>
                 <View style={[st.stripCircle, isPicked && st.stripCirclePicked]}>
                   <Svg width={40} height={40} style={StyleSheet.absoluteFill}>
                     <Circle cx={20} cy={20} r={r} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth={3} />
@@ -617,7 +541,6 @@ export default function HomeScreen() {
 
       </ScrollView>
 
-      <XpToast amount={toastAmount} visible={toastVisible} />
     </View>
   );
 }
@@ -640,7 +563,7 @@ const st = StyleSheet.create({
     borderRadius: 999, backgroundColor: 'rgba(195,140,217,0.1)', borderWidth: 1, borderColor: 'rgba(195,140,217,0.35)',
     marginBottom: 4,
   },
-  streakText: { fontFamily: 'Sora_600SemiBold', fontSize: 12, color: Colors.lime },
+  streakText: { fontFamily: 'Sora_600SemiBold', fontSize: 12, color: Colors.lavender },
 
   // 2. Week strip
   strip: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
@@ -657,7 +580,7 @@ const st = StyleSheet.create({
   ringCenter: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', gap: 2 },
   ringCount: { fontFamily: Fonts.heading, fontSize: 48, letterSpacing: -1, color: CREAM },
   ringTotal: { fontFamily: Fonts.heading, fontSize: 26, color: 'rgba(255,254,247,0.5)' },
-  ringDone: { fontFamily: 'Fraunces_400Regular_Italic', fontSize: 30, color: Colors.lime },
+  ringDone: { fontFamily: 'Fraunces_400Regular_Italic', fontSize: 30, color: Colors.lavender },
   ringLabel: { fontFamily: 'Sora_500Medium', fontSize: 11, letterSpacing: 2, color: CREAM_DIM },
   heroTitle: { fontFamily: Fonts.headingSemi, fontSize: 20, color: CREAM, marginTop: 14 },
   heroSub: { fontFamily: Fonts.body, fontSize: 13, color: 'rgba(255,254,247,0.65)', marginTop: 4, textAlign: 'center' },
@@ -670,7 +593,7 @@ const st = StyleSheet.create({
   previewHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, paddingBottom: 6, gap: 10 },
   previewTitle: { flex: 1, fontFamily: 'Sora_600SemiBold', fontSize: 12, letterSpacing: 0.5, color: LAV_LIGHT },
   backPill: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(195,140,217,0.4)' },
-  backPillText: { fontFamily: 'Sora_600SemiBold', fontSize: 12, color: Colors.lime },
+  backPillText: { fontFamily: 'Sora_600SemiBold', fontSize: 12, color: Colors.lavender },
   emptyText: { fontFamily: Fonts.body, fontSize: 14, color: CREAM_DIM, paddingVertical: 16, textAlign: 'center' },
   stepRow: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 52, paddingVertical: 8 },
   stepDivider: { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' },
@@ -699,25 +622,4 @@ const st = StyleSheet.create({
   washBar: { alignSelf: 'stretch', height: 4, borderRadius: 2, backgroundColor: 'rgba(230,190,245,0.5)' },
   washStepText: { fontFamily: Fonts.body, fontSize: 10, color: 'rgba(255,254,247,0.7)' },
 
-  // XP toast
-  toast: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 100 : 80,
-    alignSelf: 'center',
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: Colors.violet,
-    shadowColor: Colors.violet,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 6,
-  },
-  toastText: {
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 14,
-    color: '#FFFFFF',
-    letterSpacing: -0.2,
-  },
 });

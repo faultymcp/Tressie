@@ -43,6 +43,14 @@
           "photosPermission": "Halea uses your photos so you can choose a picture for your face scan and to try on hairstyles.",
           "microphonePermission": false
         }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Halea uses your photos so you can choose a picture for your face scan and to try on hairstyles.",
+          "savePhotosPermission": "Halea saves your try-on looks to your photos when you tap Save.",
+          "isAccessMediaLocationEnabled": false
+        }
       ]
     ],
     "experiments": {

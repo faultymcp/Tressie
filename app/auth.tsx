@@ -10,7 +10,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Fonts, Spacing, Radius } from '@/constants/theme';
 import { HaloBackground } from '@/components/HaloBackground';
@@ -18,15 +18,20 @@ import Svg, { Path } from 'react-native-svg';
 import { supabase } from '@/lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type AuthStep = 'email' | 'otp';
+type AuthStep = 'email' | 'otp' | 'password';
+
+// Apple's reviewer can't receive our email codes, so this one address signs in
+// with a password instead. Create it in Supabase: Authentication > Users >
+// Add user > Create new user (tick "Auto Confirm User"). Give the password to
+// Apple in App Store Connect only. Never put it in the code.
+const REVIEW_EMAIL = 'appreview@lumaraelabs.com';
 
 export default function AuthScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ role?: string }>();
-  const role = params.role === 'business' ? 'business' : 'customer';
   const [step, setStep] = useState<AuthStep>('email');
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -39,6 +44,11 @@ export default function AuthScreen() {
       setError('Please enter a valid email address');
       return;
     }
+    if (trimmed === REVIEW_EMAIL) {
+      setError('');
+      setStep('password');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -47,6 +57,63 @@ export default function AuthScreen() {
       setStep('otp');
     } catch (err: any) {
       setError(err.message || 'Failed to send verification code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ─── After any successful sign-in ─────────────────────────────
+  // Sync quiz data, bootstrap the routine, then route.
+  // First-time users (no routine yet) see the reveal; returning users go home.
+  const finishSignIn = async () => {
+    // Post-verify: sync quiz data + bootstrap the user's routine, then route.
+    // First-time users (no routine yet) see the reveal; returning users go home.
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id;
+
+      // Was this user already set up before this verify?
+      let isReturning = false;
+      if (userId) {
+        const { count } = await supabase
+          .from('user_routines')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId);
+        isReturning = (count ?? 0) > 0;
+      }
+
+      // Sync quiz answers to Supabase (no-op if nothing cached).
+      const { syncQuizToSupabase } = require('@/lib/sync');
+      await syncQuizToSupabase();
+
+      // Bootstrap routine from quiz goals/segments if not already present.
+      if (userId && !isReturning) {
+        const raw = await AsyncStorage.getItem('halea_user');
+        const quiz = raw ? JSON.parse(raw) : {};
+        const goals = quiz?.goals || [];
+        const segs = quiz?.segments || ['natural'];
+        const { bootstrapUserRoutine } = require('@/lib/routines');
+        await bootstrapUserRoutine(userId, goals, segs);
+      }
+
+      router.replace(isReturning ? '/(tabs)/home' : '/name');
+    } catch (routeErr) {
+      // If post-verify setup fails, still get the user into the app.
+      router.replace('/(tabs)/home');
+    }
+  };
+
+  // ─── Reviewer sign-in (password, one address only) ────────────
+  const handlePasswordSignIn = async () => {
+    if (!password) { setError('Enter the password'); return; }
+    setLoading(true);
+    setError('');
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email: REVIEW_EMAIL, password });
+      if (error) throw error;
+      await finishSignIn();
+    } catch (err: any) {
+      setError(err.message || 'Could not sign in');
     } finally {
       setLoading(false);
     }
@@ -64,51 +131,7 @@ export default function AuthScreen() {
       });
       if (error) throw error;
 
-      // Post-verify: sync quiz data + bootstrap the user's routine, then route.
-      // First-time users (no routine yet) see the reveal; returning users go home.
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        const userId = user?.id;
-
-        // Was this user already set up before this verify?
-        let isReturning = false;
-        if (userId) {
-          const { count } = await supabase
-            .from('user_routines')
-            .select('id', { count: 'exact', head: true })
-            .eq('user_id', userId);
-          isReturning = (count ?? 0) > 0;
-        }
-
-        // Sync quiz answers to Supabase (no-op if nothing cached).
-        const { syncQuizToSupabase } = require('@/lib/sync');
-        await syncQuizToSupabase();
-
-        // Bootstrap routine from quiz goals/segments if not already present.
-        if (userId && !isReturning) {
-          const raw = await AsyncStorage.getItem('halea_user');
-          const quiz = raw ? JSON.parse(raw) : {};
-          const goals = quiz?.goals || [];
-          const segs = quiz?.segments || ['natural'];
-          const { bootstrapUserRoutine } = require('@/lib/routines');
-          await bootstrapUserRoutine(userId, goals, segs);
-        }
-
-        if (role === 'business') {
-          // Salon owners skip the hair quiz entirely.
-          const { data: salon } = await supabase
-            .from('salons')
-            .select('id')
-            .eq('owner_id', userId)
-            .maybeSingle();
-          router.replace(salon ? '/(tabs)/salons' : '/business');
-        } else {
-          router.replace(isReturning ? '/(tabs)/home' : '/name');
-        }
-      } catch (routeErr) {
-        // If post-verify setup fails, still get the user into the app.
-        router.replace('/(tabs)/home');
-      }
+      await finishSignIn();
     } catch (err: any) {
       setError(err.message || 'Invalid or expired code');
       setOtp(['', '', '', '', '', '']);
@@ -182,6 +205,7 @@ export default function AuthScreen() {
 
   const handleChangeEmail = () => {
     setStep('email');
+    setPassword('');
     setOtp(['', '', '', '', '', '']);
     setError('');
   };
@@ -194,6 +218,40 @@ export default function AuthScreen() {
       </Svg>
     </Pressable>
   );
+
+  // ─── Reviewer password screen ─────────────────────────────────
+  if (step === 'password') {
+    return (
+      <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <HaloBackground />
+        <BackBtn onPress={handleChangeEmail} />
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <Text style={styles.title}>Enter your <Text style={styles.titleEm}>password.</Text></Text>
+          <Text style={styles.subtitle}>{REVIEW_EMAIL}</Text>
+          <View style={[styles.field, password.length > 0 && styles.fieldActive]}>
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor="rgba(255,254,247,0.4)"
+              value={password}
+              onChangeText={(t) => { setPassword(t); setError(''); }}
+              secureTextEntry
+              autoCapitalize="none"
+              returnKeyType="go"
+              onSubmitEditing={handlePasswordSignIn}
+              editable={!loading}
+              autoFocus
+            />
+          </View>
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          <Pressable onPress={handlePasswordSignIn} disabled={loading}
+            style={({ pressed }) => [styles.btn, pressed && styles.btnPressed, loading && styles.btnDisabled]}>
+            {loading ? <ActivityIndicator size="small" color="#FFFFFF" /> : <Text style={styles.btnText}>Sign in</Text>}
+          </Pressable>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    );
+  }
 
   // ─── OTP Screen ───────────────────────────────────────────────
   if (step === 'otp') {
@@ -252,9 +310,7 @@ export default function AuthScreen() {
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Let's get you <Text style={styles.titleEm}>in.</Text></Text>
         <Text style={styles.subtitle}>
-          {role === 'business'
-            ? 'Sign in to set up your salon listing.'
-            : "No password to remember. We'll email you a six-digit code."}
+"No password to remember. We'll email you a six-digit code."
         </Text>
 
         <View style={[styles.field, email.length > 0 && styles.fieldActive]}>
