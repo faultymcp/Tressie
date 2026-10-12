@@ -35,7 +35,7 @@ export default function PrivacyScreen() {
   const handleDelete = () => {
     Alert.alert(
       'Delete Account',
-      'This will permanently delete:\n\n- Your hair profile and quiz results\n- All XP, wallet balance, and discount codes\n- Your bookings and favourites\n- Your Halea conversation history\n\nThis action cannot be undone.',
+      'This will permanently delete:\n\n- Your hair profile and quiz results\n- Your routines and favourites\n- Your Halea conversation history\n\nThis cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Delete My Account', style: 'destructive', onPress: async () => {
@@ -74,7 +74,7 @@ export default function PrivacyScreen() {
         <View style={st.card}>
           {[
             { icon: <IC.Eye />, label: 'Hair profile', desc: 'Hair type, porosity, goals, segments from your quiz' },
-            { icon: <IC.Database />, label: 'Routine data', desc: 'Steps completed, streaks, XP earned' },
+            { icon: <IC.Database />, label: 'Routine data', desc: 'Steps completed and streaks' },
             { icon: <IC.Lock />, label: 'Account', desc: 'Email, authentication tokens (encrypted)' },
             { icon: <IC.Download />, label: 'Usage', desc: 'App interactions for personalisation (anonymised)' },
           ].map((item, i, arr) => (

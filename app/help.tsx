@@ -19,10 +19,8 @@ const IC = {
 const FAQS = [
   { q: 'How does the hair quiz work?', a: 'The quiz asks about your hair type, porosity, scalp condition, goals, and current hair setup (natural, braids, extensions, etc.). Based on your answers, Halea builds a personalised routine with daily and weekly steps specific to your hair.' },
   { q: 'What hair types does Halea support?', a: 'Every hair type from 1A to 4C, plus braids, sewn-in extensions, clip-ins, wigs, locs, relaxed hair, colour-treated hair, heat-styled hair, and hair transplant recovery. Your routine adapts to your specific situation.' },
-  { q: 'How does XP work?', a: 'You earn XP by completing routine steps, using the app daily, trying the AI hair try-on, rating products, and referring friends. XP can be redeemed for appointment discounts.' },
   { q: 'What is the AI Hair Try-On?', a: 'Upload a selfie and a photo of any hairstyle to see how it could look on you. Everyone gets 3 free try-ons a day.' },
   { q: 'Is my data safe?', a: 'Yes. Your data is stored securely on Supabase (EU-hosted). We never sell your personal information. You can export or delete all your data from Settings at any time.' },
-  { q: 'How do salon bookings work?', a: 'Browse verified salons in the Salons tab, filtered by your hair type. Book directly through the app. You can apply XP discount codes at checkout. Halea takes a small commission from the salon, not from you.' },
   { q: 'I have braids. Will the routine work for me?', a: 'Absolutely. When you select braids in the quiz, your routine includes braid-specific steps like scalp cleansing between braids, edge care, lightweight oil application, and removal timing reminders. The advice adapts to whether you have box braids, cornrows, or knotless braids.' },
 ];
 

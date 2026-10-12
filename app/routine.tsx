@@ -469,7 +469,7 @@ const st = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#8AB800',
+    backgroundColor: '#C38CD9',
   },
   dayDotFuture: {
     width: 4,

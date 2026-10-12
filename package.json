@@ -11,7 +11,6 @@
     "@expo-google-fonts/fraunces": "^0.4.1",
     "@expo-google-fonts/inter": "^0.4.2",
     "@expo-google-fonts/sora": "^0.4.2",
-    "@gradio/client": "^2.1.0",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-ml-kit/face-detection": "^2.0.1",
     "@react-native-picker/picker": "2.11.4",
@@ -22,11 +21,9 @@
     "expo": "~57.0.24",
     "expo-application": "~57.0.3",
     "expo-asset": "~57.0.16",
-    "expo-auth-session": "~57.0.12",
     "expo-blur": "~57.0.3",
     "expo-camera": "~57.0.5",
     "expo-constants": "~57.0.17",
-    "expo-crypto": "~57.0.3",
     "expo-dev-client": "~57.0.19",
     "expo-document-picker": "~57.0.2",
     "expo-file-system": "~57.0.6",
@@ -54,9 +51,7 @@
     "react-native-view-shot": "5.1.0",
     "react-native-web": "^0.21.0",
     "react-native-worklets": "0.10.1",
-    "replicate": "^1.4.0",
-    "rive-react-native": "^9.8.5",
-    "zustand": "^5.0.12"
+    "rive-react-native": "^9.8.5"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

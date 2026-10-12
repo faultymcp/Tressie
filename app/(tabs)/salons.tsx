@@ -13,7 +13,7 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 
 // --- Icons ---
 function IconStar() {
-  return <Svg width={12} height={12} viewBox="0 0 24 24" fill="#8AB800" stroke="none"><Path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z" /></Svg>;
+  return <Svg width={12} height={12} viewBox="0 0 24 24" fill="#C38CD9" stroke="none"><Path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z" /></Svg>;
 }
 function IconMap() {
   return <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={Colors.violet} strokeWidth={2} strokeLinecap="round"><Path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><Circle cx="12" cy="10" r="3" /></Svg>;
@@ -311,7 +311,7 @@ const st = StyleSheet.create({
   typeTagText: { fontFamily: Fonts.bodySemi, fontSize: 11, color: Colors.ink },
   typeTagTextMatch: { color: '#FFFFFF' },
   highlightTag: { backgroundColor: 'rgba(138,184,0,0.22)', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 10 },
-  highlightText: { fontFamily: Fonts.body, fontSize: 11, color: '#c8e878' },
+  highlightText: { fontFamily: Fonts.body, fontSize: 11, color: '#E6BEF5' },
   snacksTag: { backgroundColor: 'rgba(245,158,11,0.14)', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 10 },
   snacksTagText: { fontFamily: Fonts.body, fontSize: 11, color: '#E67E22' },
 

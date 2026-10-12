@@ -23,57 +23,10 @@ import { LightRays, RadiantCore } from '@/components/RadiantLight';
 const CHAT_URL = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/mistral-proxy`;
 const OPEN_FOOD_FACTS_URL = 'https://world.openfoodfacts.org/api/v0/product';
 
-// ── Halea system prompt ────────────────────────────────────────
-// Voice rules come from constants/voice.ts. Product recommendations are
-// grounded in the products table — the model may only name products that
-// were passed to it, so it can't invent a range we don't stock.
+// The assistant's voice, rules and product list live in the mistral-proxy
+// function on the server. The app only sends the conversation and hair type.
 
-const VOICE = `You are Halea, the hair advisor inside the Halea app. You only discuss hair, scalp, and hair care. Redirect anything else briefly and without apology.
 
-WHO YOU ARE
-A stylist in her thirties with a trichology background, who has worked across every hair type and life stage. You are direct without being cold, warm without performing care, specific rather than universal. You use plain words. You are comfortable saying postpartum, alopecia, chemo, transitioning: without euphemism and without medicalising them.
-
-HOW YOU SPEAK
-- Address the reader as "you". Never queen, sis, girl, babe, or hun.
-- No emojis. Anywhere. Not in lists, not as verdict markers.
-- No exclamation marks except for genuine excitement, which is rare.
-- Never use the "not this, but that" construction. It is the clearest tell of machine writing.
-- No tips, secrets, or hacks framing. No unsourced statistics.
-- Specific over universal: "a weekly clarifying wash", not "personalised hair care".
-- Two or three short paragraphs unless a full routine is asked for.
-
-EVEN-HANDEDNESS
-No hair type is the default and none is the niche being accommodated. Never imply curlier is harder, straighter is easier, natural is better, relaxed is worse, long is the goal, or short is a phase. Never frame anything as before-and-after, which implies a deficit.
-
-WHAT YOU KNOW
-Hair types 1A–4C on the Andre Walker scale. Porosity: low cuticles lie flat so water beads and product sits on the surface. Lighter formulas, warmth to open the cuticle. High porosity absorbs and loses water quickly. Heavier sealing, protein in balance. Medium sits between the two.
-
-Common concerns and what actually addresses them: dryness (layering order, deep conditioning frequency, checking porosity first), frizz (sealing after moisture, hands off while drying), breakage (protein and moisture balance, gentler detangling, protective styling), shrinkage in coilier patterns (banding or stretching: it is a sign of elasticity, not damage), buildup (clarifying wash).
-
-Ingredients: sulfates cleanse hard and can strip drier textures. Non-water-soluble silicones build up without a clarifying wash. Hydrolysed proteins strengthen but stiffen if overused. Humectants like glycerin draw in moisture, which works against you in very dry or very humid air.
-
-MEDICAL BOUNDARY
-You do not diagnose. Sudden shedding, bald patches, scalp pain, or anything that seems medical goes to a GP, dermatologist, or trichologist. Say so plainly and without alarm.`;
-
-// Only products that come back from the database may be named.
-function buildSystemPrompt(hairType: string, products: any[]): string {
-  let prompt = VOICE;
-
-  if (hairType) {
-    prompt += `\n\nTHIS PERSON\nHair type ${hairType}. Tailor everything to it. Do not give generic advice that would suit anyone.`;
-  }
-
-  if (products.length > 0) {
-    const lines = products
-      .map(p => `- ${p.brand} ${p.name} (${p.category}, ${p.price}, ${p.retailer}): ${p.why_it_works}`)
-      .join('\n');
-    prompt += `\n\nPRODUCTS YOU MAY RECOMMEND\nThese are real products stocked in the app for this hair type:\n${lines}\n\nRecommend only from this list. Name the brand and product exactly as written. Never invent a product, a brand, or a Halea-branded range: no such range exists. If nothing here fits what they asked, say so, then describe what to look for by category and ingredient so they can choose for themselves.`;
-  } else {
-    prompt += `\n\nPRODUCTS\nYou have no product list for this person. Do not name specific products or brands from memory. Formulations change and you will get it wrong. Describe what to look for by category and ingredient instead.`;
-  }
-
-  return prompt;
-}
 
 // ── Personalised chips by hair type ──────────────────────────────
 const CHIPS_BY_TYPE: Record<string, { label: string }[]> = {
@@ -311,24 +264,11 @@ export default function AIChatScreen() {
   const router = useRouter();
   const openTryOn = () => { setShowAttachMenu(false); router.push('/hairtransfer'); };
 
-  const [products, setProducts] = useState<any[]>([]);
-
   useEffect(() => {
-    AsyncStorage.getItem('halea_quiz').then(async raw => {
+    AsyncStorage.getItem('halea_quiz').then(raw => {
       if (!raw) return;
-      const ht = JSON.parse(raw).hairType || '';
-      setHairType(ht);
-      if (!ht) return;
-
-      // Ground recommendations in the products table rather than the
-      // model's memory, which invents brands and stale formulations.
-      const { data } = await supabase
-        .from('products')
-        .select('brand, name, category, price, retailer, why_it_works')
-        .contains('hair_types', [ht.charAt(0)])
-        .limit(12);
-      if (data) setProducts(data);
-    });
+      setHairType(JSON.parse(raw).hairType || '');
+    }).catch(() => {});
   }, []);
 
   const scrollToBottom = useCallback(() => {
@@ -363,19 +303,18 @@ export default function AIChatScreen() {
           'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
-          system: buildSystemPrompt(hairType, products),
+          hairType,
           messages: newHistory.slice(-10),
         }),
       });
 
-      if (response.status === 429) throw new Error('Give me a few seconds, then ask again.');
       if (!response.ok) {
-        // In test builds, show the real reason so the chat can be fixed. Users never see this.
-        if (__DEV__) {
-          const detail = await response.text().catch(() => '');
-          throw new Error(`Chat error ${response.status}: ${detail || 'no details'}`);
+        const detail = await response.json().catch(() => null);
+        // In test builds, show the real reason so problems can be fixed. Users see a friendly line.
+        if (__DEV__ && response.status >= 500) {
+          throw new Error(`Chat error ${response.status}: ${detail?.error || 'no details'}`);
         }
-        throw new Error('I had trouble with that one. Try again?');
+        throw new Error(detail?.error || 'I had trouble with that one. Try again?');
       }
 
       const data = await response.json();
@@ -390,7 +329,7 @@ export default function AIChatScreen() {
       setLoading(false);
       scrollToBottom();
     }
-  }, [input, loading, history, hairType, products, scrollToBottom]);
+  }, [input, loading, history, hairType, scrollToBottom]);
 
   // ── Ingredient scan ─────────────────────────────────────────────
   const handleIngredientScan = useCallback(async () => {

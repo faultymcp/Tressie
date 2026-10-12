@@ -106,8 +106,6 @@ export default function RootLayout() {
         <Stack.Screen name="index" options={{ animation: 'fade' }} />
         <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
         <Stack.Screen name="auth" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="account-type" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="business" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="stylist" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="pro/[id]" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="quiz" options={{ animation: 'slide_from_right', gestureEnabled: false }} />
@@ -117,12 +115,7 @@ export default function RootLayout() {
 
         {/* ── Sub-screens (push on top of tabs) ── */}
         <Stack.Screen name="settings" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="subscription" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="wallet" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="favourites" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="xp-rewards" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="referral" options={{ animation: 'slide_from_right' }} />
-        <Stack.Screen name="bookings" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="privacy" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="help" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="hairtransfer" options={{ animation: 'slide_from_bottom', presentation: 'modal' }} />

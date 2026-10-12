@@ -13,7 +13,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const IC = {
   Back: () => <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke={Colors.ink} strokeWidth={2} strokeLinecap="round"><Path d="M19 12H5M12 19l-7-7 7-7" /></Svg>,
   Bell: () => <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={Colors.ink} strokeWidth={1.6} strokeLinecap="round"><Path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" /><Path d="M13.73 21a2 2 0 01-3.46 0" /></Svg>,
-  Moon: () => <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={Colors.ink} strokeWidth={1.6} strokeLinecap="round"><Path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" /></Svg>,
   Globe: () => <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={Colors.ink} strokeWidth={1.6} strokeLinecap="round"><Circle cx="12" cy="12" r="10" /><Path d="M2 12h20" /><Path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" /></Svg>,
   User: () => <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={Colors.ink} strokeWidth={1.6} strokeLinecap="round"><Path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><Circle cx="12" cy="7" r="4" /></Svg>,
   Lock: () => <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={Colors.ink} strokeWidth={1.6} strokeLinecap="round"><Rect x="3" y="11" width="18" height="11" rx="2" /><Path d="M7 11V7a5 5 0 0110 0v4" /></Svg>,
@@ -80,7 +79,6 @@ export default function SettingsScreen() {
   const [pushTips, setPushTips] = useState(true);
   const [pushPromo, setPushPromo] = useState(false);
   const [pushBooking, setPushBooking] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -106,7 +104,7 @@ export default function SettingsScreen() {
   const handleDeleteAccount = () => {
     Alert.alert(
       'Delete Account',
-      'This will permanently delete your account, all your data, hair profile, XP, wallet balance, and bookings. This action cannot be undone.',
+      'This will permanently delete your account and all your data, including your hair profile, routines, favourites and chat history. This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Delete', style: 'destructive', onPress: async () => {
@@ -165,7 +163,6 @@ export default function SettingsScreen() {
         {/* Appearance */}
         <SectionLabel>Appearance</SectionLabel>
         <View style={st.card}>
-          <ToggleRow icon={<IC.Moon />} label="Dark mode" sublabel="Coming soon" value={darkMode} onToggle={setDarkMode} />
           <NavRow icon={<IC.Globe />} label="Language" right="English (UK)" onPress={() => {}} last />
         </View>
 

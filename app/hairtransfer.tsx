@@ -129,16 +129,6 @@ export default function HairTransferScreen() {
 
       setProgress('Almost ready...');
 
-      // Award XP for using try-on
-      try {
-        await supabase.rpc('award_xp', {
-          p_user_id: (await supabase.auth.getUser()).data.user?.id,
-          p_action: 'ai_try_on',
-          p_reference_id: null,
-          p_description: 'Used AI hair try-on',
-          p_override_amount: null,
-        });
-      } catch (e) {}
 
       setResult(data.output_url || data.output);
       setStage('result');
