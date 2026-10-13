@@ -99,7 +99,7 @@ export default function HairTransferScreen() {
       const selfieBase64 = await fetchAsBase64(selfie);
       const refBase64 = await fetchAsBase64(reference);
 
-      setProgress('AI is generating your new look...');
+      setProgress('Creating your new look...');
 
       // Call Replicate API via Edge Function (to keep API key server-side)
       const { data: { session } } = await supabase.auth.getSession();
@@ -180,7 +180,7 @@ export default function HairTransferScreen() {
         <ScrollView contentContainerStyle={st.scroll} showsVerticalScrollIndicator={false}>
           <Animated.View >
             <Text style={st.heroTitle}>See yourself with a new style</Text>
-            <Text style={st.heroSub}>Upload your selfie and a reference hairstyle. Our AI generates a 4K image of you with that look.</Text>
+            <Text style={st.heroSub}>Add a selfie and a photo of a style you love, and see yourself wearing it.</Text>
             <Text style={st.privacyNote}>Your photos are used only to create your look and aren't saved to your Halea account.</Text>
           </Animated.View>
 

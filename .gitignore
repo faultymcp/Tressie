@@ -44,5 +44,8 @@ yarn-error.*
 # OS
 .DS_Store
 Thumbs.db
-*.pem"*.zip" 
+*.pem
+*.zip
+*.bundle
+cosing-clean.csv
 .launch-backup/

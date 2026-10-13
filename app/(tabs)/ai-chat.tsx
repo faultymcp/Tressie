@@ -8,7 +8,6 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Polygon, Line, Path, Rect, Circle } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Colors, Fonts, Radius, Motion } from '@/constants/theme';
@@ -21,7 +20,29 @@ import { LightRays, RadiantCore } from '@/components/RadiantLight';
 // ── Mistral, via the mistral-proxy Edge Function ─────────────────
 // The API key lives in Supabase secrets, never in the app bundle.
 const CHAT_URL = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/mistral-proxy`;
-const OPEN_FOOD_FACTS_URL = 'https://world.openfoodfacts.org/api/v0/product';
+// Product and ingredient facts: the ingredient-lookup Edge Function (Open Beauty
+// Facts for barcodes, Halea's notes and EU CosIng for ingredients). No AI.
+const INGREDIENTS_URL = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/ingredient-lookup`;
+
+// Turns the ingredient-lookup result into one Halea message. Every sentence
+// comes from the lookup, so nothing is made up.
+function formatLookup(data: any): string {
+  const p = data?.product;
+  const lines: string[] = [p?.name ? `**${p.name}**${p.brand ? ` by ${p.brand}` : ''}` : '**Your ingredient list**', ''];
+  for (const note of data?.notes ?? []) lines.push(`• ${note}`);
+  if (data?.notes?.length) lines.push('');
+  lines.push('**The main ingredients**');
+  for (const i of (data?.ingredients ?? []).slice(0, 5)) {
+    const what = i.what_it_does
+      ?? (i.cosing_functions ? `Official function: ${String(i.cosing_functions).toLowerCase()}.` : "I don't have a note on this one yet.");
+    const fit = i.fit === 'caution' ? ' One to watch for your hair.' : '';
+    lines.push(`• **${i.label}**: ${what}${fit}`);
+  }
+  lines.push('');
+  lines.push(`I can explain ${data?.explained ?? 0} of the ${data?.total ?? 0} ingredients. Ask me about any of them.`);
+  if (data?.attribution) lines.push(data.attribution);
+  return lines.join('\n');
+}
 
 // The assistant's voice, rules and product list live in the mistral-proxy
 // function on the server. The app only sends the conversation and hair type.
@@ -58,15 +79,6 @@ function IconSend() {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
       <Line x1="22" y1="2" x2="11" y2="13" /><Polygon points="22 2 15 22 11 13 2 9 22 2" />
-    </Svg>
-  );
-}
-
-function IconCamera({ color = Colors.violet }: { color?: string }) {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
-      <Circle cx="12" cy="13" r="4" />
     </Svg>
   );
 }
@@ -194,7 +206,7 @@ function BarcodeScannerModal({ visible, onClose, onScanned }: { visible: boolean
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={st.scanModal}>
         <View style={st.scanHeader}>
-          <Text style={st.scanTitle}>Scan Product Barcode</Text>
+          <Text style={st.scanTitle}>Scan a product barcode</Text>
           <Pressable onPress={onClose} style={st.scanClose}>
             <Text style={{ color: '#fff', fontSize: 18 }}>✕</Text>
           </Pressable>
@@ -230,9 +242,9 @@ function AttachMenu({ onTryOn, onIngredientScan, onBarcodeScan, onDocument }: { 
     <Animated.View style={st.attachMenu}>
       {[
         { icon: <IconStyle />, label: 'Try a Style On', sub: 'Your photo plus a look you like', onPress: onTryOn },
-        { icon: <IconCamera />, label: 'Scan Ingredients', sub: 'Photo of product label', onPress: onIngredientScan },
+        { icon: <IconDoc />, label: 'Check ingredients', sub: 'Paste the list from the label', onPress: onIngredientScan },
         { icon: <IconBarcode />, label: 'Scan Barcode', sub: 'Look up product by barcode', onPress: onBarcodeScan },
-        { icon: <IconDoc />, label: 'Upload Document', sub: 'PDF or text file (max 5MB)', onPress: onDocument },
+        { icon: <IconDoc />, label: 'Upload a note', sub: 'Text file (max 5MB)', onPress: onDocument },
       ].map((item, i) => (
         <View key={item.label}>
           {i > 0 && <View style={st.attachDivider} />}
@@ -258,6 +270,10 @@ export default function AIChatScreen() {
   const [error, setError] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [hairType, setHairType] = useState('');
+  const [porosity, setPorosity] = useState<'low' | 'high' | undefined>();
+  // After "Check ingredients" or a barcode we don't know, the next message
+  // that looks like a list goes to the ingredient lookup instead of the chat.
+  const [awaitingIngredients, setAwaitingIngredients] = useState(false);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const listRef = useRef<FlatList>(null);
@@ -267,7 +283,9 @@ export default function AIChatScreen() {
   useEffect(() => {
     AsyncStorage.getItem('halea_quiz').then(raw => {
       if (!raw) return;
-      setHairType(JSON.parse(raw).hairType || '');
+      const quiz = JSON.parse(raw);
+      setHairType(quiz.hairType || '');
+      if (quiz.porosity === 'low' || quiz.porosity === 'high') setPorosity(quiz.porosity);
     }).catch(() => {});
   }, []);
 
@@ -275,10 +293,60 @@ export default function AIChatScreen() {
     setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 80);
   }, []);
 
+  // ── Ingredients: barcode or pasted list ────────────────────────
+  const addHaleaMessage = useCallback((text: string, remember = true) => {
+    setMessages(prev => [...prev, { id: `a_${Date.now()}`, role: 'assistant', text }]);
+    if (remember) setHistory(prev => [...prev, { role: 'assistant', content: text }]);
+    scrollToBottom();
+  }, [scrollToBottom]);
+
+  const lookUpIngredients = useCallback(async (body: { barcode?: string; ingredients_text?: string }, label: string) => {
+    setError(null);
+    setShowSuggestions(false);
+    setShowAttachMenu(false);
+    setMessages(prev => [...prev, { id: `u_${Date.now()}`, role: 'user', text: label }]);
+    setLoading(true);
+    scrollToBottom();
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Please sign in first.');
+      const res = await fetch(INGREDIENTS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+        body: JSON.stringify({ ...body, porosity }),
+      });
+      const data = await res.json().catch(() => null);
+      if (data?.not_found || data?.missing_ingredients) {
+        setAwaitingIngredients(true);
+        addHaleaMessage(data.not_found
+          ? "I don't know this product yet. Paste its ingredient list here and I'll go through it."
+          : "I found the product but not its ingredient list. Paste the list here and I'll go through it.", false);
+        return;
+      }
+      if (!res.ok || !data) throw new Error(data?.error || 'I had trouble with that one. Try again?');
+      setHistory(prev => [...prev, { role: 'user', content: label.slice(0, 2000) }]);
+      addHaleaMessage(formatLookup(data));
+    } catch (err: any) {
+      setError(err.message ?? 'Something went wrong. Try again.');
+    } finally {
+      setLoading(false);
+      scrollToBottom();
+    }
+  }, [porosity, scrollToBottom, addHaleaMessage]);
+
   // ── Core send ───────────────────────────────────────────────────
   const sendMessage = useCallback(async (text?: string, attachment?: { type: 'image' | 'document'; name: string }) => {
     const trimmed = (text ?? input).trim();
     if (!trimmed || loading) return;
+
+    if (awaitingIngredients) {
+      setAwaitingIngredients(false);
+      if ((trimmed.match(/,/g) || []).length >= 3) {
+        setInput('');
+        lookUpIngredients({ ingredients_text: trimmed }, trimmed);
+        return;
+      }
+    }
 
     setError(null);
     setShowSuggestions(false);
@@ -324,90 +392,28 @@ export default function AIChatScreen() {
       setMessages(prev => [...prev, { id: `a_${Date.now()}`, role: 'assistant', text: replyText }]);
       setHistory([...newHistory, { role: 'assistant', content: replyText }]);
     } catch (err: any) {
-      setError(err.message ?? 'Something went wrong. Try again!');
+      setError(err.message ?? 'Something went wrong. Try again.');
     } finally {
       setLoading(false);
       scrollToBottom();
     }
-  }, [input, loading, history, hairType, scrollToBottom]);
+  }, [input, loading, history, hairType, scrollToBottom, awaitingIngredients, lookUpIngredients]);
 
-  // ── Ingredient scan ─────────────────────────────────────────────
-  const handleIngredientScan = useCallback(async () => {
-    Alert.alert(
-      'Scan Ingredients',
-      'How would you like to capture the ingredient label?',
-      [
-        {
-          text: 'Take a photo',
-          onPress: async () => {
-            const { status } = await ImagePicker.requestCameraPermissionsAsync();
-            if (status !== 'granted') { Alert.alert('Permission needed', 'Please allow camera access.'); return; }
-            const result = await ImagePicker.launchCameraAsync({
-              mediaTypes: ['images'],
-              allowsEditing: true,
-              quality: 0.8,
-            });
-            if (result.canceled) return;
-            setShowAttachMenu(false);
-            sendMessage(
-              "I've taken a photo of a hair product ingredient list. Please analyse these ingredients for my hair type. Tell me what's good, what to watch out for, and whether this product is suitable for me.",
-              { type: 'image', name: 'Ingredient Photo' }
-            );
-          },
-        },
-        {
-          text: 'Choose from gallery',
-          onPress: async () => {
-            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-            if (status !== 'granted') { Alert.alert('Permission needed', 'Please allow photo access.'); return; }
-            const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
-            if (result.canceled) return;
-            setShowAttachMenu(false);
-            sendMessage(
-              "I've uploaded a photo of a hair product ingredient list. Please analyse these ingredients for my hair type. Tell me what's good, what to watch out for, and whether this product is suitable for me.",
-              { type: 'image', name: 'Ingredient Label' }
-            );
-          },
-        },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
-  }, [sendMessage]);
-
-  // ── Barcode scan ────────────────────────────────────────────────
-  const handleBarcodeScanned = useCallback(async (barcode: string) => {
-    setLoading(true);
+  const handleIngredientScan = useCallback(() => {
+    setShowAttachMenu(false);
     setShowSuggestions(false);
-    try {
-      const response = await fetch(`${OPEN_FOOD_FACTS_URL}/${barcode}.json`);
-      const data = await response.json();
-      if (data.status === 0) {
-        sendMessage(`I scanned barcode ${barcode} but couldn't find the product. What should I look for in a good hair product?`);
-        return;
-      }
-      const p = data.product;
-      const name = p.product_name || 'Unknown Product';
-      const brand = p.brands || '';
-      const ingredients = p.ingredients_text || p.ingredients_text_en || '';
-      if (!ingredients) {
-        sendMessage(`I scanned "${name}" by ${brand} but the ingredient list wasn't available. What should I look for in hair products?`);
-        return;
-      }
-      sendMessage(
-        `I just scanned **${name}** by ${brand}. Here are the ingredients:\n\n${ingredients}\n\nCan you analyse these for my hair type and tell me if this product is suitable?`,
-        { type: 'image', name: `Scanned: ${name}` }
-      );
-    } catch {
-      sendMessage(`I scanned a product barcode. What ingredients should I look for in a good hair product for my hair type?`);
-    } finally {
-      setLoading(false);
-    }
-  }, [sendMessage]);
+    setAwaitingIngredients(true);
+    addHaleaMessage("Paste or type the ingredient list from the back of the product, and I'll go through it.", false);
+  }, [addHaleaMessage]);
+
+  const handleBarcodeScanned = useCallback((barcode: string) => {
+    lookUpIngredients({ barcode }, 'Scanned a product barcode');
+  }, [lookUpIngredients]);
 
   // ── Document upload ─────────────────────────────────────────────
   const handleDocumentUpload = useCallback(async () => {
     try {
-      const result = await DocumentPicker.getDocumentAsync({ type: ['text/plain', 'application/pdf'], copyToCacheDirectory: true });
+      const result = await DocumentPicker.getDocumentAsync({ type: ['text/plain'], copyToCacheDirectory: true });
       if (result.canceled || !result.assets[0]) return;
       const file = result.assets[0];
       if (file.size && file.size > 5 * 1024 * 1024) { Alert.alert('File too large', 'Please upload a file smaller than 5MB.'); return; }

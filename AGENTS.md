@@ -27,6 +27,7 @@ Vyshnavi, the CTO, building Halea mostly alone.
   - `mistral-proxy`: the Halea chat (Mistral). Builds the assistant's instructions and product list on the server; 40 messages per user per day. Key stored as a Supabase secret.
   - `ai-tryon`: hair try-on via Replicate (Nano Banana Pro, 2K). Free with limits, see below.
   - `delete-account`: real account deletion (Apple requires it).
+  - `ingredient-lookup`: explains a product's ingredients from a barcode or a pasted list. Facts only from Open Beauty Facts, EU CosIng and Halea's own notes (`ingredients` table), no AI. Used by "Scan a barcode" and "Check ingredients" in the chat. See `docs/INGREDIENTS.md`.
   - Face scan: on-device ML Kit (`@react-native-ml-kit/face-detection`) in `app/face-scan.tsx` + `lib/faceScan.ts`. The photo never leaves the phone.
 - Builds: EAS (`eas.json`). The app needs a development build, not Expo Go (face scan, Rive and blur are native).
 
@@ -51,6 +52,8 @@ Type-check with `npx tsc --noEmit`. Known pre-existing error: `components/QuizSe
 6. **Don't guess skin tone from photos.** Users pick their undertone. Lighting makes photo guesses wrong, worst on dark skin.
 7. **Test on the real Android phone** before calling something done. Her phone is slow; if it lags there, it needs fixing.
 8. When you finish a change, give her the exact commands to run, one per line, nothing she has to edit.
+9. **No pretend features.** If a button says it reads a photo or looks something up, it must really do that. Never send the chat model a request about data it can't see.
+10. **The GitHub repo must stay private.** Old commits contain API keys.
 
 ## Design system
 
@@ -69,13 +72,15 @@ Type-check with `npx tsc --noEmit`. Known pre-existing error: `components/QuizSe
 
 3 per phone per day, 3 per account per day, 300 per day for the whole app (about $40 worst case), 2K resolution. The phone is identified by `lib/deviceId.ts` so extra email accounts don't reset the count. Change the numbers at the top of the function and redeploy; no app update needed.
 
-## Where things stand (12 Oct 2026, evening)
+## Where things stand (13 Oct 2026)
 
 Done: face scan + merged onboarding (name → scan → quiz), subscription and wallet removed from Profile, free try-on with limits, real account deletion, terms/privacy links pointing at lumaraelabs.com, Android dev build working, design polish (wordmark reveal, glass nav, lavender, slower orbs), new icon, agent guides. Sign-in emails go through Brevo SMTP (free tier, about 300 emails a day).
 
 Decided 12 Oct: XP, rewards, referrals and bookings are cut from v1 (nothing real behind them yet). The app is dark-only, so there is no dark mode setting. The day streak stays (it's real).
 
 Done 12 Oct: database security (RLS on every user table, salon and booking inserts closed; SQL in `supabase/sql/2026-10-12_chat_limits_and_security.sql`), chat moved server-side with a 40-messages-a-day cap (`chat_usage` table), reviewer password login for `appreview@lumaraelabs.com` only (account created by hand in Supabase; password lives in App Store Connect, never in git), iPhone save-photo permission, XP/referral/bookings/dark-mode/wallet/subscription/business screens and Stripe code removed, unused packages removed. Needs a new dev build because `app.json` plugins changed.
+
+Done 13 Oct: the chat's barcode scanner now uses `ingredient-lookup` (Open Beauty Facts) instead of the food database. The fake "photo of ingredient label" option (it never sent the photo) is replaced by "Check ingredients" (paste the list). Try-on copy no longer says "AI" or "4K". Ingredient tables and 155 notes: `supabase/sql/2026-10-13_ingredients.sql`; the CosIng list is imported by hand from `cosing-clean.csv` (not in git).
 
 ### Launch to-do (in order, one item per session)
 
@@ -87,6 +92,7 @@ Done 12 Oct: database security (RLS on every user table, salon and booking inser
 **Day 1 to 2: close the money and crash holes**
 - [x] **Chat on the server.** `mistral-proxy` currently accepts any system prompt from the app, with no limit, so anyone signed in could use our Mistral account for anything. Move the system prompt into the function (the app sends only the user's messages and hair type), and add a daily cap per user (for example 40 messages) using a small table, like `ai-tryon` does. Friendly message when the cap is hit.
 - [ ] **Fix the chat error** if it still fails after this (dev builds show `Chat error <status>: ...`).
+- [ ] **Repo private and old keys revoked.** The repo was public and early commits contain Replicate, Gemini, Groq, Hugging Face and Together keys. Make it private and revoke those keys; give `ai-tryon` a fresh Replicate token.
 - [x] **Saving photos on iPhone.** Add the `expo-media-library` plugin to `app.json` with a "save photos" permission sentence, or saving a try-on crashes on iOS.
 
 **Day 2: cut what isn't real**
@@ -110,6 +116,10 @@ Done 12 Oct: database security (RLS on every user table, salon and booking inser
 - [ ] **Home cleanup.** Keep the week strip and routine ring; no XP pop-ups.
 - [ ] **Chat screen.** Choose either the light rays or the glowing core, not both.
 - [ ] **Screen-by-screen polish** from Vyshnavi's phone screenshots.
+
+**Before submission: real stylists without an app update**
+- [ ] Move stylists from `constants/stylists.ts` into a Supabase `stylists` table (public read, only we write) and have Discover and the stylist page read from it, so new stylists appear the moment they're added.
+- [ ] Decide the final bundle ID before the first store build (`com.halea.app` may already be taken on Apple; `com.lumaraelabs.halea` is ours for sure). It can't change after release.
 
 **When the Apple account exists**
 - [ ] iPhone build, TestFlight with 15 to 20 testers for a few days.

@@ -18,8 +18,10 @@ import {
   keyOf, type HaleaIngredient, type Porosity,
 } from './parse.ts';
 
-// Open Beauty Facts asks every app to identify itself. Use a real inbox.
-const USER_AGENT = 'Halea/1.0 (hello@lumaraelabs.com)';
+// Open Beauty Facts asks every app to identify itself as AppName/Version (ContactEmail).
+// The email is a Supabase secret so it never sits in the code:
+//   npx supabase secrets set OBF_CONTACT=you@example.com
+const USER_AGENT = `Halea/1.0 (${Deno.env.get('OBF_CONTACT') ?? 'no-contact-set'})`;
 const ATTRIBUTION = 'Product data from Open Beauty Facts (openbeautyfacts.org), available under the Open Database Licence.';
 
 const json = (body: unknown, status = 200) =>
