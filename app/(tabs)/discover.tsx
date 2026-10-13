@@ -1,19 +1,19 @@
 // app/(tabs)/discover.tsx
 // Discover = stylists' work. Each card is a swipeable set of a stylist's
 // photos; tap to open their full profile. Products moved to their own tab.
-// Profiles are SAMPLES (constants/stylists.ts) until real stylists join
-// through the application form. Every card says so.
+// Stylists come from Supabase (lib/stylists.ts), so new ones appear without an
+// app update. Sample profiles are marked as samples on every card.
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Dimensions } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { Colors, Fonts } from '@/constants/theme';
 import { FluidOrb } from '@/components/FluidOrb';
 import { PhotoCarousel } from '@/components/PhotoCarousel';
-import { STYLISTS, Stylist } from '@/constants/stylists';
+import { fetchStylists, Stylist } from '@/lib/stylists';
 
 const { width: W } = Dimensions.get('window');
 const CARD_W = W - 40;
@@ -22,6 +22,15 @@ const PHOTO_H = Math.round(CARD_W * 1.1);
 export default function DiscoverScreen() {
   const router = useRouter();
   const [typeGroup, setTypeGroup] = useState('');
+  const [stylists, setStylists] = useState<Stylist[] | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  // Reload whenever the tab is opened, so newly added stylists show up.
+  useFocusEffect(useCallback(() => {
+    fetchStylists()
+      .then(list => { setStylists(list); setFailed(false); })
+      .catch(() => setFailed(true));
+  }, []));
 
   useEffect(() => {
     AsyncStorage.getItem('halea_quiz').then(raw => {
@@ -31,7 +40,7 @@ export default function DiscoverScreen() {
   }, []);
 
   // Stylists who work with this person's hair type come first.
-  const ordered = [...STYLISTS].sort((a, b) => {
+  const ordered = [...(stylists ?? [])].sort((a, b) => {
     const ma = typeGroup && a.hairTypes.includes(`Type ${typeGroup}`) ? 0 : 1;
     const mb = typeGroup && b.hairTypes.includes(`Type ${typeGroup}`) ? 0 : 1;
     return ma - mb;
@@ -76,9 +85,15 @@ export default function DiscoverScreen() {
           </Animated.View>
         ))}
 
-        <Text style={st.footnote}>
-          Sample profiles shown while stylist applications open. Photos via Unsplash.
-        </Text>
+        {failed && !stylists ? (
+          <Text style={st.footnote}>We couldn't load stylists. Check your connection and open this tab again.</Text>
+        ) : null}
+
+        {ordered.some(s => s.sample) ? (
+          <Text style={st.footnote}>
+            Sample profiles shown while stylist applications open. Photos via Unsplash.
+          </Text>
+        ) : null}
       </ScrollView>
     </View>
   );

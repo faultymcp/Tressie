@@ -1,8 +1,9 @@
 // app/pro/[id].tsx
 // A stylist's own page: their photos, what they do, and more of their work.
 // Sample profiles say so, and the booking button is honest about it:
-// bookings open once a stylist actually joins.
+// real stylists' button opens their own booking page or Instagram.
 
+import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Image, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -11,7 +12,8 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { Colors, Fonts } from '@/constants/theme';
 import { FluidOrb } from '@/components/FluidOrb';
 import { PhotoCarousel } from '@/components/PhotoCarousel';
-import { getStylist } from '@/constants/stylists';
+import * as WebBrowser from 'expo-web-browser';
+import { fetchStylist, Stylist } from '@/lib/stylists';
 
 const { width: W } = Dimensions.get('window');
 const GRID_GAP = 8;
@@ -20,9 +22,15 @@ const TILE = Math.floor((W - 40 - GRID_GAP) / 2);
 export default function StylistProfile() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const s = getStylist(String(id));
+  const [s, setS] = useState<Stylist | null | undefined>(undefined); // undefined = loading
+
+  useEffect(() => {
+    fetchStylist(String(id)).then(setS).catch(() => setS(null));
+  }, [id]);
 
   const back = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/discover'));
+
+  if (s === undefined) return <View style={st.container} />;
 
   if (!s) {
     return (
@@ -81,11 +89,16 @@ export default function StylistProfile() {
 
       <View style={st.footer}>
         <Pressable
-          disabled={s.sample}
-          onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {})}
-          style={[st.btn, s.sample && st.btnOff]}
+          disabled={s.sample || !s.bookingUrl}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+            if (s.bookingUrl) WebBrowser.openBrowserAsync(s.bookingUrl).catch(() => {});
+          }}
+          style={[st.btn, (s.sample || !s.bookingUrl) && st.btnOff]}
         >
-          <Text style={st.btnText}>{s.sample ? 'Bookings open when stylists join' : 'Request a booking'}</Text>
+          <Text style={st.btnText}>
+            {s.sample ? 'Bookings open when stylists join' : s.bookingUrl ? `Book with ${s.name.split(' ')[0]}` : 'Booking details coming soon'}
+          </Text>
         </Pressable>
       </View>
     </View>

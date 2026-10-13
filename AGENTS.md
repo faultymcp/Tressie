@@ -118,7 +118,7 @@ Done 13 Oct: the chat's barcode scanner now uses `ingredient-lookup` (Open Beaut
 - [ ] **Screen-by-screen polish** from Vyshnavi's phone screenshots.
 
 **Before submission: real stylists without an app update**
-- [ ] Move stylists from `constants/stylists.ts` into a Supabase `stylists` table (public read, only we write) and have Discover and the stylist page read from it, so new stylists appear the moment they're added.
+- [x] Stylists live in the Supabase `stylists` table (`supabase/sql/2026-10-14_stylists.sql`, read via `lib/stylists.ts`). Add a stylist in Table Editor; photos go in the public `stylist-photos` Storage bucket; `booking_url` powers the Book button. Hide the 4 samples (`published = false`) once real stylists are in.
 - [ ] Decide the final bundle ID before the first store build (`com.halea.app` may already be taken on Apple; `com.lumaraelabs.halea` is ours for sure). It can't change after release.
 
 **When the Apple account exists**
