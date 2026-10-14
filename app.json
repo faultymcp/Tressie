@@ -51,6 +51,12 @@
           "savePhotosPermission": "Halea saves your try-on looks to your photos when you tap Save.",
           "isAccessMediaLocationEnabled": false
         }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/"
+        }
       ]
     ],
     "experiments": {

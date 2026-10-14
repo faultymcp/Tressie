@@ -14,6 +14,7 @@ import { Colors, Fonts } from '@/constants/theme';
 import { FluidOrb } from '@/components/FluidOrb';
 import { PhotoCarousel } from '@/components/PhotoCarousel';
 import { fetchStylists, Stylist } from '@/lib/stylists';
+import { track } from '@/lib/analytics';
 
 const { width: W } = Dimensions.get('window');
 const CARD_W = W - 40;
@@ -48,6 +49,7 @@ export default function DiscoverScreen() {
 
   const open = (s: Stylist) => {
     Haptics.selectionAsync().catch(() => {});
+    track('stylist_opened', { sample: s.sample });
     router.push(`/pro/${s.id}`);
   };
 

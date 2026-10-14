@@ -14,6 +14,7 @@ import JourneyMap, { Phase } from '@/components/JourneyMap';
 import {
   CuticleStrands,
 } from '@/components/InterstitialVisuals';
+import { track } from '@/lib/analytics';
 
 // ════════════════════════════════════════════════════════════════
 // Voice: Halea speaks like a Black woman in her thirties who has
@@ -538,6 +539,7 @@ export default function QuizScreen() {
       time_budget: answers.time_budget || 'short',
     };
     await AsyncStorage.setItem('halea_quiz', JSON.stringify(quizResults));
+    track('onboarding_finished');
 
     // Clear in-progress save now that we have a completed result.
     await AsyncStorage.removeItem(PROGRESS_KEY).catch(() => {});

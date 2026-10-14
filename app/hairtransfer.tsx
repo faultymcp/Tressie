@@ -12,6 +12,7 @@ import { Colors, Fonts, Radius } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { getDeviceId } from '@/lib/deviceId';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { track } from '@/lib/analytics';
 
 const IC = {
   Back: () => <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke={Colors.ink} strokeWidth={2} strokeLinecap="round"><Path d="M19 12H5M12 19l-7-7 7-7" /></Svg>,
@@ -132,6 +133,7 @@ export default function HairTransferScreen() {
 
       setResult(data.output_url || data.output);
       setStage('result');
+      track('tryon_done');
     } catch (err: any) {
       console.log('Try-on error:', err);
       Alert.alert('Try-on', err.message || 'Something went wrong. Please try again.');

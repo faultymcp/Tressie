@@ -9,6 +9,7 @@ import { Colors, Fonts, Radius } from '@/constants/theme';
 import { FluidOrb } from '@/components/FluidOrb';
 import { supabase } from '@/lib/supabase';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { track } from '@/lib/analytics';
 
 // ─── Icons ───────────────────────────────────────────────────────
 function IconArrowRight() {
@@ -138,7 +139,7 @@ export default function ProductsScreen() {
           <View style={st.prodList}>
             {filteredProducts.map((p, i) => (
               <Animated.View key={p.id} entering={FadeInUp.duration(280).delay(Math.min(i, 8) * 30)}>
-                <Pressable onPress={() => Linking.openURL(p.url)} style={st.prodCard}>
+                <Pressable onPress={() => { track('product_tapped', { product_id: String(p.id) }); Linking.openURL(p.url); }} style={st.prodCard}>
                   <View style={st.prodTop}>
                     <View style={{ flex: 1 }}>
                       <Text style={st.prodBrand}>{p.brand}</Text>

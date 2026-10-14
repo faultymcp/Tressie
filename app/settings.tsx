@@ -8,6 +8,7 @@ import { Colors, Fonts, Radius } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { deleteMyAccount } from '@/lib/deleteAccount';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { analyticsOn, setAnalyticsOn } from '@/lib/analytics';
 
 // ─── Icons ───────────────────────────────────────────────────────
 const IC = {
@@ -79,6 +80,7 @@ export default function SettingsScreen() {
   const [pushTips, setPushTips] = useState(true);
   const [pushPromo, setPushPromo] = useState(false);
   const [pushBooking, setPushBooking] = useState(true);
+  const [usageData, setUsageData] = useState(analyticsOn());
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -176,6 +178,7 @@ export default function SettingsScreen() {
         {/* Data & Privacy */}
         <SectionLabel>Data & Privacy</SectionLabel>
         <View style={st.card}>
+          <ToggleRow icon={<IC.Eye />} label="Share anonymous usage data" sublabel="Helps us see which features people use. No names, emails or photos." value={usageData} onToggle={v => { setUsageData(v); setAnalyticsOn(v); }} />
           <NavRow icon={<IC.Download />} label="Export my data" sublabel="Download a copy of your data" onPress={handleExportData} />
           <NavRow icon={<IC.Trash />} label="Delete account" destructive onPress={handleDeleteAccount} last />
         </View>

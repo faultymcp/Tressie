@@ -16,6 +16,7 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { HaloBackground } from '@/components/HaloBackground';
 import { LightRays, RadiantCore } from '@/components/RadiantLight';
+import { track } from '@/lib/analytics';
 
 // ── Mistral, via the mistral-proxy Edge Function ─────────────────
 // The API key lives in Supabase secrets, never in the app bundle.
@@ -326,6 +327,7 @@ export default function AIChatScreen() {
       if (!res.ok || !data) throw new Error(data?.error || 'I had trouble with that one. Try again?');
       setHistory(prev => [...prev, { role: 'user', content: label.slice(0, 2000) }]);
       addHaleaMessage(formatLookup(data));
+      track('ingredients_checked', { source: body.barcode ? 'barcode' : 'pasted' });
     } catch (err: any) {
       setError(err.message ?? 'Something went wrong. Try again.');
     } finally {
@@ -391,6 +393,7 @@ export default function AIChatScreen() {
 
       setMessages(prev => [...prev, { id: `a_${Date.now()}`, role: 'assistant', text: replyText }]);
       setHistory([...newHistory, { role: 'assistant', content: replyText }]);
+      track('chat_sent');
     } catch (err: any) {
       setError(err.message ?? 'Something went wrong. Try again.');
     } finally {

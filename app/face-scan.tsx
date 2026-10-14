@@ -28,6 +28,7 @@ import Button from '@/components/primitives/Button';
 import {
   analyseFace, SHAPE_INFO, COLOURS, type ScanResult, type ScanProblem, type Undertone,
 } from '@/lib/faceScan';
+import { track } from '@/lib/analytics';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const PHOTO_W = SCREEN_W - Spacing.xl * 2;
@@ -84,6 +85,7 @@ export default function FaceScanScreen() {
       }
       setResult(r);
       setStage('result');
+      track('face_scan_done');
     } catch (e) {
       setStage('start');
       Alert.alert('Something went wrong', 'The scan could not run. Please try again.');

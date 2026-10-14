@@ -1,3 +1,4 @@
+import { Sentry } from '@/lib/sentry';
 import { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -29,7 +30,7 @@ import type { Session } from '@supabase/supabase-js';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+function RootLayout() {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const router = useRouter();
@@ -123,3 +124,5 @@ export default function RootLayout() {
     </>
   );
 }
+
+export default Sentry.wrap(RootLayout);

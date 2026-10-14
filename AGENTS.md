@@ -105,8 +105,8 @@ Done 13 Oct: the chat's barcode scanner now uses `ingredient-lookup` (Open Beaut
 - [x] Remove repo junk: `tressie-all.zip`, `tressie-update.zip`, `fix-polish.js`, `rename-and-theme.js`, `day2-feed-and-rive.patch`.
 
 **Day 3: see what happens after launch**
-- [ ] **Sentry** crash reporting (`@sentry/react-native` with the Expo plugin).
-- [ ] **Analytics:** PostHog (EU cloud, free tier). Track only a few events: onboarding finished, face scan done, try-on done, chat sent, stylist opened, product tapped. No personal data in events.
+- [x] **Sentry** crash reporting (`lib/sentry.ts`, root layout wrapped). Turned on by `EXPO_PUBLIC_SENTRY_DSN` in `.env`. Source map upload is off (`SENTRY_DISABLE_AUTO_UPLOAD` in `eas.json`); add organization/project to the plugin in `app.json` and a `SENTRY_AUTH_TOKEN` EAS secret later for readable stack traces.
+- [x] **Analytics:** PostHog EU (`lib/analytics.ts`), turned on by `EXPO_PUBLIC_POSTHOG_KEY`. Seven events via `track()`: onboarding_finished, face_scan_done, tryon_done, chat_sent, ingredients_checked, stylist_opened, product_tapped. Anonymous (no identify, no person profiles). Users can switch it off in Settings.
 - [ ] **EAS Update** (`expo-updates`) so fixes reach phones without a new App Store review.
 - [ ] Add Sentry and PostHog to the privacy policy's list of services.
 
@@ -116,6 +116,8 @@ Done 13 Oct: the chat's barcode scanner now uses `ingredient-lookup` (Open Beaut
 - [ ] **Home cleanup.** Keep the week strip and routine ring; no XP pop-ups.
 - [ ] **Chat screen.** Choose either the light rays or the glowing core, not both.
 - [ ] **Screen-by-screen polish** from Vyshnavi's phone screenshots.
+- [ ] **Settings has pretend rows** (rule 9): Export my data promises an email that never comes, Change password and Edit profile do nothing, Booking updates and Promotions notifications have nothing behind them. Make them real or remove them.
+- [ ] **Production builds need the `EXPO_PUBLIC_*` values as EAS environment variables** (`.env` is not uploaded to EAS). Dev builds read `.env` through Metro.
 
 **Before submission: real stylists without an app update**
 - [x] Stylists live in the Supabase `stylists` table (`supabase/sql/2026-10-14_stylists.sql`, read via `lib/stylists.ts`). Add a stylist in Table Editor; photos go in the public `stylist-photos` Storage bucket; `booking_url` powers the Book button. Hide the 4 samples (`published = false`) once real stylists are in.
