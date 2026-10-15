@@ -2,7 +2,8 @@
 // Single source of truth for segment data. Imported by app/quiz.tsx.
 // No internal ScrollView — the parent quiz screen owns scrolling.
 
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import * as Haptics from 'expo-haptics';
 import Svg, { Path, Circle } from 'react-native-svg';
 import Animated, { FadeInUp } from 'react-native-reanimated';
@@ -89,6 +90,7 @@ export default function QuizSegmentStep({ selected, onSelect }: Props) {
         return (
           <Animated.View key={seg.id} >
             <Pressable
+              haptic="select"
               onPress={() => toggle(seg.id)}
               style={({ pressed }) => [st.card, active && st.cardActive, pressed && st.cardPressed]}
             >
@@ -117,7 +119,7 @@ export default function QuizSegmentStep({ selected, onSelect }: Props) {
 const st = StyleSheet.create({
   list: { gap: 8 },
   card: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
+    flexDirection: 'row', alignItems: 'center', gap: 16,
     padding: 16, borderRadius: 16,
     backgroundColor: Colors.white, borderWidth: 1.5, borderColor: Colors.border,
   },
@@ -132,11 +134,11 @@ const st = StyleSheet.create({
   },
   iconWrapActive: { backgroundColor: 'rgba(255,255,255,0.14)' },
   cardBody: { flex: 1 },
-  cardLabel: { fontFamily: Fonts.bodySemi, fontSize: 15, color: Colors.ink, marginBottom: 2 },
+  cardLabel: { fontFamily: Fonts.bodySemi, fontSize: 16, color: Colors.ink, marginBottom: 2 },
   cardLabelActive: { color: '#FFFFFF' },
   cardDesc: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, lineHeight: 16 },
   checkbox: {
-    width: 24, height: 24, borderRadius: 12,
+    width: 24, height: 24, borderRadius: 999,
     borderWidth: 2, borderColor: Colors.border,
     alignItems: 'center', justifyContent: 'center',
   },

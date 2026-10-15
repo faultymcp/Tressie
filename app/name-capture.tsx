@@ -14,17 +14,9 @@
 
 import { useState, useCallback, useRef } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  TextInput,
-  Platform,
-  KeyboardAvoidingView,
-  ScrollView,
-  ActivityIndicator,
-  Linking,
+  View, Text, StyleSheet, TextInput, Platform, KeyboardAvoidingView, ScrollView, ActivityIndicator, Linking,
 } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -280,23 +272,23 @@ const st = StyleSheet.create({
 
   errorText: {
     fontFamily: Fonts.body,
-    fontSize: 13,
+    fontSize: 14,
     color: Colors.error,
     marginTop: -Spacing.sm,
   },
 
   consentBox: {
-    marginTop: Spacing.lg, borderRadius: 18, borderWidth: 1,
+    marginTop: Spacing.lg, borderRadius: 20, borderWidth: 1,
     borderColor: 'rgba(255,254,247,0.08)', backgroundColor: 'rgba(255,255,255,0.03)',
   },
-  consentRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 14 },
-  consentDivider: { height: 1, backgroundColor: 'rgba(255,254,247,0.06)', marginHorizontal: 14 },
+  consentRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 16 },
+  consentDivider: { height: 1, backgroundColor: 'rgba(255,254,247,0.06)', marginHorizontal: 16 },
   consentTick: {
-    width: 22, height: 22, borderRadius: 7, borderWidth: 1.5, borderColor: 'rgba(255,254,247,0.35)',
+    width: 22, height: 22, borderRadius: 8, borderWidth: 1.5, borderColor: 'rgba(255,254,247,0.35)',
     alignItems: 'center', justifyContent: 'center', marginTop: 1,
   },
   consentTickOn: { backgroundColor: '#C38CD9', borderColor: '#C38CD9' },
-  consentText: { flex: 1, fontFamily: Fonts.body, fontSize: 13, lineHeight: 19, color: Foreground.primary },
+  consentText: { flex: 1, fontFamily: Fonts.body, fontSize: 14, lineHeight: 19, color: Foreground.primary },
 
   fine: {
     fontFamily: Fonts.body,

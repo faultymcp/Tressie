@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     height: 68,
     paddingBottom: 0,
     paddingTop: 0,
-    borderRadius: 34,
+    borderRadius: 999,
     borderTopWidth: 0,
     backgroundColor: 'transparent',
     overflow: 'hidden',
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   },
   glassTint: {
     backgroundColor: 'rgba(26,16,56,0.38)',
-    borderRadius: 34,
+    borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(255,255,255,0.18)',
   },
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
   item: {
     width: 62,
     height: 54,
-    borderRadius: 27,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 3,

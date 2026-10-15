@@ -1,10 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, FlatList, TextInput, ScrollView,
-  Pressable, KeyboardAvoidingView, Platform,
-  ActivityIndicator, SafeAreaView, StatusBar,
-  Modal, Alert, Keyboard,
+  View, Text, StyleSheet, FlatList, TextInput, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, SafeAreaView, StatusBar, Modal, Alert, Keyboard,
 } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Polygon, Line, Path, Rect, Circle } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -226,9 +224,9 @@ function BarcodeScannerModal({ visible, onClose, onScanned }: { visible: boolean
           </CameraView>
         ) : (
           <View style={st.scanNoPerm}>
-            <Text style={{ color: '#fff', fontSize: 15, textAlign: 'center', marginBottom: 20 }}>Camera permission needed</Text>
+            <Text style={{ color: '#fff', fontSize: 16, textAlign: 'center', marginBottom: 20 }}>Camera permission needed</Text>
             <Pressable onPress={requestPermission} style={st.scanPermBtn}>
-              <Text style={{ color: '#fff', fontFamily: Fonts.bodySemi, fontSize: 15 }}>Allow Camera</Text>
+              <Text style={{ color: '#fff', fontFamily: Fonts.bodySemi, fontSize: 16 }}>Allow Camera</Text>
             </Pressable>
           </View>
         )}
@@ -493,7 +491,7 @@ export default function AIChatScreen() {
               </Pressable>
               <View style={st.chips}>
                 {suggestions.map(s => (
-                  <Pressable key={s.label} onPress={() => sendMessage(s.label)} style={({ pressed }) => [st.chip, pressed && { opacity: 0.65 }]}>
+                  <Pressable key={s.label} haptic="select" onPress={() => sendMessage(s.label)} style={({ pressed }) => [st.chip, pressed && { opacity: 0.65 }]}>
                     <Text style={st.chipText}>{s.label}</Text>
                   </Pressable>
                 ))}
@@ -555,7 +553,7 @@ export default function AIChatScreen() {
                 onSubmitEditing={() => sendMessage()}
                 onFocus={() => setShowAttachMenu(false)}
               />
-              <Pressable onPress={() => sendMessage()} disabled={loading || !input.trim()} style={({ pressed }) => [pressed && { opacity: 0.8 }]}>
+              <Pressable haptic="tap" onPress={() => sendMessage()} disabled={loading || !input.trim()} style={({ pressed }) => [pressed && { opacity: 0.8 }]}>
                 <View style={[st.sendBtn, { backgroundColor: (input.trim() && !loading) ? Colors.violet : 'rgba(255,255,255,0.10)' }]}>
                   {loading ? <ActivityIndicator color="#fff" size="small" /> : <IconSend />}
                 </View>
@@ -575,75 +573,75 @@ const st = StyleSheet.create({
   flex: { flex: 1 },
 
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 8 : 16, paddingBottom: 8 },
-  headerName: { fontFamily: Fonts.heading, fontSize: 24, color: Colors.ink, letterSpacing: -0.5 },
-  profileChip: { backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', borderRadius: 999, paddingVertical: 6, paddingHorizontal: 12 },
+  headerName: { fontFamily: Fonts.heading, fontSize: 22, color: Colors.ink, letterSpacing: -0.5 },
+  profileChip: { backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', borderRadius: 999, paddingVertical: 8, paddingHorizontal: 12 },
   profileChipText: { fontFamily: Fonts.bodyMedium, fontSize: 11, color: 'rgba(255,254,247,0.75)' },
 
   // Empty state: radiant core, headline, glass chips
   welcomeWrap: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24, paddingTop: 0, paddingBottom: 16 },
-  welcomeHeadline: { fontFamily: Fonts.heading, fontSize: 30, color: Colors.ink, letterSpacing: -0.5, marginTop: 8, textAlign: 'center' },
+  welcomeHeadline: { fontFamily: Fonts.heading, fontSize: 32, color: Colors.ink, letterSpacing: -0.5, marginTop: 8, textAlign: 'center' },
   welcomeSub: { fontFamily: Fonts.body, fontSize: 14, color: 'rgba(255,254,247,0.6)', textAlign: 'center', marginTop: 8, lineHeight: 21 },
 
   list: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12, gap: 24 },
   // Assistant: full-width text under a small attributed header.
   aiBlock: { paddingRight: 8, gap: 8 },
   aiHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  aiAvatar: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.violetBg2 },
-  aiAvatarMark: { fontFamily: Fonts.heading, fontSize: 11, color: Colors.violet },
+  aiAvatar: { width: 24, height: 24, borderRadius: 999, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.violetBg2 },
+  aiAvatarMark: { fontFamily: Fonts.heading, fontSize: 14, color: Colors.violet },
   aiName: { fontFamily: Fonts.bodySemi, fontSize: 12, color: Colors.muted, letterSpacing: 0.2 },
 
   // User: right-aligned bubble, capped so it reads as an aside.
   userRow: { alignItems: 'flex-end' },
   userBubble: {
     maxWidth: '82%', backgroundColor: Colors.violet,
-    paddingVertical: 11, paddingHorizontal: 16,
+    paddingVertical: 12, paddingHorizontal: 16,
     borderRadius: 20, borderBottomRightRadius: 6,
   },
   attachName: { fontFamily: Fonts.bodyMedium, fontSize: 12, color: 'rgba(255,255,255,0.75)', marginBottom: 4 },
   attachNameAI: { fontFamily: Fonts.bodyMedium, fontSize: 12, color: Colors.muted },
-  bubbleText: { fontFamily: Fonts.body, fontSize: 15, color: Colors.ink, lineHeight: 24 },
+  bubbleText: { fontFamily: Fonts.body, fontSize: 16, color: Colors.ink, lineHeight: 24 },
   bubbleTextUser: { color: '#FFFFFF' },
 
 
-  bulletRow: { flexDirection: 'row', gap: 6, marginBottom: 2 },
+  bulletRow: { flexDirection: 'row', gap: 8, marginBottom: 2 },
   bullet: { fontFamily: Fonts.bodySemi, color: Colors.violet, fontSize: 14, lineHeight: 21 },
   dotsWrap: { flexDirection: 'row', gap: 4, alignItems: 'center', paddingVertical: 2 },
   dot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: Colors.violet },
 
-  tryOn: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 24, paddingVertical: 13, paddingHorizontal: 20, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(230,190,245,0.45)', backgroundColor: 'rgba(118,67,172,0.25)' },
+  tryOn: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 24, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(230,190,245,0.45)', backgroundColor: 'rgba(118,67,172,0.25)' },
   tryOnText: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.ink },
   chips: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 16 },
-  chip: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', borderRadius: 999, paddingVertical: 10, paddingHorizontal: 14, backgroundColor: 'rgba(255,255,255,0.07)' },
-  chipText: { fontFamily: Fonts.bodyMedium, fontSize: 13, color: Colors.ink },
+  chip: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', borderRadius: 999, paddingVertical: 12, paddingHorizontal: 16, backgroundColor: 'rgba(255,255,255,0.07)' },
+  chipText: { fontFamily: Fonts.bodyMedium, fontSize: 14, color: Colors.ink },
 
   errorBox: { backgroundColor: 'rgba(239,68,68,0.06)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.12)', borderRadius: Radius.md, padding: 12 },
-  errorText: { fontFamily: Fonts.body, fontSize: 13, color: Colors.error },
+  errorText: { fontFamily: Fonts.body, fontSize: 14, color: Colors.error },
 
-  attachMenu: { marginHorizontal: 16, marginBottom: 8, backgroundColor: Colors.white, borderRadius: 18, borderWidth: 1.5, borderColor: Colors.border, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4 },
-  attachItem: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16 },
-  attachIconWrap: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.violetBg2, alignItems: 'center', justifyContent: 'center' },
+  attachMenu: { marginHorizontal: 16, marginBottom: 8, backgroundColor: Colors.white, borderRadius: 999, borderWidth: 1.5, borderColor: Colors.border, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4 },
+  attachItem: { flexDirection: 'row', alignItems: 'center', gap: 16, padding: 16 },
+  attachIconWrap: { width: 40, height: 40, borderRadius: 999, backgroundColor: Colors.violetBg2, alignItems: 'center', justifyContent: 'center' },
   attachLabel: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.ink },
   attachSub: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginTop: 2 },
   attachDivider: { height: 1, backgroundColor: Colors.border, marginLeft: 70 },
 
   inputWrap: { paddingHorizontal: 16, paddingTop: 8, backgroundColor: 'transparent' },
-  inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', borderRadius: 26, paddingLeft: 6, paddingRight: 6, paddingVertical: 6 },
+  inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', borderRadius: 20, paddingLeft: 8, paddingRight: 8, paddingVertical: 8 },
   inputRowFocused: { borderColor: 'rgba(195,140,217,0.6)' },
   plusBtn: { flexShrink: 0 },
-  plusBtnInner: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.violetBg2 },
+  plusBtnInner: { width: 36, height: 36, borderRadius: 999, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.violetBg2 },
   plusBtnInnerOn: { backgroundColor: Colors.violet },
   plusIcon: { fontFamily: Fonts.body, fontSize: 22, color: Colors.violet, lineHeight: 26 },
-  input: { flex: 1, fontFamily: Fonts.body, fontSize: 14, color: Colors.ink, maxHeight: 100, paddingVertical: 6, paddingHorizontal: 8 },
-  sendBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  footerNote: { fontFamily: Fonts.body, fontSize: 10, color: Colors.muted, textAlign: 'center', marginTop: 28, opacity: 0.6 },
+  input: { flex: 1, fontFamily: Fonts.body, fontSize: 14, color: Colors.ink, maxHeight: 100, paddingVertical: 8, paddingHorizontal: 8 },
+  sendBtn: { width: 40, height: 40, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
+  footerNote: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, textAlign: 'center', marginTop: 24, opacity: 0.6 },
 
   scanModal: { flex: 1, backgroundColor: '#000' },
   scanHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 54 : 40, paddingBottom: 16, backgroundColor: '#14100D' },
-  scanTitle: { fontFamily: Fonts.heading, fontSize: 18, color: '#fff' },
-  scanClose: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
+  scanTitle: { fontFamily: Fonts.heading, fontSize: 16, color: '#fff' },
+  scanClose: { width: 36, height: 36, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
   scanOverlay: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scanFrame: { width: 260, height: 160, borderRadius: 16, borderWidth: 3, borderColor: Colors.violet },
-  scanHint: { fontFamily: Fonts.body, fontSize: 13, color: '#fff', marginTop: 20, textAlign: 'center', paddingHorizontal: 40, opacity: 0.8 },
-  scanNoPerm: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, paddingHorizontal: 40 },
-  scanPermBtn: { backgroundColor: Colors.violet, paddingVertical: 14, paddingHorizontal: 32, borderRadius: Radius.lg },
+  scanHint: { fontFamily: Fonts.body, fontSize: 14, color: '#fff', marginTop: 20, textAlign: 'center', paddingHorizontal: 32, opacity: 0.8 },
+  scanNoPerm: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, paddingHorizontal: 32 },
+  scanPermBtn: { backgroundColor: Colors.violet, paddingVertical: 16, paddingHorizontal: 32, borderRadius: Radius.lg },
 });

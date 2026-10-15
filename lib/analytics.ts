@@ -23,7 +23,8 @@ type Event =
   | 'chat_sent'
   | 'ingredients_checked'
   | 'stylist_opened'
-  | 'product_tapped';
+  | 'product_tapped'
+  | 'book_tapped';
 
 export function track(event: Event, props?: Record<string, string | number | boolean>) {
   try { posthog?.capture(event, props); } catch {}

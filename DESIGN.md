@@ -40,6 +40,13 @@ motion:
   orbSpinMin: 18000        # orbs never turn faster than once every 18s
   orbBreatheMin: 4500
 touchTargetMin: 44
+sizes:                     # the only font sizes allowed
+  fraunces: [14, 16, 22, 32, 44, 64]   # 14 = small italic emphasis; 44/64 = big numbers on moments
+  sora: [11, 12, 14, 16]
+  inter: [11, 12, 14, 16]              # 11 = tiny tags only
+feel:
+  press: "every Pressable comes from components/primitives/Pressable (dips to 97%, 4pt extra touch area)"
+  haptics: "lib/haptics.ts: tap = main action, select = choosing, success = done, warn/error = refused/failed"
 ---
 
 # Halea design
@@ -92,11 +99,17 @@ Two modes:
 
 - **Primary button:** violet-to-pink gradient pill, white Sora label, soft violet glow. One per screen.
 - **Secondary button:** glass pill with a hairline edge.
-- **Chip:** glass pill, Sora 13; selected = solid violet with white text.
+- **Chip:** glass pill, Sora 14; selected = solid violet with white text.
 - **Card:** glass fill, hairline edge, radius 16 to 20, 16 to 20 padding.
 - **Tab bar:** floating glass pill, 5 tabs (Home, Discover, Halea, Shop, Me), normal-case labels, a soft lavender pill behind the active tab.
 - **Wordmark:** `components/HaleaWordmark.tsx`. Outline draws, lavender fills, a small sparkle catches the last letter.
 - **Background:** `HaloBackground` on every screen; `FluidOrb` for drifting colour.
+
+## Feel (touch, haptics, motion)
+
+- Import `Pressable` from `@/components/primitives/Pressable`, never from `react-native`. It gives every touch a visible press (97% scale, slight dim) and a bigger touch area. `Button` and `HaloButton` handle their own press.
+- Haptics come only from `lib/haptics.ts`, and only on meaningful moments: `tap` for the main action (send, continue, save), `select` for choosing (quiz answers, chips, toggles, tabs), `success` when something finishes. Rows, links and back buttons get the visual press only.
+- One motion speed per kind of thing: `Motion.fast` for presses and toggles, `Motion.medium` for screens and sheets, `Motion.slow` for moments.
 
 ## Do's and Don'ts
 

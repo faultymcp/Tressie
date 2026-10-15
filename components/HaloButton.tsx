@@ -5,6 +5,7 @@
 
 import { View, Text, Pressable, StyleSheet, ActivityIndicator, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { haptics } from '@/lib/haptics';
 
 const HALO = ['#F484B9', '#C38CD9', '#E6BEF5', '#C38CD9'] as const;
 
@@ -21,7 +22,7 @@ export function HaloButton({ label, onPress, disabled, loading, style, accessibi
   const off = disabled || loading;
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => { haptics.tap(); onPress(); }}
       disabled={off}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel || label}

@@ -5,7 +5,8 @@
 // Replaces the old three text-heavy slides and the separate account-type step.
 
 import { useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -140,7 +141,7 @@ const s = StyleSheet.create({
     textShadowColor: 'rgba(230,190,245,0.7)', textShadowRadius: 18, textShadowOffset: { width: 0, height: 0 },
   },
   tag: {
-    fontFamily: Fonts.headingSemi, fontStyle: 'italic', fontSize: 21, color: 'rgba(255,254,247,0.85)', marginTop: 14,
+    fontFamily: Fonts.headingSemi, fontStyle: 'italic', fontSize: 22, color: 'rgba(255,254,247,0.85)', marginTop: 16,
   },
   glint: { alignItems: 'center', justifyContent: 'center' },
   glintCore: {
@@ -155,7 +156,7 @@ const s = StyleSheet.create({
   primary: { height: 60, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
   primaryText: { fontFamily: Fonts.bodySemi, fontSize: 17, color: '#FFFFFF', letterSpacing: 0.3 },
   pressed: { transform: [{ scale: 0.985 }] },
-  stylistLink: { marginTop: 22, paddingVertical: 6 },
+  stylistLink: { marginTop: 24, paddingVertical: 8 },
   stylistText: { fontFamily: Fonts.body, fontSize: 14, color: 'rgba(255,254,247,0.55)' },
   stylistEm: { fontFamily: Fonts.bodySemi, color: '#E6BEF5' },
 });

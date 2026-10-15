@@ -68,7 +68,7 @@ export function SkeletonRow({ style }: { style?: any }) {
       <Skeleton width={40} height={40} radius={12} />
       <View style={sk.rowBody}>
         <Skeleton width="60%" height={14} />
-        <Skeleton width="40%" height={10} style={{ marginTop: 6 }} />
+        <Skeleton width="40%" height={10} style={{ marginTop: 8 }} />
       </View>
       <Skeleton width={50} height={14} />
     </View>
@@ -96,7 +96,7 @@ export function SkeletonProfile() {
         <View style={sk.profileInfo}>
           <Skeleton width={140} height={18} />
           <Skeleton width={100} height={12} style={{ marginTop: 8 }} />
-          <Skeleton width={80} height={22} radius={12} style={{ marginTop: 10 }} />
+          <Skeleton width={80} height={22} radius={12} style={{ marginTop: 12 }} />
         </View>
       </View>
 
@@ -143,7 +143,7 @@ export function SkeletonHome() {
           <Skeleton width={36} height={36} radius={18} />
           <View style={{ flex: 1 }}>
             <Skeleton width="60%" height={14} />
-            <Skeleton width="80%" height={10} style={{ marginTop: 6 }} />
+            <Skeleton width="80%" height={10} style={{ marginTop: 8 }} />
           </View>
         </View>
       ))}
@@ -167,8 +167,8 @@ export function SkeletonDiscover() {
         {[1, 2, 3, 4].map(i => (
           <View key={i} style={{ width: cardW }}>
             <Skeleton width={cardW} height={cardW * 1.3} radius={18} />
-            <Skeleton width={cardW * 0.7} height={14} style={{ marginTop: 10 }} />
-            <Skeleton width={cardW * 0.4} height={10} style={{ marginTop: 6 }} />
+            <Skeleton width={cardW * 0.7} height={14} style={{ marginTop: 12 }} />
+            <Skeleton width={cardW * 0.4} height={10} style={{ marginTop: 8 }} />
           </View>
         ))}
       </View>
@@ -178,14 +178,14 @@ export function SkeletonDiscover() {
 
 const sk = StyleSheet.create({
   card: {
-    backgroundColor: Colors.white, borderRadius: 18,
+    backgroundColor: Colors.white, borderRadius: 20,
     borderWidth: 1, borderColor: Colors.border, overflow: 'hidden', marginBottom: 12,
   },
-  cardBody: { padding: 14 },
+  cardBody: { padding: 16 },
 
   row: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
-    paddingVertical: 14, paddingHorizontal: 18,
+    flexDirection: 'row', alignItems: 'center', gap: 16,
+    paddingVertical: 16, paddingHorizontal: 20,
     borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
   rowBody: { flex: 1 },
@@ -211,7 +211,7 @@ const sk = StyleSheet.create({
   home: { paddingHorizontal: 20 },
   homeHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
   stepRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
+    flexDirection: 'row', alignItems: 'center', gap: 16,
     padding: 16, marginBottom: 8,
     backgroundColor: Colors.white, borderRadius: 16,
     borderWidth: 1, borderColor: Colors.border,

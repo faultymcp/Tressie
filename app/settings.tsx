@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Pressable, Switch, Platform, Alert,
+  View, Text, StyleSheet, ScrollView, Switch, Platform, Alert,
 } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import { useRouter } from 'expo-router';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import { Colors, Fonts, Radius } from '@/constants/theme';
@@ -9,6 +10,7 @@ import { supabase } from '@/lib/supabase';
 import { deleteMyAccount } from '@/lib/deleteAccount';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { analyticsOn, setAnalyticsOn } from '@/lib/analytics';
+import { haptics } from '@/lib/haptics';
 
 // ─── Icons ───────────────────────────────────────────────────────
 const IC = {
@@ -37,7 +39,7 @@ function ToggleRow({ icon, label, sublabel, value, onToggle, last }: {
         {sublabel && <Text style={st.rowSub}>{sublabel}</Text>}
       </View>
       <Switch
-        value={value} onValueChange={onToggle}
+        value={value} onValueChange={(v) => { haptics.select(); onToggle(v); }}
         trackColor={{ false: Colors.border, true: Colors.violet }}
         thumbColor="#fff"
         ios_backgroundColor={Colors.border}
@@ -75,33 +77,13 @@ export default function SettingsScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
 
-  // Notification prefs (stored in AsyncStorage for now, move to Supabase later)
-  const [pushRoutine, setPushRoutine] = useState(true);
-  const [pushTips, setPushTips] = useState(true);
-  const [pushPromo, setPushPromo] = useState(false);
-  const [pushBooking, setPushBooking] = useState(true);
   const [usageData, setUsageData] = useState(analyticsOn());
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) setEmail(data.user.email || '');
     });
-    // Load prefs
-    AsyncStorage.getItem('halea_notif_prefs').then(raw => {
-      if (raw) {
-        const p = JSON.parse(raw);
-        setPushRoutine(p.routine ?? true);
-        setPushTips(p.tips ?? true);
-        setPushPromo(p.promo ?? false);
-        setPushBooking(p.booking ?? true);
-      }
-    });
   }, []);
-
-  const saveNotifPref = (key: string, value: boolean) => {
-    const prefs = { routine: pushRoutine, tips: pushTips, promo: pushPromo, booking: pushBooking, [key]: value };
-    AsyncStorage.setItem('halea_notif_prefs', JSON.stringify(prefs));
-  };
 
   const handleDeleteAccount = () => {
     Alert.alert(
@@ -126,13 +108,6 @@ export default function SettingsScreen() {
     );
   };
 
-  const handleExportData = () => {
-    Alert.alert('Export Data', 'A copy of your data will be sent to your email address within 48 hours.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Request Export', onPress: () => Alert.alert('Request Sent', 'Check your email in the next 48 hours.') },
-    ]);
-  };
-
   return (
     <View style={st.container}>
       {/* Header */}
@@ -148,24 +123,14 @@ export default function SettingsScreen() {
         {/* Account */}
         <SectionLabel>Account</SectionLabel>
         <View style={st.card}>
-          <NavRow icon={<IC.Mail />} label="Email" right={email} onPress={() => {}} />
-          <NavRow icon={<IC.Lock />} label="Change password" onPress={() => {}} />
-          <NavRow icon={<IC.User />} label="Edit profile" sublabel="Name, photo" onPress={() => {}} last />
-        </View>
-
-        {/* Notifications */}
-        <SectionLabel>Notifications</SectionLabel>
-        <View style={st.card}>
-          <ToggleRow icon={<IC.Bell />} label="Routine reminders" sublabel="Daily steps and wash day alerts" value={pushRoutine} onToggle={v => { setPushRoutine(v); saveNotifPref('routine', v); }} />
-          <ToggleRow icon={<IC.Bell />} label="Tips & suggestions" sublabel="Personalised hair tips" value={pushTips} onToggle={v => { setPushTips(v); saveNotifPref('tips', v); }} />
-          <ToggleRow icon={<IC.Bell />} label="Booking updates" sublabel="Confirmations and reminders" value={pushBooking} onToggle={v => { setPushBooking(v); saveNotifPref('booking', v); }} />
-          <ToggleRow icon={<IC.Bell />} label="Promotions" sublabel="Offers and new features" value={pushPromo} onToggle={v => { setPushPromo(v); saveNotifPref('promo', v); }} last />
-        </View>
-
-        {/* Appearance */}
-        <SectionLabel>Appearance</SectionLabel>
-        <View style={st.card}>
-          <NavRow icon={<IC.Globe />} label="Language" right="English (UK)" onPress={() => {}} last />
+          {/* Sign-in is by emailed code, so there's no password to change. */}
+          <View style={[st.row, { borderBottomWidth: 0 }]}>
+            <View style={st.rowIcon}><IC.Mail /></View>
+            <View style={st.rowBody}>
+              <Text style={st.rowLabel}>Email</Text>
+              <Text style={st.rowSub} numberOfLines={1}>{email}</Text>
+            </View>
+          </View>
         </View>
 
         {/* Hair Profile */}
@@ -179,7 +144,6 @@ export default function SettingsScreen() {
         <SectionLabel>Data & Privacy</SectionLabel>
         <View style={st.card}>
           <ToggleRow icon={<IC.Eye />} label="Share anonymous usage data" sublabel="Helps us see which features people use. No names, emails or photos." value={usageData} onToggle={v => { setUsageData(v); setAnalyticsOn(v); }} />
-          <NavRow icon={<IC.Download />} label="Export my data" sublabel="Download a copy of your data" onPress={handleExportData} />
           <NavRow icon={<IC.Trash />} label="Delete account" destructive onPress={handleDeleteAccount} last />
         </View>
 
@@ -197,8 +161,8 @@ const st = StyleSheet.create({
     backgroundColor: Colors.porcelain,
   },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.ink },
-  scroll: { paddingBottom: 40 },
+  headerTitle: { fontFamily: Fonts.heading, fontSize: 16, color: Colors.ink },
+  scroll: { paddingBottom: 32 },
 
   sectionLabel: {
     fontFamily: Fonts.bodySemi, fontSize: 12, color: Colors.muted,
@@ -212,15 +176,15 @@ const st = StyleSheet.create({
     borderWidth: 1, borderColor: Colors.border, overflow: 'hidden',
   },
   row: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
-    paddingVertical: 16, paddingHorizontal: 18,
+    flexDirection: 'row', alignItems: 'center', gap: 16,
+    paddingVertical: 16, paddingHorizontal: 20,
     borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
   rowIcon: { width: 24, alignItems: 'center' },
   rowBody: { flex: 1 },
-  rowLabel: { fontFamily: Fonts.bodyMedium, fontSize: 15, color: Colors.ink },
+  rowLabel: { fontFamily: Fonts.bodyMedium, fontSize: 16, color: Colors.ink },
   rowSub: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginTop: 2 },
-  rowRight: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, marginRight: 4, flexShrink: 1, maxWidth: 180, textAlign: 'right' },
+  rowRight: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted, marginRight: 4, flexShrink: 1, maxWidth: 180, textAlign: 'right' },
 
   footer: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, textAlign: 'center', marginTop: 20, opacity: 0.4 },
 });

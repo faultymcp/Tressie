@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Pressable, Platform, Alert, Switch,
+  View, Text, StyleSheet, ScrollView, Platform, Alert, Switch,
 } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import { useRouter } from 'expo-router';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import { Colors, Fonts } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { haptics } from '@/lib/haptics';
+import { analyticsOn, setAnalyticsOn } from '@/lib/analytics';
 
 const IC = {
   Back: () => <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke={Colors.ink} strokeWidth={2} strokeLinecap="round"><Path d="M19 12H5M12 19l-7-7 7-7" /></Svg>,
@@ -22,15 +25,7 @@ const IC = {
 
 export default function PrivacyScreen() {
   const router = useRouter();
-  const [analytics, setAnalytics] = useState(true);
-  const [personalisation, setPersonalisation] = useState(true);
-
-  const handleExport = () => {
-    Alert.alert('Export My Data', 'We will send a copy of all your data (hair profile, routines, bookings, XP history) to your registered email within 48 hours.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Request Export', onPress: () => Alert.alert('Request Sent', 'Check your email in the next 48 hours.') },
-    ]);
-  };
+  const [analytics, setAnalytics] = useState(analyticsOn());
 
   const handleDelete = () => {
     Alert.alert(
@@ -66,7 +61,7 @@ export default function PrivacyScreen() {
         <View style={st.infoCard}>
           <View style={st.infoIcon}><IC.Shield /></View>
           <Text style={st.infoTitle}>Your data, your control</Text>
-          <Text style={st.infoDesc}>Halea stores your data securely on EU-hosted servers. We never sell your personal information to third parties. You can export or delete your data at any time.</Text>
+          <Text style={st.infoDesc}>Halea stores your data securely on EU-hosted servers. We never sell your personal information to third parties. You can delete your account and data at any time.</Text>
         </View>
 
         {/* What we collect */}
@@ -91,35 +86,19 @@ export default function PrivacyScreen() {
         {/* Controls */}
         <Text style={st.sectionLabel}>Privacy controls</Text>
         <View style={st.card}>
-          <View style={st.row}>
+          <View style={[st.row, { borderBottomWidth: 0 }]}>
             <View style={st.rowIcon}><IC.Database /></View>
             <View style={st.rowBody}>
               <Text style={st.rowLabel}>Analytics</Text>
               <Text style={st.rowSub}>Help us improve the app with anonymous usage data</Text>
             </View>
-            <Switch value={analytics} onValueChange={setAnalytics} trackColor={{ false: Colors.border, true: Colors.violet }} thumbColor="#fff" />
-          </View>
-          <View style={[st.row, { borderBottomWidth: 0 }]}>
-            <View style={st.rowIcon}><IC.Eye /></View>
-            <View style={st.rowBody}>
-              <Text style={st.rowLabel}>Personalised recommendations</Text>
-              <Text style={st.rowSub}>Use your hair data for product and stylist suggestions</Text>
-            </View>
-            <Switch value={personalisation} onValueChange={setPersonalisation} trackColor={{ false: Colors.border, true: Colors.violet }} thumbColor="#fff" />
+            <Switch value={analytics} onValueChange={(v) => { haptics.select(); setAnalytics(v); setAnalyticsOn(v); }} trackColor={{ false: Colors.border, true: Colors.violet }} thumbColor="#fff" />
           </View>
         </View>
 
         {/* Actions */}
         <Text style={st.sectionLabel}>Your data</Text>
         <View style={st.card}>
-          <Pressable onPress={handleExport} style={st.row}>
-            <View style={st.rowIcon}><IC.Download /></View>
-            <View style={st.rowBody}>
-              <Text style={st.rowLabel}>Export my data</Text>
-              <Text style={st.rowSub}>Download a copy of all your data via email</Text>
-            </View>
-            <IC.Chevron />
-          </Pressable>
           <Pressable onPress={handleDelete} style={[st.row, { borderBottomWidth: 0 }]}>
             <View style={st.rowIcon}><IC.Trash /></View>
             <View style={st.rowBody}>
@@ -142,29 +121,29 @@ const st = StyleSheet.create({
     paddingHorizontal: 16, paddingTop: Platform.OS === 'ios' ? 58 : 44, paddingBottom: 12,
   },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.ink },
-  scroll: { paddingBottom: 40 },
+  headerTitle: { fontFamily: Fonts.heading, fontSize: 16, color: Colors.ink },
+  scroll: { paddingBottom: 32 },
 
   infoCard: {
     marginHorizontal: 20, marginBottom: 24, padding: 24, alignItems: 'center',
     backgroundColor: Colors.white, borderRadius: 20, borderWidth: 1, borderColor: Colors.border,
   },
-  infoIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
-  infoTitle: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.ink, marginBottom: 8 },
-  infoDesc: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, textAlign: 'center', lineHeight: 20 },
+  infoIcon: { width: 48, height: 48, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  infoTitle: { fontFamily: Fonts.heading, fontSize: 16, color: Colors.ink, marginBottom: 8 },
+  infoDesc: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted, textAlign: 'center', lineHeight: 20 },
 
   sectionLabel: {
     fontFamily: Fonts.bodySemi, fontSize: 12, color: Colors.muted,
     textTransform: 'uppercase', letterSpacing: 0.8,
-    paddingHorizontal: 20, marginBottom: 10,
+    paddingHorizontal: 20, marginBottom: 12,
   },
   card: {
     marginHorizontal: 20, marginBottom: 20, backgroundColor: Colors.white,
     borderRadius: 16, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden',
   },
   row: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
-    paddingVertical: 16, paddingHorizontal: 18,
+    flexDirection: 'row', alignItems: 'center', gap: 16,
+    paddingVertical: 16, paddingHorizontal: 20,
     borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
   rowIcon: { width: 24, alignItems: 'center' },

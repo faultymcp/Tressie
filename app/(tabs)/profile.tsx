@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Pressable, Platform,
-  RefreshControl, ActivityIndicator,
+  View, Text, StyleSheet, ScrollView, Platform, RefreshControl, ActivityIndicator,
 } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
@@ -175,8 +175,8 @@ export default function ProfileScreen() {
       <Animated.View entering={FadeInUp.duration(280).delay(160)}>
         <SectionLabel>General</SectionLabel>
         <View style={st.menuCard}>
-          <MenuRow icon={<IC.Settings />} label="Settings" sublabel="Notifications, appearance, account" onPress={() => router.push('/settings')} />
-          <MenuRow icon={<IC.Shield />} label="Privacy & Data" sublabel="Your data, export, delete account" onPress={() => router.push('/privacy')} />
+          <MenuRow icon={<IC.Settings />} label="Settings" sublabel="Account and hair profile" onPress={() => router.push('/settings')} />
+          <MenuRow icon={<IC.Shield />} label="Privacy & Data" sublabel="Your data and deleting your account" onPress={() => router.push('/privacy')} />
           <MenuRow icon={<IC.HelpCircle />} label="Help & Support" sublabel="FAQ, contact us" onPress={() => router.push('/help')} last />
         </View>
       </Animated.View>
@@ -199,27 +199,27 @@ const st = StyleSheet.create({
   scroll: { paddingTop: Platform.OS === 'ios' ? 62 : 48, paddingBottom: 130 },
   loadingWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.porcelain },
   header: { paddingHorizontal: 20, marginBottom: 20 },
-  pageTitle: { fontFamily: Fonts.heading, fontSize: 28, color: Colors.ink, letterSpacing: -0.5 },
+  pageTitle: { fontFamily: Fonts.heading, fontSize: 32, color: Colors.ink, letterSpacing: -0.5 },
   userCard: { flexDirection: 'row', alignItems: 'center', gap: 16, marginHorizontal: 20, marginBottom: 16, backgroundColor: Colors.white, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: Colors.border },
-  avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(118,67,172,0.55)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 56, height: 56, borderRadius: 999, backgroundColor: 'rgba(118,67,172,0.55)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontFamily: Fonts.heading, fontSize: 22, color: '#FFFFFF' },
   userInfo: { flex: 1 },
-  userName: { fontFamily: Fonts.heading, fontSize: 20, color: Colors.ink, marginBottom: 2 },
+  userName: { fontFamily: Fonts.heading, fontSize: 22, color: Colors.ink, marginBottom: 2 },
   userMeta: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginBottom: 8 },
   statsRow: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, marginBottom: 24, backgroundColor: Colors.white, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Colors.border },
   statCard: { flex: 1, alignItems: 'center' },
-  statValue: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.ink, marginBottom: 2 },
+  statValue: { fontFamily: Fonts.heading, fontSize: 16, color: Colors.ink, marginBottom: 2 },
   statLabel: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted },
   statDivider: { width: 1, height: 32, backgroundColor: Colors.border },
   streakRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  sectionLabel: { fontFamily: Fonts.bodySemi, fontSize: 13, color: Colors.muted, textTransform: 'uppercase', letterSpacing: 0.8, paddingHorizontal: 20, marginBottom: 8, marginTop: 4 },
+  sectionLabel: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.muted, textTransform: 'uppercase', letterSpacing: 0.8, paddingHorizontal: 20, marginBottom: 8, marginTop: 4 },
   menuCard: { marginHorizontal: 20, marginBottom: 20, backgroundColor: Colors.white, borderRadius: 16, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden' },
-  menuRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, paddingHorizontal: 18, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  menuRow: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingVertical: 16, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: Colors.border },
   menuIcon: { width: 24, alignItems: 'center' },
   menuBody: { flex: 1 },
-  menuLabel: { fontFamily: Fonts.bodyMedium, fontSize: 15, color: Colors.ink },
+  menuLabel: { fontFamily: Fonts.bodyMedium, fontSize: 16, color: Colors.ink },
   menuSublabel: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginTop: 2 },
-  menuRight: { fontFamily: Fonts.bodySemi, fontSize: 13, color: Colors.ink, marginRight: 4 },
+  menuRight: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.ink, marginRight: 4 },
   emailLabel: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, textAlign: 'center', marginTop: 4 },
   version: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, textAlign: 'center', marginTop: 4, opacity: 0.4 },
 });

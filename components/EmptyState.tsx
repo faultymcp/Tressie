@@ -1,7 +1,8 @@
 // components/EmptyState.tsx
 // Usage: <EmptyState icon="heart" title="No favourites yet" subtitle="..." action="Browse styles" onAction={() => {}} />
 
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import { Colors, Fonts } from '@/constants/theme';
 
@@ -55,17 +56,17 @@ export default function EmptyState({
 const st = StyleSheet.create({
   container: { alignItems: 'center', paddingVertical: 48, paddingHorizontal: 32 },
   iconWrap: {
-    width: 64, height: 64, borderRadius: 32,
+    width: 64, height: 64, borderRadius: 999,
     backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center',
-    marginBottom: 18,
+    marginBottom: 20,
   },
-  title: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.ink, textAlign: 'center', marginBottom: 6 },
-  subtitle: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, textAlign: 'center', lineHeight: 20, marginBottom: 20, maxWidth: 260 },
+  title: { fontFamily: Fonts.heading, fontSize: 16, color: Colors.ink, textAlign: 'center', marginBottom: 8 },
+  subtitle: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted, textAlign: 'center', lineHeight: 20, marginBottom: 20, maxWidth: 260 },
   btn: {
-    paddingVertical: 12, paddingHorizontal: 28,
-    backgroundColor: Colors.violet, borderRadius: 14,
+    paddingVertical: 12, paddingHorizontal: 24,
+    backgroundColor: Colors.violet, borderRadius: 16,
   },
   btnText: { fontFamily: Fonts.bodySemi, fontSize: 14, color: '#fff' },
   secondaryBtn: { marginTop: 12, paddingVertical: 8 },
-  secondaryBtnText: { fontFamily: Fonts.bodySemi, fontSize: 13, color: Colors.violet },
+  secondaryBtnText: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.violet },
 });

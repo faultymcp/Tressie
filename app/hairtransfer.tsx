@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Pressable, Platform, Image,
-  ActivityIndicator, Alert, ActionSheetIOS,
+  View, Text, StyleSheet, ScrollView, Platform, Image, ActivityIndicator, Alert, ActionSheetIOS,
 } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
@@ -292,37 +292,37 @@ const st = StyleSheet.create({
     paddingHorizontal: 16, paddingTop: Platform.OS === 'ios' ? 58 : 44, paddingBottom: 12,
   },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.ink },
-  scroll: { paddingHorizontal: 20, paddingBottom: 40 },
+  headerTitle: { fontFamily: Fonts.heading, fontSize: 16, color: Colors.ink },
+  scroll: { paddingHorizontal: 20, paddingBottom: 32 },
 
-  heroTitle: { fontFamily: Fonts.heading, fontSize: 24, color: Colors.ink, marginBottom: 8, marginTop: 8, letterSpacing: -0.5 },
-  heroSub: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, lineHeight: 20, marginBottom: 28 },
+  heroTitle: { fontFamily: Fonts.heading, fontSize: 22, color: Colors.ink, marginBottom: 8, marginTop: 8, letterSpacing: -0.5 },
+  heroSub: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted, lineHeight: 20, marginBottom: 24 },
   privacyNote: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, lineHeight: 16, marginTop: -20, marginBottom: 24, opacity: 0.8 },
 
   sectionLabel: {
     fontFamily: Fonts.bodySemi, fontSize: 12, color: Colors.muted,
-    textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10,
+    textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12,
   },
 
   uploadRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
   uploadBtn: {
-    flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10,
-    paddingVertical: 32, backgroundColor: Colors.white, borderRadius: 18,
+    flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12,
+    paddingVertical: 32, backgroundColor: Colors.white, borderRadius: 20,
     borderWidth: 2, borderColor: Colors.border, borderStyle: 'dashed',
   },
   uploadBtnWide: {
     alignItems: 'center', justifyContent: 'center', gap: 8,
-    paddingVertical: 32, backgroundColor: Colors.white, borderRadius: 18,
+    paddingVertical: 32, backgroundColor: Colors.white, borderRadius: 20,
     borderWidth: 2, borderColor: Colors.border, borderStyle: 'dashed', marginBottom: 24,
   },
-  uploadLabel: { fontFamily: Fonts.bodySemi, fontSize: 13, color: Colors.ink },
+  uploadLabel: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.ink },
   uploadSub: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted },
 
-  imagePreview: { borderRadius: 18, overflow: 'hidden', marginBottom: 24, position: 'relative' },
-  previewImg: { width: '100%', height: 200, borderRadius: 18 },
+  imagePreview: { borderRadius: 20, overflow: 'hidden', marginBottom: 24, position: 'relative' },
+  previewImg: { width: '100%', height: 200, borderRadius: 20 },
   changeBtn: {
     position: 'absolute', bottom: 10, right: 10,
-    backgroundColor: 'rgba(0,0,0,0.6)', paddingVertical: 6, paddingHorizontal: 14, borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.6)', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 12,
   },
   changeBtnText: { fontFamily: Fonts.bodySemi, fontSize: 11, color: '#fff' },
 
@@ -332,25 +332,25 @@ const st = StyleSheet.create({
   },
   generateBtnDisabled: { backgroundColor: 'rgba(255,255,255,0.12)' },
   generateBtnText: { fontFamily: Fonts.headingSemi, fontSize: 16, color: '#fff' },
-  creditNote: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, textAlign: 'center', marginTop: 10 },
+  creditNote: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, textAlign: 'center', marginTop: 12 },
 
-  processingWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
-  processingTitle: { fontFamily: Fonts.heading, fontSize: 20, color: Colors.ink, marginTop: 24, marginBottom: 8 },
+  processingWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
+  processingTitle: { fontFamily: Fonts.heading, fontSize: 22, color: Colors.ink, marginTop: 24, marginBottom: 8 },
   processingText: { fontFamily: Fonts.body, fontSize: 14, color: Colors.violet, marginBottom: 8 },
   processingNote: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted },
 
-  resultScroll: { paddingHorizontal: 20, paddingBottom: 40 },
+  resultScroll: { paddingHorizontal: 20, paddingBottom: 32 },
   resultCard: { borderRadius: 20, overflow: 'hidden', backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.border, marginBottom: 20 },
   resultImg: { width: '100%', height: 450 },
   resultActions: { flexDirection: 'row', gap: 12, marginBottom: 16 },
   actionBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    paddingVertical: 14, borderRadius: 14, borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.white,
+    paddingVertical: 16, borderRadius: 16, borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.white,
   },
   actionBtnText: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.violet },
   actionBtnPrimary: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    paddingVertical: 14, borderRadius: 14, backgroundColor: Colors.violet,
+    paddingVertical: 16, borderRadius: 16, backgroundColor: Colors.violet,
   },
   actionBtnPrimaryText: { fontFamily: Fonts.bodySemi, fontSize: 14, color: '#fff' },
   resultNote: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, textAlign: 'center' },

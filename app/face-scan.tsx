@@ -12,8 +12,9 @@
 
 import { useEffect, useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Pressable, Image, Dimensions, Platform, Alert,
+  View, Text, StyleSheet, ScrollView, Image, Dimensions, Platform, Alert,
 } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
@@ -291,22 +292,22 @@ const s = StyleSheet.create({
   backText: { fontFamily: 'Sora_500Medium', fontSize: 14, color: Foreground.muted },
   kicker: { fontFamily: 'Sora_600SemiBold', fontSize: 11, letterSpacing: 1.5, color: Colors.lavender, marginBottom: Spacing.sm },
   title: { fontFamily: Fonts.heading, fontSize: 32, lineHeight: 38, letterSpacing: -1, color: Foreground.primary, marginBottom: Spacing.md },
-  body: { fontFamily: Fonts.body, fontSize: 15, lineHeight: 23, color: Foreground.muted },
+  body: { fontFamily: Fonts.body, fontSize: 16, lineHeight: 23, color: Foreground.muted },
   caption: { fontFamily: Fonts.body, fontSize: 12, lineHeight: 18, color: Foreground.muted },
   center: { textAlign: 'center', marginTop: Spacing.lg },
-  section: { fontFamily: Fonts.headingSemi, fontSize: 18, color: Foreground.primary, marginTop: Spacing.xxxl, marginBottom: Spacing.md },
+  section: { fontFamily: Fonts.headingSemi, fontSize: 16, color: Foreground.primary, marginTop: Spacing.xxxl, marginBottom: Spacing.md },
   photoWrap: { width: PHOTO_W, borderRadius: Radius.xl, overflow: 'hidden', marginBottom: Spacing.xxl, borderWidth: 1, borderColor: BorderTone.base },
   scanLine: { position: 'absolute', left: 0, right: 0, top: 0, height: 2, backgroundColor: Colors.lime, shadowColor: Colors.lime, shadowOpacity: 0.9, shadowRadius: 8 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.sm },
   chip: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: Radius.full, backgroundColor: Surface.raised, borderWidth: 1, borderColor: BorderTone.base },
   chipActive: { backgroundColor: Colors.violet, borderColor: Colors.violet },
-  chipText: { fontFamily: 'Sora_500Medium', fontSize: 13, color: Foreground.primary },
+  chipText: { fontFamily: 'Sora_500Medium', fontSize: 14, color: Foreground.primary },
   chipTextActive: { color: '#FFFFFF' },
   swatches: { flexDirection: 'row', justifyContent: 'space-between', marginTop: Spacing.lg },
   swatchItem: { alignItems: 'center', width: (PHOTO_W - Spacing.md * 3) / 4 },
-  swatch: { width: 48, height: 48, borderRadius: 24, borderWidth: 2, borderColor: BorderTone.strong, marginBottom: Spacing.xs },
+  swatch: { width: 48, height: 48, borderRadius: 999, borderWidth: 2, borderColor: BorderTone.strong, marginBottom: Spacing.xs },
   swatchName: { fontFamily: Fonts.body, fontSize: 11, color: Foreground.muted, textAlign: 'center' },
   bar: { flexDirection: 'row', height: 10, borderRadius: Radius.full, overflow: 'hidden' },
   barLabels: { flexDirection: 'row', marginTop: Spacing.sm },
-  barValue: { fontFamily: 'Sora_600SemiBold', fontSize: 15, color: Foreground.primary },
+  barValue: { fontFamily: 'Sora_600SemiBold', fontSize: 16, color: Foreground.primary },
 });

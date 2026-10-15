@@ -15,8 +15,9 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Pressable, Platform, Dimensions,
+  View, Text, StyleSheet, ScrollView, Platform, Dimensions,
 } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
@@ -412,11 +413,11 @@ const st = StyleSheet.create({
   hero: { marginBottom: 24, marginTop: 8 },
   heroTitle: {
     fontFamily: Fonts.heading,
-    fontSize: 34,
+    fontSize: 32,
     color: Colors.ink,
     letterSpacing: -1.2,
     lineHeight: 40,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   heroBody: {
     fontFamily: Fonts.body,
@@ -483,7 +484,7 @@ const st = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: Radius.lg,
     padding: 20,
-    marginBottom: 14,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: Colors.border,
   },
@@ -495,18 +496,18 @@ const st = StyleSheet.create({
   dayHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 14,
+    marginBottom: 16,
   },
   dayLabel: {
     fontFamily: 'Sora_500Medium',
-    fontSize: 10,
+    fontSize: 11,
     letterSpacing: 2,
     color: Colors.violet,
     marginBottom: 4,
   },
   dayTitle: {
     fontFamily: Fonts.heading,
-    fontSize: 24,
+    fontSize: 22,
     color: Colors.ink,
     letterSpacing: -0.6,
     lineHeight: 28,
@@ -516,19 +517,19 @@ const st = StyleSheet.create({
   },
   dayStatNum: {
     fontFamily: 'Fraunces_700Bold',
-    fontSize: 18,
+    fontSize: 16,
     color: Colors.violet,
     letterSpacing: -0.5,
   },
   dayStatLabel: {
     fontFamily: Fonts.body,
-    fontSize: 10,
+    fontSize: 11,
     letterSpacing: 0.6,
     color: Colors.muted,
   },
 
   // Steps
-  stepList: { gap: 10 },
+  stepList: { gap: 12 },
   stepRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -544,7 +545,7 @@ const st = StyleSheet.create({
   stepNum: {
     width: 26,
     height: 26,
-    borderRadius: 13,
+    borderRadius: 999,
     backgroundColor: 'rgba(118,67,172,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -558,7 +559,7 @@ const st = StyleSheet.create({
   },
   stepNumText: {
     fontFamily: 'Fraunces_600SemiBold',
-    fontSize: 12,
+    fontSize: 14,
     color: Colors.violet,
   },
   stepNumTextFuture: {
@@ -566,7 +567,7 @@ const st = StyleSheet.create({
   },
   stepName: {
     fontFamily: 'Fraunces_500Medium',
-    fontSize: 15,
+    fontSize: 16,
     color: Colors.ink,
     letterSpacing: -0.2,
     lineHeight: 20,
@@ -590,13 +591,13 @@ const st = StyleSheet.create({
 
   // Footer
   footer: {
-    marginTop: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 18,
+    marginTop: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 20,
   },
   footerText: {
     fontFamily: 'Fraunces_400Regular_Italic',
-    fontSize: 13,
+    fontSize: 14,
     lineHeight: 20,
     color: Colors.muted,
     textAlign: 'center',

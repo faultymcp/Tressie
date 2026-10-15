@@ -78,6 +78,10 @@ Done: face scan + merged onboarding (name → scan → quiz), subscription and w
 
 Decided 12 Oct: XP, rewards, referrals and bookings are cut from v1 (nothing real behind them yet). The app is dark-only, so there is no dark mode setting. The day streak stays (it's real).
 
+**Decided 15 Oct (final, don't reopen): v1 is steps 1 to 4 only.** 1 archetype (quiz result + share card), 2 face scan + try-on, 3 inspiration + stylist profiles, 4 booking. **At launch, Book opens the stylist's own booking link** (`stylists.booking_url`: Fresha, Booksy, website or Instagram). No booking inside Halea yet. Everything else (in-app booking, history, aftercare, stylist software, deposits) is roadmap, after launch.
+
+Done 15 Oct: stylist pages show a **"Halea verified" badge** (`stylists.verified`, also on Discover) and a **price list** (`stylist_services`: name, price, length, "from" prices; `lib/format.ts`). Book opens `booking_url`; each tap is tracked as `book_tapped` with the stylist id (the lead count for stylists and investors). In-app booking requests were built and then removed the same day: launch keeps it simple. SQL: `supabase/sql/2026-10-15_stylist_services.sql`. Adding a stylist from the Google Form: `docs/STYLIST_ONBOARDING.md`.
+
 Done 12 Oct: database security (RLS on every user table, salon and booking inserts closed; SQL in `supabase/sql/2026-10-12_chat_limits_and_security.sql`), chat moved server-side with a 40-messages-a-day cap (`chat_usage` table), reviewer password login for `appreview@lumaraelabs.com` only (account created by hand in Supabase; password lives in App Store Connect, never in git), iPhone save-photo permission, XP/referral/bookings/dark-mode/wallet/subscription/business screens and Stripe code removed, unused packages removed. Needs a new dev build because `app.json` plugins changed.
 
 Done 13 Oct: the chat's barcode scanner now uses `ingredient-lookup` (Open Beauty Facts) instead of the food database. The fake "photo of ingredient label" option (it never sent the photo) is replaced by "Check ingredients" (paste the list). Try-on copy no longer says "AI" or "4K". Ingredient tables and 155 notes: `supabase/sql/2026-10-13_ingredients.sql`; the CosIng list is imported by hand from `cosing-clean.csv` (not in git).
@@ -106,17 +110,17 @@ Done 13 Oct: the chat's barcode scanner now uses `ingredient-lookup` (Open Beaut
 
 **Day 3: see what happens after launch**
 - [x] **Sentry** crash reporting (`lib/sentry.ts`, root layout wrapped). Turned on by `EXPO_PUBLIC_SENTRY_DSN` in `.env`. Source map upload is off (`SENTRY_DISABLE_AUTO_UPLOAD` in `eas.json`); add organization/project to the plugin in `app.json` and a `SENTRY_AUTH_TOKEN` EAS secret later for readable stack traces.
-- [x] **Analytics:** PostHog EU (`lib/analytics.ts`), turned on by `EXPO_PUBLIC_POSTHOG_KEY`. Seven events via `track()`: onboarding_finished, face_scan_done, tryon_done, chat_sent, ingredients_checked, stylist_opened, product_tapped. Anonymous (no identify, no person profiles). Users can switch it off in Settings.
+- [x] **Analytics:** PostHog EU (`lib/analytics.ts`), turned on by `EXPO_PUBLIC_POSTHOG_KEY`. Eight events via `track()`: onboarding_finished, face_scan_done, tryon_done, chat_sent, ingredients_checked, stylist_opened, product_tapped, book_tapped. Anonymous (no identify, no person profiles). Users can switch it off in Settings.
 - [ ] **EAS Update** (`expo-updates`) so fixes reach phones without a new App Store review.
 - [ ] Add Sentry and PostHog to the privacy policy's list of services.
 
 **Days 4 to 8: make it feel designed**
-- [ ] **Consistency pass.** The app uses 27 text sizes and 26 corner radii. Snap every screen to `DESIGN.md`: type scale only, spacing scale only, radii 8/12/16/20/pill only. Replace leftover lime (`#8AB800`, `#c8e878`) and stray greens/reds with palette colours.
+- [x] **Consistency pass (15 Oct).** Every screen snapped to the `DESIGN.md` sizes, spacing scale and radii 8/12/16/20/pill. Share card (`reveal.tsx`) and drawings (`InterstitialVisuals`, `JourneyMap`) left exact on purpose. All screens now use `components/primitives/Pressable` (press feedback, bigger touch area) and `lib/haptics.ts` (haptics on quiz answers, chips, chat send, toggles, main buttons). Disabled `Button` no longer shows a light-mode grey.
 - [ ] **Profile rebuild.** With XP, wallet, bookings and referral gone, make Profile about the user: persona card, face scan result (with "scan again"), hair profile, saved looks and favourites, then settings, privacy and sign out.
 - [ ] **Home cleanup.** Keep the week strip and routine ring; no XP pop-ups.
 - [ ] **Chat screen.** Choose either the light rays or the glowing core, not both.
 - [ ] **Screen-by-screen polish** from Vyshnavi's phone screenshots.
-- [ ] **Settings has pretend rows** (rule 9): Export my data promises an email that never comes, Change password and Edit profile do nothing, Booking updates and Promotions notifications have nothing behind them. Make them real or remove them.
+- [x] **Settings pretend rows removed (15 Oct):** Change password, Edit profile, all notification toggles (no notifications package yet), Language, Export my data (Settings and Privacy), Privacy's personalisation switch. Privacy's analytics switch now really turns PostHog off. Home's "+10" XP labels removed.
 - [ ] **Production builds need the `EXPO_PUBLIC_*` values as EAS environment variables** (`.env` is not uploaded to EAS). Dev builds read `.env` through Metro.
 
 **Before submission: real stylists without an app update**

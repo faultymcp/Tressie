@@ -6,8 +6,9 @@
 
 import { useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, Pressable, TextInput, KeyboardAvoidingView, Platform,
+  View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
@@ -78,11 +79,11 @@ export default function NameScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.porcelain },
   body: { flex: 1, justifyContent: 'center', paddingHorizontal: 24 },
-  title: { fontFamily: Fonts.heading, fontSize: 34, lineHeight: 40, color: '#FFFEF7' },
+  title: { fontFamily: Fonts.heading, fontSize: 32, lineHeight: 40, color: '#FFFEF7' },
   titleEm: { fontFamily: Fonts.headingSemi, fontStyle: 'italic', color: '#E6BEF5' },
-  sub: { fontFamily: Fonts.body, fontSize: 15, color: 'rgba(255,254,247,0.62)', marginTop: 10, marginBottom: 28 },
+  sub: { fontFamily: Fonts.body, fontSize: 16, color: 'rgba(255,254,247,0.62)', marginTop: 12, marginBottom: 24 },
   field: {
-    height: 58, borderRadius: 18, paddingHorizontal: 18, justifyContent: 'center',
+    height: 58, borderRadius: 20, paddingHorizontal: 20, justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)',
   },
   fieldActive: { borderColor: 'rgba(230,190,245,0.6)' },

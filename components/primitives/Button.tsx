@@ -115,7 +115,7 @@ export default function Button({
 
 const s = StyleSheet.create({
   base: {
-    borderRadius: Radius.lg,
+    borderRadius: Radius.full,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: TouchTarget.min,
@@ -129,7 +129,7 @@ const s = StyleSheet.create({
     backgroundColor: Accent.base,
   },
   primaryDisabled: {
-    backgroundColor: '#E0DCD5',
+    backgroundColor: 'rgba(255,254,247,0.10)',
   },
   secondary: {
     backgroundColor: Surface.raised,
@@ -145,11 +145,11 @@ const s = StyleSheet.create({
     letterSpacing: 0.2,
     textAlign: 'center',
   },
-  labelRegular: { fontSize: 15 },
+  labelRegular: { fontSize: 16 },
   labelCompact: { fontSize: 14 },
 
   labelPrimary: { color: Foreground.onAccent },
-  labelPrimaryDisabled: { color: '#9D9686' },
+  labelPrimaryDisabled: { color: 'rgba(255,254,247,0.45)' },
   labelSecondary: { color: Foreground.primary },
   labelGhost: { color: Accent.base },
 });

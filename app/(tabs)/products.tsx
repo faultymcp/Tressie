@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Pressable, Platform,
-  Linking, ActivityIndicator,
+  View, Text, StyleSheet, ScrollView, Platform, Linking, ActivityIndicator,
 } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import Svg, { Path } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors, Fonts, Radius } from '@/constants/theme';
@@ -186,19 +186,19 @@ export default function ProductsScreen() {
 const st = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.porcelain },
   header: { paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 62 : 48, paddingBottom: 12 },
-  title: { fontFamily: Fonts.heading, fontSize: 24, color: Colors.ink, letterSpacing: -0.5 },
-  subtitle: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, marginTop: 4 },
+  title: { fontFamily: Fonts.heading, fontSize: 22, color: Colors.ink, letterSpacing: -0.5 },
+  subtitle: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted, marginTop: 4 },
 
   content: { paddingBottom: 130 },
 
-  sectionTitle: { fontFamily: Fonts.headingSemi, fontSize: 17, color: Colors.ink, paddingHorizontal: 20, marginBottom: 12 },
+  sectionTitle: { fontFamily: Fonts.headingSemi, fontSize: 16, color: Colors.ink, paddingHorizontal: 20, marginBottom: 12 },
 
   // Style inspiration feed — minHeight is a safety net for MasonryFlashList's
   // auto-sizing with scrollEnabled=false; tune this once you see it rendered.
   feedWrap: { minHeight: 620, marginBottom: 8 },
 
   // Style cards
-  styleScroll: { paddingHorizontal: 20, gap: 10, paddingBottom: 4, marginBottom: 16 },
+  styleScroll: { paddingHorizontal: 20, gap: 12, paddingBottom: 4, marginBottom: 16 },
   styleCard: {
     width: 150, padding: 16, borderRadius: 16,
     backgroundColor: Colors.white, borderWidth: 1.5, borderColor: Colors.border,
@@ -211,38 +211,38 @@ const st = StyleSheet.create({
 
   // Style detail
   styleDetail: {
-    marginHorizontal: 20, padding: 20, borderRadius: 18,
+    marginHorizontal: 20, padding: 20, borderRadius: 20,
     backgroundColor: Colors.white, borderWidth: 1.5, borderColor: Colors.border,
   },
-  styleDetailTitle: { fontFamily: Fonts.heading, fontSize: 20, color: Colors.ink, marginBottom: 6 },
-  styleDetailSub: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, lineHeight: 20, marginBottom: 14 },
+  styleDetailTitle: { fontFamily: Fonts.heading, fontSize: 22, color: Colors.ink, marginBottom: 8 },
+  styleDetailSub: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted, lineHeight: 20, marginBottom: 16 },
   styleDetailTags: { flexDirection: 'row', gap: 8 },
-  tag: { backgroundColor: Colors.violetBg2, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 10 },
-  tagText: { fontFamily: Fonts.bodySemi, fontSize: 10, color: Colors.lavender },
+  tag: { backgroundColor: Colors.violetBg2, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 12 },
+  tagText: { fontFamily: Fonts.bodySemi, fontSize: 11, color: Colors.lavender },
 
   // Category chips
   catScroll: { paddingHorizontal: 20, gap: 8, paddingBottom: 4, marginBottom: 16 },
-  catChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18, borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.white },
+  catChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.white },
   catChipActive: { borderColor: Colors.violet, backgroundColor: Colors.violet },
   catText: { fontFamily: Fonts.bodySemi, fontSize: 12, color: Colors.ink },
   catTextActive: { color: '#FFFFFF' },
 
   // Product list
-  loadingWrap: { paddingTop: 40, alignItems: 'center' },
-  prodList: { paddingHorizontal: 20, gap: 10 },
+  loadingWrap: { paddingTop: 32, alignItems: 'center' },
+  prodList: { paddingHorizontal: 20, gap: 12 },
   prodCard: {
-    backgroundColor: Colors.white, borderRadius: 16, padding: 18,
+    backgroundColor: Colors.white, borderRadius: 16, padding: 20,
     borderWidth: 1.5, borderColor: Colors.border,
   },
   prodTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
-  prodBrand: { fontFamily: Fonts.body, fontSize: 10, color: Colors.lavender, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 },
-  prodName: { fontFamily: Fonts.headingSemi, fontSize: 15, color: Colors.ink, lineHeight: 20 },
-  prodPrice: { fontFamily: Fonts.heading, fontSize: 17, color: Colors.ink, marginLeft: 12 },
+  prodBrand: { fontFamily: Fonts.body, fontSize: 11, color: Colors.lavender, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 },
+  prodName: { fontFamily: Fonts.headingSemi, fontSize: 16, color: Colors.ink, lineHeight: 20 },
+  prodPrice: { fontFamily: Fonts.heading, fontSize: 16, color: Colors.ink, marginLeft: 12 },
   prodDesc: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, lineHeight: 18, marginBottom: 12 },
   prodBottom: { flexDirection: 'row', alignItems: 'center' },
-  prodCatBadge: { backgroundColor: 'rgba(255,255,255,0.08)', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 8, marginRight: 8 },
-  prodCatText: { fontFamily: Fonts.bodyMedium, fontSize: 10, color: Colors.ink, textTransform: 'capitalize' },
-  prodRetailer: { fontFamily: Fonts.body, fontSize: 10, color: Colors.muted, flex: 1 },
+  prodCatBadge: { backgroundColor: 'rgba(255,255,255,0.08)', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 8, marginRight: 8 },
+  prodCatText: { fontFamily: Fonts.bodyMedium, fontSize: 11, color: Colors.ink, textTransform: 'capitalize' },
+  prodRetailer: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, flex: 1 },
   // Star rating — shown when the product has a real rating in the database,
   // otherwise the retailer name shows instead. Never a made-up number.
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 3, flex: 1 },
@@ -252,5 +252,5 @@ const st = StyleSheet.create({
   prodLinkRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   prodLink: { fontFamily: Fonts.bodySemi, fontSize: 12, color: Colors.lavender },
 
-  emptyText: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, textAlign: 'center', paddingTop: 24 },
+  emptyText: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted, textAlign: 'center', paddingTop: 24 },
 });

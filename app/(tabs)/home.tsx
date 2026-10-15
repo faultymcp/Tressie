@@ -20,9 +20,9 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Pressable, Platform,
-  Animated as RNAnimated, Easing,
+  View, Text, StyleSheet, ScrollView, Platform, Animated as RNAnimated, Easing,
 } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import { useRouter } from 'expo-router';
 import Svg, { Circle, Path } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -473,6 +473,7 @@ export default function HomeScreen() {
                 return (
                   <Pressable
                     key={step.id}
+                    haptic="select"
                     onPress={() => toggleStep(step.id, step.name)}
                     style={({ pressed }) => [st.stepRow, i > 0 && st.stepDivider, pressed && { opacity: 0.7 }]}
                     accessibilityRole="checkbox"
@@ -499,7 +500,6 @@ export default function HomeScreen() {
                         );
                       })()}
                     </View>
-                    <Text style={st.stepXp}>+{step.xp ?? 10}</Text>
                   </Pressable>
                 );
               })
@@ -551,15 +551,15 @@ export default function HomeScreen() {
 // ═══════════════════════════════════════════════════════════════
 const st = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.porcelain },
-  scroll: { paddingTop: Platform.OS === 'ios' ? 64 : 44, paddingHorizontal: 22, paddingBottom: 140 },
+  scroll: { paddingTop: Platform.OS === 'ios' ? 64 : 44, paddingHorizontal: 24, paddingBottom: 140 },
 
   // 1. Masthead
-  masthead: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, marginBottom: 22 },
+  masthead: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, marginBottom: 24 },
   dateLabel: { fontFamily: 'Sora_500Medium', fontSize: 11, letterSpacing: 2, color: CREAM_DIM },
-  greeting: { fontFamily: Fonts.heading, fontSize: 30, letterSpacing: -0.5, color: CREAM, marginTop: 4 },
+  greeting: { fontFamily: Fonts.heading, fontSize: 32, letterSpacing: -0.5, color: CREAM, marginTop: 4 },
   greetingName: { fontFamily: 'Fraunces_400Regular_Italic', color: LAV_LIGHT },
   streakPill: {
-    flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 12,
+    flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, paddingHorizontal: 12,
     borderRadius: 999, backgroundColor: 'rgba(195,140,217,0.1)', borderWidth: 1, borderColor: 'rgba(195,140,217,0.35)',
     marginBottom: 4,
   },
@@ -567,59 +567,59 @@ const st = StyleSheet.create({
 
   // 2. Week strip
   strip: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  stripDay: { alignItems: 'center', gap: 6, paddingVertical: 4, minWidth: 44 },
-  stripLetter: { fontFamily: 'Sora_500Medium', fontSize: 10, letterSpacing: 1, color: 'rgba(255,254,247,0.55)' },
-  stripCircle: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  stripDay: { alignItems: 'center', gap: 8, paddingVertical: 4, minWidth: 44 },
+  stripLetter: { fontFamily: 'Sora_500Medium', fontSize: 11, letterSpacing: 1, color: 'rgba(255,254,247,0.55)' },
+  stripCircle: { width: 40, height: 40, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
   stripCirclePicked: { backgroundColor: 'rgba(255,254,247,0.14)' },
-  stripDate: { fontFamily: Fonts.bodySemi, fontSize: 13, color: CREAM },
+  stripDate: { fontFamily: Fonts.bodySemi, fontSize: 14, color: CREAM },
   stripMark: { height: 12, alignItems: 'center', justifyContent: 'center' },
 
   // 3. Halo
-  hero: { alignItems: 'center', marginBottom: 22 },
+  hero: { alignItems: 'center', marginBottom: 24 },
   ringWrap: { width: RING, height: RING },
   ringCenter: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', gap: 2 },
-  ringCount: { fontFamily: Fonts.heading, fontSize: 48, letterSpacing: -1, color: CREAM },
-  ringTotal: { fontFamily: Fonts.heading, fontSize: 26, color: 'rgba(255,254,247,0.5)' },
-  ringDone: { fontFamily: 'Fraunces_400Regular_Italic', fontSize: 30, color: Colors.lavender },
+  ringCount: { fontFamily: Fonts.heading, fontSize: 44, letterSpacing: -1, color: CREAM },
+  ringTotal: { fontFamily: Fonts.heading, fontSize: 22, color: 'rgba(255,254,247,0.5)' },
+  ringDone: { fontFamily: 'Fraunces_400Regular_Italic', fontSize: 32, color: Colors.lavender },
   ringLabel: { fontFamily: 'Sora_500Medium', fontSize: 11, letterSpacing: 2, color: CREAM_DIM },
-  heroTitle: { fontFamily: Fonts.headingSemi, fontSize: 20, color: CREAM, marginTop: 14 },
-  heroSub: { fontFamily: Fonts.body, fontSize: 13, color: 'rgba(255,254,247,0.65)', marginTop: 4, textAlign: 'center' },
+  heroTitle: { fontFamily: Fonts.headingSemi, fontSize: 22, color: CREAM, marginTop: 16 },
+  heroSub: { fontFamily: Fonts.body, fontSize: 14, color: 'rgba(255,254,247,0.65)', marginTop: 4, textAlign: 'center' },
 
   // 4. Steps
   card: {
-    borderRadius: 24, backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.border,
-    paddingHorizontal: 16, paddingVertical: 6, marginBottom: 16,
+    borderRadius: 20, backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.border,
+    paddingHorizontal: 16, paddingVertical: 8, marginBottom: 16,
   },
-  previewHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, paddingBottom: 6, gap: 10 },
+  previewHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 12, paddingBottom: 8, gap: 12 },
   previewTitle: { flex: 1, fontFamily: 'Sora_600SemiBold', fontSize: 12, letterSpacing: 0.5, color: LAV_LIGHT },
-  backPill: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(195,140,217,0.4)' },
+  backPill: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(195,140,217,0.4)' },
   backPillText: { fontFamily: 'Sora_600SemiBold', fontSize: 12, color: Colors.lavender },
   emptyText: { fontFamily: Fonts.body, fontSize: 14, color: CREAM_DIM, paddingVertical: 16, textAlign: 'center' },
-  stepRow: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 52, paddingVertical: 8 },
+  stepRow: { flexDirection: 'row', alignItems: 'center', gap: 16, minHeight: 52, paddingVertical: 8 },
   stepDivider: { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' },
-  check: { width: 26, height: 26, borderRadius: 13, borderWidth: 1.5, borderColor: 'rgba(255,254,247,0.4)', alignItems: 'center', justifyContent: 'center' },
+  check: { width: 26, height: 26, borderRadius: 999, borderWidth: 1.5, borderColor: 'rgba(255,254,247,0.4)', alignItems: 'center', justifyContent: 'center' },
   checkDone: { backgroundColor: Colors.lime, borderColor: Colors.lime },
-  stepName: { fontFamily: Fonts.bodyMedium, fontSize: 15, color: CREAM },
+  stepName: { fontFamily: Fonts.bodyMedium, fontSize: 16, color: CREAM },
   stepNameDone: { color: 'rgba(255,254,247,0.45)', textDecorationLine: 'line-through' },
   stepDesc: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginTop: 2 },
-  stepProduct: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 5, alignSelf: 'flex-start' },
+  stepProduct: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4, alignSelf: 'flex-start' },
   stepProductThumb: { width: 18, height: 18, borderRadius: 5, backgroundColor: Colors.lavender, opacity: 0.8 },
   stepProductText: { fontFamily: Fonts.body, fontSize: 12, color: LAV_LIGHT, flexShrink: 1 },
   stepXp: { fontFamily: 'Sora_500Medium', fontSize: 11, color: 'rgba(255,254,247,0.45)' },
-  previewDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.lavender, marginHorizontal: 9 },
+  previewDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.lavender, marginHorizontal: 8 },
 
   // 5. Wash day
   washCard: {
-    borderRadius: 24, backgroundColor: 'rgba(118,67,172,0.28)', borderWidth: 1, borderColor: 'rgba(230,190,245,0.35)',
-    padding: 18, gap: 16, marginBottom: 24,
+    borderRadius: 20, backgroundColor: 'rgba(118,67,172,0.28)', borderWidth: 1, borderColor: 'rgba(230,190,245,0.35)',
+    padding: 20, gap: 16, marginBottom: 24,
   },
   washTop: { flexDirection: 'row', alignItems: 'flex-start' },
-  washLabel: { fontFamily: 'Sora_500Medium', fontSize: 10, letterSpacing: 2, color: LAV_LIGHT },
+  washLabel: { fontFamily: 'Sora_500Medium', fontSize: 11, letterSpacing: 2, color: LAV_LIGHT },
   washTitle: { fontFamily: Fonts.heading, fontSize: 22, color: CREAM, marginTop: 4 },
-  washSub: { fontFamily: Fonts.body, fontSize: 13, color: 'rgba(255,254,247,0.65)', marginTop: 2 },
-  washSteps: { flexDirection: 'row', gap: 6 },
-  washStep: { flex: 1, alignItems: 'center', gap: 6 },
+  washSub: { fontFamily: Fonts.body, fontSize: 14, color: 'rgba(255,254,247,0.65)', marginTop: 2 },
+  washSteps: { flexDirection: 'row', gap: 8 },
+  washStep: { flex: 1, alignItems: 'center', gap: 8 },
   washBar: { alignSelf: 'stretch', height: 4, borderRadius: 2, backgroundColor: 'rgba(230,190,245,0.5)' },
-  washStepText: { fontFamily: Fonts.body, fontSize: 10, color: 'rgba(255,254,247,0.7)' },
+  washStepText: { fontFamily: Fonts.body, fontSize: 11, color: 'rgba(255,254,247,0.7)' },
 
 });

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Pressable, Platform,
-  Linking, ActivityIndicator,
+  View, Text, StyleSheet, ScrollView, Platform, Linking, ActivityIndicator,
 } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import { Picker } from '@react-native-picker/picker';   
 import Svg, { Path, Circle } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -236,8 +236,8 @@ export default function SalonsScreen() {
 const st = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.porcelain },
   header: { paddingHorizontal: 20, paddingTop: Platform.OS === 'ios' ? 62 : 48, paddingBottom: 12 },
-  title: { fontFamily: Fonts.heading, fontSize: 24, color: Colors.ink, letterSpacing: -0.5 },
-  subtitle: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, marginTop: 4 },
+  title: { fontFamily: Fonts.heading, fontSize: 22, color: Colors.ink, letterSpacing: -0.5 },
+  subtitle: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted, marginTop: 4 },
 
   // --- NEW FILTER STYLES ---
   filterScrollContainer: { 
@@ -250,9 +250,9 @@ const st = StyleSheet.create({
   },
   filterLabel: { 
     fontFamily: Fonts.bodySemi, 
-    fontSize: 13, 
+    fontSize: 14, 
     color: Colors.ink, 
-    marginBottom: 6,
+    marginBottom: 8,
     marginLeft: 4
   },
   pickerWrapper: { 
@@ -290,38 +290,38 @@ const st = StyleSheet.create({
 
   card: { 
     backgroundColor: Colors.white, 
-    borderRadius: 18, 
-    padding: 18, 
+    borderRadius: 20, 
+    padding: 20, 
     borderWidth: 1.5, 
     borderColor: Colors.border, 
-    marginBottom: 14 
+    marginBottom: 16 
   },
-  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
-  salonName: { fontFamily: Fonts.headingSemi, fontSize: 17, color: Colors.ink, marginBottom: 4 },
-  locRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  salonArea: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted },
-  ratingBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.white, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 10 },
+  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
+  salonName: { fontFamily: Fonts.headingSemi, fontSize: 16, color: Colors.ink, marginBottom: 4 },
+  locRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  salonArea: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted },
+  ratingBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.white, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 12 },
   ratingText: { fontFamily: Fonts.headingSemi, fontSize: 14, color: Colors.ink },
   reviewCount: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted },
-  speciality: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, lineHeight: 20, marginBottom: 14 },
+  speciality: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted, lineHeight: 20, marginBottom: 16 },
 
   tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  typeTag: { backgroundColor: Colors.white, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 10 },
+  typeTag: { backgroundColor: Colors.white, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 12 },
   typeTagMatch: { backgroundColor: Colors.violet },
   typeTagText: { fontFamily: Fonts.bodySemi, fontSize: 11, color: Colors.ink },
   typeTagTextMatch: { color: '#FFFFFF' },
-  highlightTag: { backgroundColor: 'rgba(138,184,0,0.22)', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 10 },
+  highlightTag: { backgroundColor: 'rgba(138,184,0,0.22)', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 12 },
   highlightText: { fontFamily: Fonts.body, fontSize: 11, color: '#E6BEF5' },
-  snacksTag: { backgroundColor: 'rgba(245,158,11,0.14)', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 10 },
+  snacksTag: { backgroundColor: 'rgba(245,158,11,0.14)', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 12 },
   snacksTagText: { fontFamily: Fonts.body, fontSize: 11, color: '#E67E22' },
 
   btnRow: { flexDirection: 'row', gap: 12 },
-  dirBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: Colors.violet, paddingVertical: 14, borderRadius: 12 },
+  dirBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: Colors.violet, paddingVertical: 16, borderRadius: 12 },
   dirText: { fontFamily: Fonts.bodySemi, fontSize: 14, color: '#FFFFFF' },
-  webBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 20, borderRadius: 12, borderWidth: 1.5, borderColor: Colors.violet },
+  webBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 16, paddingHorizontal: 20, borderRadius: 12, borderWidth: 1.5, borderColor: Colors.violet },
   webText: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.lavender },
 
   empty: { alignItems: 'center', paddingTop: 60 },
-  emptyTitle: { fontFamily: Fonts.headingSemi, fontSize: 17, color: Colors.ink, marginBottom: 8 },
+  emptyTitle: { fontFamily: Fonts.headingSemi, fontSize: 16, color: Colors.ink, marginBottom: 8 },
   emptyDesc: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted, textAlign: 'center' },
 });

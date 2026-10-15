@@ -5,7 +5,9 @@
 // app update. Sample profiles are marked as samples on every card.
 
 import { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
+import { VerifiedBadge } from '@/components/VerifiedBadge';
 import { useRouter, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
@@ -78,7 +80,10 @@ export default function DiscoverScreen() {
             </View>
             <Pressable onPress={() => open(s)} style={({ pressed }) => [st.info, pressed && { opacity: 0.7 }]}>
               <View style={{ flex: 1 }}>
-                <Text style={st.name}>{s.name}</Text>
+                <View style={st.nameRow}>
+                  <Text style={st.name}>{s.name}</Text>
+                  {s.verified ? <VerifiedBadge compact /> : null}
+                </View>
                 <Text style={st.speciality}>{s.speciality}</Text>
                 <Text style={st.city}>{s.city}</Text>
               </View>
@@ -105,21 +110,22 @@ const st = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.porcelain },
   content: { paddingHorizontal: 20, paddingTop: 64, paddingBottom: 130 },
   header: { marginBottom: 20 },
-  title: { fontFamily: Fonts.heading, fontSize: 30, color: Colors.ink, letterSpacing: -0.5 },
+  title: { fontFamily: Fonts.heading, fontSize: 32, color: Colors.ink, letterSpacing: -0.5 },
   subtitle: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted, marginTop: 4 },
   card: {
-    marginBottom: 22, borderRadius: 26, overflow: 'hidden',
+    marginBottom: 24, borderRadius: 20, overflow: 'hidden',
     backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
   },
   sampleTag: {
-    position: 'absolute', top: 14, left: 14, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 999,
+    position: 'absolute', top: 14, left: 14, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 999,
     backgroundColor: 'rgba(18,11,46,0.6)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
   },
-  sampleText: { fontFamily: Fonts.bodySemi, fontSize: 9, letterSpacing: 1.4, color: 'rgba(255,254,247,0.85)' },
+  sampleText: { fontFamily: Fonts.bodySemi, fontSize: 11, letterSpacing: 1.4, color: 'rgba(255,254,247,0.85)' },
   info: { flexDirection: 'row', alignItems: 'flex-end', padding: 16 },
-  name: { fontFamily: Fonts.heading, fontSize: 20, color: Colors.ink },
-  speciality: { fontFamily: Fonts.body, fontSize: 13, color: 'rgba(255,254,247,0.75)', marginTop: 3 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  name: { fontFamily: Fonts.heading, fontSize: 22, color: Colors.ink },
+  speciality: { fontFamily: Fonts.body, fontSize: 14, color: 'rgba(255,254,247,0.75)', marginTop: 3 },
   city: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginTop: 2 },
-  viewLink: { fontFamily: Fonts.bodySemi, fontSize: 13, color: Colors.lavender },
+  viewLink: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.lavender },
   footnote: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, textAlign: 'center', marginTop: 4, opacity: 0.7 },
 });

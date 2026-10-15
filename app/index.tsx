@@ -64,8 +64,8 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   tag: {
     fontFamily: 'Fraunces_400Regular_Italic',
-    fontSize: 20,
+    fontSize: 22,
     color: 'rgba(255,254,247,0.8)',
-    marginTop: 22,
+    marginTop: 24,
   },
 });

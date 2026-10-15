@@ -1,15 +1,8 @@
 import { useState, useRef } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  ActivityIndicator,
+  View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
 } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Fonts, Spacing, Radius } from '@/constants/theme';
@@ -310,7 +303,7 @@ export default function AuthScreen() {
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Let's get you <Text style={styles.titleEm}>in.</Text></Text>
         <Text style={styles.subtitle}>
-"No password to remember. We'll email you a six-digit code."
+No password to remember. We'll email you a six-digit code.
         </Text>
 
         <View style={[styles.field, email.length > 0 && styles.fieldActive]}>
@@ -351,17 +344,17 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.porcelain },
   back: {
     position: 'absolute', top: Platform.OS === 'ios' ? 60 : 36, left: 24, zIndex: 10,
-    width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center',
+    width: 36, height: 36, borderRadius: 999, alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)',
   },
   scroll: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingTop: 120, paddingBottom: 60 },
-  title: { fontFamily: Fonts.heading, fontSize: 34, lineHeight: 40, color: '#FFFEF7' },
+  title: { fontFamily: Fonts.heading, fontSize: 32, lineHeight: 40, color: '#FFFEF7' },
   titleEm: { fontFamily: Fonts.headingSemi, fontStyle: 'italic', color: '#E6BEF5' },
-  subtitle: { fontFamily: Fonts.body, fontSize: 15, lineHeight: 22, color: 'rgba(255,254,247,0.62)', marginTop: 12, marginBottom: 28 },
+  subtitle: { fontFamily: Fonts.body, fontSize: 16, lineHeight: 22, color: 'rgba(255,254,247,0.62)', marginTop: 12, marginBottom: 24 },
   email: { fontFamily: Fonts.bodySemi, color: '#FFFEF7' },
 
   field: {
-    height: 58, borderRadius: 18, paddingHorizontal: 18, justifyContent: 'center',
+    height: 58, borderRadius: 20, paddingHorizontal: 20, justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)',
   },
   fieldActive: { borderColor: 'rgba(230,190,245,0.6)' },
@@ -370,13 +363,13 @@ const styles = StyleSheet.create({
   otpRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
   otpInput: {
     flex: 1, height: 58, borderRadius: 16, textAlign: 'center',
-    fontFamily: Fonts.heading, fontSize: 24, color: '#FFFEF7',
+    fontFamily: Fonts.heading, fontSize: 22, color: '#FFFEF7',
     backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)',
   },
   otpInputFilled: { borderColor: 'rgba(230,190,245,0.7)', backgroundColor: 'rgba(118,67,172,0.25)' },
   otpInputError: { borderColor: '#F87171' },
 
-  errorText: { fontFamily: Fonts.body, fontSize: 13, color: '#F87171', marginTop: 12 },
+  errorText: { fontFamily: Fonts.body, fontSize: 14, color: '#F87171', marginTop: 12 },
 
   btn: {
     height: 58, borderRadius: 999, marginTop: 20, alignItems: 'center', justifyContent: 'center',
@@ -387,8 +380,8 @@ const styles = StyleSheet.create({
   btnDisabled: { opacity: 0.6 },
   btnText: { fontFamily: Fonts.bodySemi, fontSize: 16, color: '#FFFFFF' },
 
-  note: { fontFamily: Fonts.body, fontSize: 13, color: 'rgba(255,254,247,0.5)', textAlign: 'center', marginTop: 16 },
-  row: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 20 },
+  note: { fontFamily: Fonts.body, fontSize: 14, color: 'rgba(255,254,247,0.5)', textAlign: 'center', marginTop: 16 },
+  row: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: 20 },
   link: { fontFamily: Fonts.bodyMedium, fontSize: 14, color: '#E6BEF5' },
   dot: { color: 'rgba(255,254,247,0.4)' },
 

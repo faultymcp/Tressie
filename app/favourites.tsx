@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Pressable, Platform,
-  ActivityIndicator, Dimensions,
+  View, Text, StyleSheet, ScrollView, Platform, ActivityIndicator, Dimensions,
 } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
@@ -158,42 +158,42 @@ const st = StyleSheet.create({
     paddingHorizontal: 16, paddingTop: Platform.OS === 'ios' ? 58 : 44, paddingBottom: 8,
   },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.ink },
+  headerTitle: { fontFamily: Fonts.heading, fontSize: 16, color: Colors.ink },
 
   // Tabs
   tabScroll: { paddingHorizontal: 16, gap: 8, paddingVertical: 12 },
   tab: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
+    flexDirection: 'row', alignItems: 'center', gap: 8,
     paddingVertical: 8, paddingHorizontal: 16,
     borderRadius: 20, borderWidth: 1, borderColor: Colors.border,
     backgroundColor: Colors.white,
   },
   tabActive: { backgroundColor: Colors.violet, borderColor: Colors.violet },
-  tabText: { fontFamily: Fonts.bodySemi, fontSize: 13, color: Colors.ink },
+  tabText: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.ink },
   tabTextActive: { color: '#fff' },
-  tabBadge: { backgroundColor: 'rgba(255,255,255,0.10)', paddingVertical: 2, paddingHorizontal: 8, borderRadius: 10 },
+  tabBadge: { backgroundColor: 'rgba(255,255,255,0.10)', paddingVertical: 2, paddingHorizontal: 8, borderRadius: 12 },
   tabBadgeActive: { backgroundColor: 'rgba(255,255,255,0.2)' },
-  tabBadgeText: { fontFamily: Fonts.bodySemi, fontSize: 10, color: Colors.ink },
+  tabBadgeText: { fontFamily: Fonts.bodySemi, fontSize: 11, color: Colors.ink },
   tabBadgeTextActive: { color: '#fff' },
 
   // Empty
-  emptyWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40, paddingBottom: 80 },
+  emptyWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32, paddingBottom: 80 },
   emptyIcon: {
-    width: 56, height: 56, borderRadius: 28,
+    width: 56, height: 56, borderRadius: 999,
     backgroundColor: 'rgba(244,132,185,0.14)', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
   },
-  emptyTitle: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.ink, marginBottom: 4 },
-  emptySub: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, textAlign: 'center', marginBottom: 20 },
+  emptyTitle: { fontFamily: Fonts.heading, fontSize: 16, color: Colors.ink, marginBottom: 4 },
+  emptySub: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted, textAlign: 'center', marginBottom: 20 },
   emptyBtn: {
-    paddingVertical: 12, paddingHorizontal: 28,
-    backgroundColor: Colors.violet, borderRadius: 14,
+    paddingVertical: 12, paddingHorizontal: 24,
+    backgroundColor: Colors.violet, borderRadius: 16,
   },
   emptyBtnText: { fontFamily: Fonts.bodySemi, fontSize: 14, color: '#fff' },
 
   // List
-  list: { paddingHorizontal: 20, paddingBottom: 40 },
+  list: { paddingHorizontal: 20, paddingBottom: 32 },
   card: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
+    flexDirection: 'row', alignItems: 'center', gap: 16,
     padding: 16, marginBottom: 8,
     backgroundColor: Colors.white, borderRadius: 16,
     borderWidth: 1, borderColor: Colors.border,
@@ -206,5 +206,5 @@ const st = StyleSheet.create({
   cardBody: { flex: 1 },
   cardTitle: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.ink, marginBottom: 2 },
   cardSub: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted },
-  removeBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(244,132,185,0.14)', alignItems: 'center', justifyContent: 'center' },
+  removeBtn: { width: 36, height: 36, borderRadius: 999, backgroundColor: 'rgba(244,132,185,0.14)', alignItems: 'center', justifyContent: 'center' },
 });

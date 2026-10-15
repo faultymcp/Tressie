@@ -10,7 +10,8 @@
 
 import React from 'react';
 import { FlashList } from '@shopify/flash-list';
-import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import * as Haptics from 'expo-haptics';
 import Animated, {
   FadeInDown,

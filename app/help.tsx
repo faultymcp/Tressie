@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Pressable, Platform,
-  Linking,
+  View, Text, StyleSheet, ScrollView, Platform, Linking,
 } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import { useRouter } from 'expo-router';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { Colors, Fonts } from '@/constants/theme';
@@ -20,7 +20,8 @@ const FAQS = [
   { q: 'How does the hair quiz work?', a: 'The quiz asks about your hair type, porosity, scalp condition, goals, and current hair setup (natural, braids, extensions, etc.). Based on your answers, Halea builds a personalised routine with daily and weekly steps specific to your hair.' },
   { q: 'What hair types does Halea support?', a: 'Every hair type from 1A to 4C, plus braids, sewn-in extensions, clip-ins, wigs, locs, relaxed hair, colour-treated hair, heat-styled hair, and hair transplant recovery. Your routine adapts to your specific situation.' },
   { q: 'How does Try a style work?', a: 'Upload a selfie and a photo of any hairstyle to see how it could look on you. Everyone gets 3 free try-ons a day.' },
-  { q: 'Is my data safe?', a: 'Yes. Your data is stored securely on Supabase (EU-hosted). We never sell your personal information. You can export or delete all your data from Settings at any time.' },
+  { q: 'How do I book a stylist?', a: 'On a stylist\'s page, tap Book. It opens their own booking page, where you choose a time and book with them directly.' },
+  { q: 'Is my data safe?', a: 'Yes. Your data is stored securely on Supabase (EU-hosted). We never sell your personal information. You can delete your account and all your data from Settings at any time.' },
   { q: 'I have braids. Will the routine work for me?', a: 'Absolutely. When you select braids in the quiz, your routine includes braid-specific steps like scalp cleansing between braids, edge care, lightweight oil application, and removal timing reminders. The advice adapts to whether you have box braids, cornrows, or knotless braids.' },
 ];
 
@@ -93,32 +94,32 @@ const st = StyleSheet.create({
     paddingHorizontal: 16, paddingTop: Platform.OS === 'ios' ? 58 : 44, paddingBottom: 12,
   },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontFamily: Fonts.heading, fontSize: 18, color: Colors.ink },
-  scroll: { paddingBottom: 40 },
+  headerTitle: { fontFamily: Fonts.heading, fontSize: 16, color: Colors.ink },
+  scroll: { paddingBottom: 32 },
 
   sectionLabel: {
     fontFamily: Fonts.bodySemi, fontSize: 12, color: Colors.muted,
     textTransform: 'uppercase', letterSpacing: 0.8,
-    paddingHorizontal: 20, marginBottom: 10, marginTop: 8,
+    paddingHorizontal: 20, marginBottom: 12, marginTop: 8,
   },
 
   contactCard: {
     marginHorizontal: 20, marginBottom: 24, backgroundColor: Colors.white,
     borderRadius: 16, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden',
   },
-  contactRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, paddingHorizontal: 18 },
+  contactRow: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingVertical: 16, paddingHorizontal: 20 },
   contactIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
   contactBody: { flex: 1 },
   contactTitle: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.ink, marginBottom: 2 },
   contactSub: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted },
-  contactDivider: { height: 1, backgroundColor: Colors.border, marginHorizontal: 18 },
+  contactDivider: { height: 1, backgroundColor: Colors.border, marginHorizontal: 20 },
 
   faqCard: {
     marginHorizontal: 20, backgroundColor: Colors.white,
     borderRadius: 16, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden',
   },
-  faqItem: { paddingVertical: 16, paddingHorizontal: 18, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  faqItem: { paddingVertical: 16, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: Colors.border },
   faqHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   faqQ: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.ink, flex: 1, marginRight: 12 },
-  faqA: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, lineHeight: 20, marginTop: 10 },
+  faqA: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted, lineHeight: 20, marginTop: 12 },
 });

@@ -20,8 +20,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, Pressable, Dimensions, Platform, ScrollView,
+  View, Text, StyleSheet, Dimensions, Platform, ScrollView,
 } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, Circle, Defs, RadialGradient, Stop, Rect, LinearGradient as LinearGradientSvg } from 'react-native-svg';

@@ -1,7 +1,8 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, Pressable, ScrollView, Platform, Modal,
+  View, Text, StyleSheet, ScrollView, Platform, Modal,
 } from 'react-native';
+import Pressable from '@/components/primitives/Pressable';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Svg, { Path } from 'react-native-svg';
@@ -690,6 +691,7 @@ export default function QuizScreen() {
                   return (
                     <Pressable
                       key={opt.value}
+                      haptic="select"
                       onPress={() => select(opt.value)}
                       style={[$.chartItem, active && $.chartItemActive]}
                     >
@@ -710,7 +712,8 @@ export default function QuizScreen() {
                 return (
                   <Pressable
                     key={opt.value}
-                    onPress={() => select(opt.value)}
+                    haptic="select"
+                      onPress={() => select(opt.value)}
                     style={({ pressed }) => [$.opt, sel && $.optSel, pressed && $.optPressed]}
                   >
                     {step.id === 'curl' && (
@@ -738,6 +741,7 @@ export default function QuizScreen() {
       {!(step.kind === 'question' && !step.multi) && (
       <View style={$.footer}>
         <Pressable
+          haptic="tap"
           onPress={canContinue ? handleNext : undefined}
           disabled={!canContinue}
           style={({ pressed }) => [
@@ -776,7 +780,7 @@ export default function QuizScreen() {
 // ─── Styles ──────────────────────────────────────────────────────
 const $ = StyleSheet.create({
   greeting: { fontFamily: Fonts.headingSemi, fontStyle: 'italic', fontSize: 16, color: '#E6BEF5', marginBottom: 8 },
-  progress: { flex: 1, flexDirection: 'row', gap: 5, alignItems: 'center' },
+  progress: { flex: 1, flexDirection: 'row', gap: 4, alignItems: 'center' },
   progressSeg: { flex: 1, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.14)' },
   progressSegOn: { backgroundColor: Colors.lime },
   container: { flex: 1, backgroundColor: Colors.porcelain },
@@ -785,10 +789,10 @@ const $ = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 58 : 44,
-    paddingBottom: 14,
+    paddingBottom: 16,
   },
   backBtn: {
-    width: 36, height: 36, borderRadius: 18,
+    width: 36, height: 36, borderRadius: 999,
     backgroundColor: Colors.white, borderWidth: 1.5, borderColor: Colors.border,
     alignItems: 'center', justifyContent: 'center',
   },
@@ -798,28 +802,28 @@ const $ = StyleSheet.create({
   scroll: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 32 },
 
   // Question header
-  qRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 12 },
+  qRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 12 },
   question: { fontFamily: Fonts.heading, fontSize: 22, color: Colors.ink, letterSpacing: -0.5, lineHeight: 28 },
-  qSub: { fontFamily: Fonts.body, fontSize: 13, color: Colors.muted, marginTop: 4, lineHeight: 19 },
+  qSub: { fontFamily: Fonts.body, fontSize: 14, color: Colors.muted, marginTop: 4, lineHeight: 19 },
   helpBtn: {
-    width: 32, height: 32, borderRadius: 16,
+    width: 32, height: 32, borderRadius: 999,
     backgroundColor: Colors.white, borderWidth: 1.5, borderColor: Colors.border,
     alignItems: 'center', justifyContent: 'center', marginTop: 2,
   },
-  helpBtnText: { fontFamily: Fonts.headingSemi, fontSize: 15, color: Colors.violet },
+  helpBtnText: { fontFamily: Fonts.headingSemi, fontSize: 16, color: Colors.violet },
 
   // Auto-promotion banner — visible inference on goals step
   autoBanner: {
     padding: 16,
-    borderRadius: 14,
+    borderRadius: 16,
     backgroundColor: 'rgba(244,132,185,0.08)',
     borderLeftWidth: 3,
     borderLeftColor: Colors.pink,
-    marginBottom: 18,
+    marginBottom: 20,
     gap: 4,
   },
   autoBannerLabel: {
-    fontFamily: Fonts.bodySemi, fontSize: 10,
+    fontFamily: Fonts.bodySemi, fontSize: 11,
     color: Colors.pink,
     letterSpacing: 1.6,
   },
@@ -838,8 +842,8 @@ const $ = StyleSheet.create({
   // Pro tip — italic line
   tipText: {
     fontFamily: Fonts.body, fontStyle: 'italic',
-    fontSize: 13, color: Colors.muted,
-    lineHeight: 19, marginBottom: 18,
+    fontSize: 14, color: Colors.muted,
+    lineHeight: 19, marginBottom: 20,
   },
 
   multiLabel: {
@@ -848,28 +852,28 @@ const $ = StyleSheet.create({
   },
 
   // Curl chart
-  chartRow: { flexDirection: 'row', gap: 10, marginBottom: 18, marginTop: 4 },
+  chartRow: { flexDirection: 'row', gap: 12, marginBottom: 20, marginTop: 4 },
   chartItem: {
-    flex: 1, padding: 12, borderRadius: 14,
+    flex: 1, padding: 12, borderRadius: 16,
     backgroundColor: Colors.white,
     borderWidth: 1.5, borderColor: Colors.border,
-    alignItems: 'center', gap: 6,
+    alignItems: 'center', gap: 8,
   },
   chartItemActive: { borderColor: Colors.violet, backgroundColor: 'rgba(118,67,172,0.04)' },
   chartPatternBox: {
     width: 56, height: 70, alignItems: 'center', justifyContent: 'center',
-    borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.08)',
   },
   chartPatternBoxActive: { backgroundColor: 'rgba(118,67,172,0.10)' },
   chartLabel: { fontFamily: Fonts.bodyBold, fontSize: 14, color: Colors.ink },
   chartLabelActive: { color: Colors.violet },
-  chartDesc: { fontFamily: Fonts.body, fontSize: 10, color: Colors.muted, textAlign: 'center', lineHeight: 13 },
+  chartDesc: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted, textAlign: 'center', lineHeight: 13 },
   chartDescActive: { color: Colors.ink },
 
   // Options
-  opts: { gap: 10 },
+  opts: { gap: 12 },
   opt: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
+    flexDirection: 'row', alignItems: 'center', gap: 16,
     padding: 16, borderRadius: 16,
     backgroundColor: Colors.white,
     borderWidth: 1, borderColor: Colors.border,
@@ -882,12 +886,12 @@ const $ = StyleSheet.create({
 
   optStrand: {
     width: 50, height: 60, alignItems: 'center', justifyContent: 'center',
-    borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.08)',
   },
   optStrandSel: { backgroundColor: 'rgba(255,255,255,0.14)' },
 
   indicator: {
-    width: 22, height: 22, borderRadius: 11,
+    width: 22, height: 22, borderRadius: 999,
     borderWidth: 2, borderColor: Colors.border,
     alignItems: 'center', justifyContent: 'center',
   },
@@ -895,7 +899,7 @@ const $ = StyleSheet.create({
   indicatorCheck: { fontSize: 12, color: '#120B2E', fontFamily: Fonts.bodyBold, marginTop: -1 },
 
   optBody: { flex: 1 },
-  optLabel: { fontFamily: Fonts.bodySemi, fontSize: 15, color: Colors.ink, marginBottom: 2 },
+  optLabel: { fontFamily: Fonts.bodySemi, fontSize: 16, color: Colors.ink, marginBottom: 2 },
   optLabelSel: { color: '#FFFFFF' },
   optDesc: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, lineHeight: 16 },
 
@@ -950,7 +954,7 @@ const $ = StyleSheet.create({
   },
   nextBtnOff: { backgroundColor: 'rgba(255,255,255,0.12)', shadowOpacity: 0, elevation: 0 },
   nextBtnPress: { transform: [{ scale: 0.985 }], opacity: 0.92 },
-  nextLabel: { fontFamily: Fonts.headingSemi, fontSize: 15, color: '#FFFFFF', letterSpacing: 0.2 },
+  nextLabel: { fontFamily: Fonts.headingSemi, fontSize: 16, color: '#FFFFFF', letterSpacing: 0.2 },
   nextLabelOff: { color: '#9D9686' },
 
   // Help sheet
@@ -965,10 +969,10 @@ const $ = StyleSheet.create({
     alignSelf: 'center',
     width: 38, height: 4, borderRadius: 2,
     backgroundColor: Colors.border,
-    marginBottom: 14,
+    marginBottom: 16,
   },
   sheetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  sheetTitle: { fontFamily: Fonts.heading, fontSize: 20, color: Colors.ink, letterSpacing: -0.3 },
-  sheetClose: { fontFamily: Fonts.heading, fontSize: 28, color: Colors.muted, lineHeight: 28 },
+  sheetTitle: { fontFamily: Fonts.heading, fontSize: 22, color: Colors.ink, letterSpacing: -0.3 },
+  sheetClose: { fontFamily: Fonts.heading, fontSize: 32, color: Colors.muted, lineHeight: 38 },
   sheetBody: { fontFamily: Fonts.body, fontSize: 14, color: Colors.ink, lineHeight: 22 },
 });
