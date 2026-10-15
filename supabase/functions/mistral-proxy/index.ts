@@ -116,18 +116,33 @@ Deno.serve(async (req) => {
       products = data ?? [];
     }
 
-    const mistralRes = await fetch('https://api.mistral.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'mistral-small-latest',
-        max_tokens: 700,
-        temperature: 0.6,
-        messages: [{ role: 'system', content: buildSystemPrompt(hairType, products) }, ...messages],
-      }),
+    // Mistral sometimes answers 429 ("busy"): its free tier allows about one
+    // request a second, and a model can be at capacity. Try again after a short
+    // wait, then fall back to a smaller model, before telling the person.
+    const payload = (model: string) => JSON.stringify({
+      model,
+      max_tokens: 700,
+      temperature: 0.6,
+      messages: [{ role: 'system', content: buildSystemPrompt(hairType, products) }, ...messages],
     });
+    const attempts = [
+      { model: 'mistral-small-latest', waitMs: 0 },
+      { model: 'mistral-small-latest', waitMs: 1500 },
+      { model: 'ministral-8b-latest', waitMs: 1500 },
+    ];
+    let mistralRes: Response | null = null;
+    for (const a of attempts) {
+      if (a.waitMs) await new Promise(r => setTimeout(r, a.waitMs));
+      mistralRes = await fetch('https://api.mistral.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: payload(a.model),
+      });
+      if (mistralRes.status !== 429) break;
+      console.error('Mistral 429 on', a.model, await mistralRes.text());
+    }
 
-    if (mistralRes.status === 429) return json({ error: 'Halea is busy. Give it a few seconds, then ask again.' }, 429);
+    if (!mistralRes || mistralRes.status === 429) return json({ error: 'Halea is busy. Give it a few seconds, then ask again.' }, 429);
     if (!mistralRes.ok) {
       console.error('Mistral error', mistralRes.status, await mistralRes.text());
       return json({ error: 'I had trouble with that one. Try again?' }, 502);

@@ -16,6 +16,18 @@ export type Stylist = {
   bookingUrl: string | null;
   sample: boolean;
   verified: boolean;
+  rating: number | null;        // their public rating, e.g. 4.9
+  ratingCount: number | null;   // how many reviews that rating is from
+  ratingSource: string | null;  // where: 'Fresha', 'Booksy', 'Google'
+};
+
+export type StylistReview = {
+  id: string;
+  author: string;
+  rating: number;
+  body: string;
+  source: string;
+  date: string | null;
 };
 
 export type StylistService = {
@@ -26,7 +38,7 @@ export type StylistService = {
   durationMin: number;
 };
 
-const COLUMNS = 'id, name, speciality, city, about, hair_types, services, photos, booking_url, sample, verified';
+const COLUMNS = 'id, name, speciality, city, about, hair_types, services, photos, booking_url, sample, verified, rating, rating_count, rating_source';
 
 function toStylist(r: any): Stylist {
   return {
@@ -41,13 +53,16 @@ function toStylist(r: any): Stylist {
     bookingUrl: r.booking_url ?? null,
     sample: !!r.sample,
     verified: !!r.verified,
+    rating: r.rating != null ? Number(r.rating) : null,
+    ratingCount: r.rating_count ?? null,
+    ratingSource: r.rating_source ?? null,
   };
 }
 
-// Before supabase/sql/2026-10-15_stylist_services.sql is run, `verified`
-// doesn't exist yet. Fall back to the old columns so Discover never breaks.
-const OLD_COLUMNS = COLUMNS.replace(', verified', '');
-const missingColumn = (e: any) => e?.code === '42703' || /verified/.test(e?.message ?? '');
+// Before the 15 Oct SQL files are run, `verified` and the rating columns
+// don't exist yet. Fall back to the old columns so Discover never breaks.
+const OLD_COLUMNS = COLUMNS.replace(', verified, rating, rating_count, rating_source', '');
+const missingColumn = (e: any) => e?.code === '42703' || /verified|rating/.test(e?.message ?? '');
 
 export async function fetchStylists(): Promise<Stylist[]> {
   const query = (cols: string) => supabase
@@ -85,5 +100,29 @@ export async function fetchStylistServices(id: string): Promise<StylistService[]
     .order('sort');
   return (data ?? []).map((r: any) => ({
     id: r.id, name: r.name, pricePence: r.price_pence, priceFrom: !!r.price_from, durationMin: r.duration_min,
+  }));
+}
+
+// Lowest price per stylist, for "from £45" on Discover cards.
+export async function fetchFromPrices(): Promise<Record<string, { pence: number; from: boolean }>> {
+  const { data } = await supabase.from('stylist_services').select('stylist_id, price_pence, price_from');
+  const out: Record<string, { pence: number; from: boolean }> = {};
+  for (const r of (data ?? []) as any[]) {
+    const cur = out[r.stylist_id];
+    if (!cur || r.price_pence < cur.pence) out[r.stylist_id] = { pence: r.price_pence, from: true };
+  }
+  return out;
+}
+
+// Short quotes from the stylist's public reviews, newest first.
+export async function fetchStylistReviews(id: string): Promise<StylistReview[]> {
+  const { data } = await supabase
+    .from('stylist_reviews')
+    .select('id, author, rating, body, source, review_date')
+    .eq('stylist_id', id)
+    .order('sort')
+    .limit(10);
+  return (data ?? []).map((r: any) => ({
+    id: r.id, author: r.author, rating: r.rating, body: r.body, source: r.source ?? '', date: r.review_date ?? null,
   }));
 }

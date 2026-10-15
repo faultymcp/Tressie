@@ -15,7 +15,9 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { Colors, Fonts } from '@/constants/theme';
 import { FluidOrb } from '@/components/FluidOrb';
 import { PhotoCarousel } from '@/components/PhotoCarousel';
-import { fetchStylists, Stylist } from '@/lib/stylists';
+import { fetchStylists, fetchFromPrices, Stylist } from '@/lib/stylists';
+import { RatingLine } from '@/components/Rating';
+import { formatPrice } from '@/lib/format';
 import { track } from '@/lib/analytics';
 
 const { width: W } = Dimensions.get('window');
@@ -27,12 +29,14 @@ export default function DiscoverScreen() {
   const [typeGroup, setTypeGroup] = useState('');
   const [stylists, setStylists] = useState<Stylist[] | null>(null);
   const [failed, setFailed] = useState(false);
+  const [prices, setPrices] = useState<Record<string, { pence: number; from: boolean }>>({});
 
   // Reload whenever the tab is opened, so newly added stylists show up.
   useFocusEffect(useCallback(() => {
     fetchStylists()
       .then(list => { setStylists(list); setFailed(false); })
       .catch(() => setFailed(true));
+    fetchFromPrices().then(setPrices).catch(() => {});
   }, []));
 
   useEffect(() => {
@@ -86,6 +90,12 @@ export default function DiscoverScreen() {
                 </View>
                 <Text style={st.speciality}>{s.speciality}</Text>
                 <Text style={st.city}>{s.city}</Text>
+                {(s.rating != null || prices[s.id]) ? (
+                  <View style={st.metaRow}>
+                    {s.rating != null ? <RatingLine rating={s.rating} count={s.ratingCount} /> : null}
+                    {prices[s.id] ? <Text style={st.price}>{formatPrice(prices[s.id].pence, true)}</Text> : null}
+                  </View>
+                ) : null}
               </View>
               <Text style={st.viewLink}>View work →</Text>
             </Pressable>
@@ -123,6 +133,8 @@ const st = StyleSheet.create({
   sampleText: { fontFamily: Fonts.bodySemi, fontSize: 11, letterSpacing: 1.4, color: 'rgba(255,254,247,0.85)' },
   info: { flexDirection: 'row', alignItems: 'flex-end', padding: 16 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 8 },
+  price: { fontFamily: 'Sora_500Medium', fontSize: 12, color: Colors.lavender },
   name: { fontFamily: Fonts.heading, fontSize: 22, color: Colors.ink },
   speciality: { fontFamily: Fonts.body, fontSize: 14, color: 'rgba(255,254,247,0.75)', marginTop: 3 },
   city: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted, marginTop: 2 },

@@ -23,7 +23,7 @@ const IC = {
   LogOut: () => <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={Colors.error} strokeWidth={1.6} strokeLinecap="round"><Path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><Path d="M16 17l5-5-5-5" /><Line x1="21" y1="12" x2="9" y2="12" /></Svg>,
   BarChart: () => <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={Colors.ink} strokeWidth={1.6} strokeLinecap="round"><Path d="M18 20V10M12 20V4M6 20v-6" /></Svg>,
   Edit: () => <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={Colors.violet} strokeWidth={1.6} strokeLinecap="round"><Path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><Path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></Svg>,
-  Flame: () => <Svg width={16} height={16} viewBox="0 0 24 24" fill={Colors.violet} stroke="none"><Path d="M12 2c1 4-2 6-2 10a4 4 0 008 0c0-2-1-3-2-4 0 2-1 3-2 3s-2-1-2-3c0-1 .5-2 1-3-1 0-1.5 1-1.5 1S10 4 12 2z" /></Svg>,
+  Flame: () => <Svg width={14} height={14} viewBox="0 0 24 24" fill={Colors.pink} stroke="none"><Path d="M12 2c1 4-2 6-2 10a4 4 0 008 0c0-2-1-3-2-4 0 2-1 3-2 3s-2-1-2-3c0-1 .5-2 1-3-1 0-1.5 1-1.5 1S10 4 12 2z" /></Svg>,
 };
 
 const TYPE_NAMES: Record<string, string> = {
@@ -141,17 +141,16 @@ export default function ProfileScreen() {
           <View style={st.userInfo}>
             <Text style={st.userName}>{name}</Text>
             <Text style={st.userMeta}>{hairType ? `Type ${hairType} · ${typeName}` : 'Complete your hair quiz'}</Text>
+            {/* Streak lives with the person, as a small pill, not its own box */}
+            <View style={[st.streakPill, streak === 0 && st.streakPillOff]}>
+              <IC.Flame />
+              <Text style={st.streakText}>
+                {streak === 0 ? 'Start your streak today' : `${streak}-day streak`}
+              </Text>
+            </View>
           </View>
           <IC.Edit />
         </Pressable>
-      </Animated.View>
-
-      {/* Stats */}
-      <Animated.View entering={FadeInUp.duration(280).delay(40)} style={st.statsRow}>
-        <View style={st.statCard}>
-          <View style={st.streakRow}><IC.Flame /><Text style={st.statValue}>{streak}</Text></View>
-          <Text style={st.statLabel}>Streak</Text>
-        </View>
       </Animated.View>
 
       {/* Activity */}
@@ -212,6 +211,13 @@ const st = StyleSheet.create({
   statLabel: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted },
   statDivider: { width: 1, height: 32, backgroundColor: Colors.border },
   streakRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  streakPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start',
+    paddingVertical: 4, paddingLeft: 8, paddingRight: 12, borderRadius: 999,
+    backgroundColor: 'rgba(244,132,185,0.14)', borderWidth: 1, borderColor: 'rgba(244,132,185,0.35)',
+  },
+  streakPillOff: { backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.14)' },
+  streakText: { fontFamily: 'Sora_500Medium', fontSize: 12, color: Colors.ink },
   sectionLabel: { fontFamily: Fonts.bodySemi, fontSize: 14, color: Colors.muted, textTransform: 'uppercase', letterSpacing: 0.8, paddingHorizontal: 20, marginBottom: 8, marginTop: 4 },
   menuCard: { marginHorizontal: 20, marginBottom: 20, backgroundColor: Colors.white, borderRadius: 16, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden' },
   menuRow: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingVertical: 16, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: Colors.border },

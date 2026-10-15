@@ -1,6 +1,6 @@
 // components/PhotoCarousel.tsx
 // Swipe sideways through a stylist's photos, with small dots showing where
-// you are (active dot is lime — the "you are here" colour, same as the nav).
+// you are (active dot is lavender, the "you are here" colour, same as the nav).
 
 import { useState } from 'react';
 import { View, Image, FlatList, StyleSheet, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
@@ -10,9 +10,10 @@ type Props = {
   width: number;
   height: number;
   radius?: number;
+  dotsBottom?: number;   // lift the dots when something overlaps the bottom of the photo
 };
 
-export function PhotoCarousel({ photos, width, height, radius = 22 }: Props) {
+export function PhotoCarousel({ photos, width, height, radius = 22, dotsBottom = 12 }: Props) {
   const [page, setPage] = useState(0);
 
   const onEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -33,7 +34,7 @@ export function PhotoCarousel({ photos, width, height, radius = 22 }: Props) {
         )}
       />
       {photos.length > 1 ? (
-        <View style={st.dots} pointerEvents="none">
+        <View style={[st.dots, { bottom: dotsBottom }]} pointerEvents="none">
           {photos.map((_, i) => (
             <View key={i} style={[st.dot, i === page && st.dotOn]} />
           ))}

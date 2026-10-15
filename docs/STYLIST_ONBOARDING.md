@@ -14,6 +14,8 @@ At launch, the **Book** button opens the stylist's own booking link (Fresha, Boo
 | Hair types you work with (Type 1, 2, 3, 4) | Discover matching |
 | Each service: name, price, how long it takes, "from" price or fixed | Price list on their page |
 | **Booking link** (Fresha, Booksy, website, or Instagram if they book by DM) | The Book button |
+| Their rating and number of reviews, and where (Fresha, Booksy, Google) | Rating on their page |
+| 2 to 3 short reviews from clients, with permission to show them | Reviews on their page |
 | Instagram handle | Checking their work |
 | 6 to 12 photos of their own work | Profile photos |
 | Tick: "These photos are my own work and Halea can show them" | Permission |
@@ -50,6 +52,13 @@ values (
 insert into public.stylist_services (stylist_id, name, price_pence, duration_min, price_from, sort) values
   ('amara-brixton', 'Knotless braids, medium', 12000, 300, true, 1),
   ('amara-brixton', 'Silk press',               6000,  120, false, 2);
+
+-- Rating (their public rating, always with where it's from)
+update public.stylists set rating = 4.9, rating_count = 212, rating_source = 'Fresha' where id = 'amara-brixton';
+
+-- Reviews: first name and initial only
+insert into public.stylist_reviews (stylist_id, author, rating, body, source, review_date, sort) values
+  ('amara-brixton', 'Tobi A.', 5, 'My curls came back after the silk press.', 'Fresha', '2026-09-28', 1);
 ```
 
 ## 4. Useful changes later
